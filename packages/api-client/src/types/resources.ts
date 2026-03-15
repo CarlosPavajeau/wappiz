@@ -1,0 +1,34 @@
+export type WorkingHour = {
+  id: string
+  dayOfWeek: number
+  dayName: string
+  startTime: string
+  endTime: string
+  isActive: boolean
+}
+
+export type Resource = {
+  id: string
+  name: string
+  type: string
+  avatarUrl: string
+  sortOrder: number
+  workingHours: WorkingHour[]
+}
+
+export type CreateResourceRequest = {
+  name: string
+  type: string
+  avatarURL?: string
+}
+
+export type AssignServicesRequest = {
+  serviceIds: string[]
+}
+
+export type UpdateWorkingHoursRequest = {
+  dayOfWeek: number
+  startTime: string
+  endTime: string
+  isActive: boolean
+}

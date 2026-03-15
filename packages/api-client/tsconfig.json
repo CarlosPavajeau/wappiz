@@ -1,0 +1,10 @@
+{
+  "extends": "@wappiz/config/tsconfig.base.json",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "lib": [
+      "ESNext",
+      "DOM"
+    ]
+  }
+}
