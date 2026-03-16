@@ -103,8 +103,8 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex items-center gap-1.5 sm:order-last">
           <Button
             aria-label="Previous day"
             size="icon-sm"
@@ -135,21 +135,31 @@ export function AdminDashboard() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-1.5 sm:order-first sm:flex">
-          <FilterSelect
-            label="Recursos"
-            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
-            selectedIds={resourceIds}
-            onSelectedIdsChange={setResourceIds}
-            isLoading={isLoadingResources}
-          />
-          <FilterSelect
-            label="Servicios"
-            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
-            selectedIds={serviceIds}
-            onSelectedIdsChange={setServiceIds}
-            isLoading={isLoadingServices}
-          />
+        <div className="flex w-full gap-1.5 sm:w-auto sm:order-first">
+          <div className="flex-1 sm:flex-none">
+            <FilterSelect
+              label="Recursos"
+              items={(resources ?? []).map((r) => ({
+                id: r.id,
+                label: r.name,
+              }))}
+              selectedIds={resourceIds}
+              onSelectedIdsChange={setResourceIds}
+              isLoading={isLoadingResources}
+            />
+          </div>
+          <div className="flex-1 sm:flex-none">
+            <FilterSelect
+              label="Servicios"
+              items={(services ?? []).map((s) => ({
+                id: s.id,
+                label: s.name,
+              }))}
+              selectedIds={serviceIds}
+              onSelectedIdsChange={setServiceIds}
+              isLoading={isLoadingServices}
+            />
+          </div>
         </div>
       </div>
 
