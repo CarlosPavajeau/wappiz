@@ -13,6 +13,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 const NAV_ITEMS = [
@@ -23,6 +24,16 @@ const NAV_ITEMS = [
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const { isMobile, openMobile, setOpenMobile } = useSidebar()
+
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setOpenMobile(!openMobile)
+    } else {
+      setOpenMobile(false)
+      setOpenMobile(!openMobile)
+    }
+  }
 
   return (
     <Sidebar collapsible="icon">
@@ -51,6 +62,7 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       isActive={isActive}
                       render={<Link href={href} />}
+                      onClick={toggleSidebar}
                     >
                       <Icon />
                       <span>{label}</span>
