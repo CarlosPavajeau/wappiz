@@ -1,8 +1,9 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { addDays, format, isToday, subDays } from "date-fns"
+import { addDays, format, isToday, parseISO, subDays } from "date-fns"
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
+import { parseAsString, useQueryState } from "nuqs"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -26,12 +27,15 @@ function toDateKey(date: Date) {
 }
 
 export function AdminDashboard() {
-  const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [dateParam, setDateParam] = useQueryState(
+    "date",
+    parseAsString.withDefault(toDateKey(new Date()))
+  )
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
 
-  const dateKey = toDateKey(selectedDate)
+  const selectedDate = parseISO(dateParam)
   const isViewingToday = isToday(selectedDate)
 
   const {
@@ -39,8 +43,8 @@ export function AdminDashboard() {
     isLoading,
     isError,
   } = useQuery({
-    queryFn: () => api.appointments.list({ params: { date: dateKey } }),
-    queryKey: ["appointments", dateKey],
+    queryFn: () => api.appointments.list({ params: { date: dateParam } }),
+    queryKey: ["appointments", dateParam],
   })
 
   const sorted = appointments
@@ -50,9 +54,9 @@ export function AdminDashboard() {
       )
     : []
 
-  const goToPrev = () => setSelectedDate((d) => subDays(d, 1))
-  const goToNext = () => setSelectedDate((d) => addDays(d, 1))
-  const goToToday = () => setSelectedDate(new Date())
+  const goToPrev = () => setDateParam(toDateKey(subDays(selectedDate, 1)))
+  const goToNext = () => setDateParam(toDateKey(addDays(selectedDate, 1)))
+  const goToToday = () => setDateParam(null)
 
   const openDetail = (appointment: Appointment) => {
     setSelectedAppointment(appointment)
@@ -71,7 +75,10 @@ export function AdminDashboard() {
           <ChevronLeft />
         </Button>
 
-        <DatePicker value={selectedDate} onChange={setSelectedDate} />
+        <DatePicker
+          value={selectedDate}
+          onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+        />
 
         <Button
           aria-label="Next day"
