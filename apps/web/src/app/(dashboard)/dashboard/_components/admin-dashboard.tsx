@@ -104,6 +104,23 @@ export function AdminDashboard() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <FilterSelect
+            label="Recursos"
+            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
+            selectedIds={resourceIds}
+            onSelectedIdsChange={setResourceIds}
+            isLoading={isLoadingResources}
+          />
+          <FilterSelect
+            label="Servicios"
+            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
+            selectedIds={serviceIds}
+            onSelectedIdsChange={setServiceIds}
+            isLoading={isLoadingServices}
+          />
+        </div>
+
         <Button
           aria-label="Previous day"
           size="icon-sm"
@@ -132,23 +149,6 @@ export function AdminDashboard() {
             Hoy
           </Button>
         )}
-
-        <div className="flex items-center gap-1.5">
-          <FilterSelect
-            label="Recursos"
-            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
-            selectedIds={resourceIds}
-            onSelectedIdsChange={setResourceIds}
-            isLoading={isLoadingResources}
-          />
-          <FilterSelect
-            label="Servicios"
-            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
-            selectedIds={serviceIds}
-            onSelectedIdsChange={setServiceIds}
-            isLoading={isLoadingServices}
-          />
-        </div>
       </div>
 
       <Separator />
