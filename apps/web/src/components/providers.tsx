@@ -16,11 +16,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             gcTime: 1000 * 60 * 5,
             refetchOnWindowFocus: false,
             retry: (failureCount, error) => {
+              // Don't retry on 500 errors
               if (
                 error instanceof AxiosError &&
                 error.response?.status === 500
-              ) // Don't retry on 500 errors
-              {
+              ) {
                 return false
               }
               return failureCount < 2
