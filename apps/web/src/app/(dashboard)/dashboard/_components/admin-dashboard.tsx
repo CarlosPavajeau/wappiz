@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { addDays, format, isToday, parseISO, subDays } from "date-fns"
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
-import { parseAsString, useQueryState } from "nuqs"
+import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -21,6 +21,7 @@ import { api } from "@/lib/client-api"
 import { AppointmentCard, AppointmentSkeleton } from "./appointment-card"
 import { AppointmentDetailModal } from "./appointment-detail-modal"
 import { type Appointment } from "./appointment-utils"
+import { FilterSelect } from "./filter-select"
 
 function toDateKey(date: Date) {
   return format(date, "yyyy-MM-dd")
@@ -30,6 +31,14 @@ export function AdminDashboard() {
   const [dateParam, setDateParam] = useQueryState(
     "date",
     parseAsString.withDefault(toDateKey(new Date()))
+  )
+  const [resourceIds, setResourceIds] = useQueryState(
+    "resources",
+    parseAsArrayOf(parseAsString).withDefault([])
+  )
+  const [serviceIds, setServiceIds] = useQueryState(
+    "services",
+    parseAsArrayOf(parseAsString).withDefault([])
   )
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null)
@@ -47,12 +56,41 @@ export function AdminDashboard() {
     queryKey: ["appointments", dateParam],
   })
 
+  const { data: resources, isLoading: isLoadingResources } = useQuery({
+    queryFn: () => api.resources.list(),
+    queryKey: ["resources"],
+  })
+
+  const { data: services, isLoading: isLoadingServices } = useQuery({
+    queryFn: () => api.services.list(),
+    queryKey: ["services"],
+  })
+
   const sorted = appointments
     ? [...appointments].toSorted(
         (a, b) =>
           new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
       )
     : []
+
+  const selectedResourceNames = new Set(
+    resourceIds
+      .map((id) => resources?.find((r) => r.id === id)?.name)
+      .filter(Boolean)
+  )
+  const selectedServiceNames = new Set(
+    serviceIds
+      .map((id) => services?.find((s) => s.id === id)?.name)
+      .filter(Boolean)
+  )
+
+  const filtered = sorted.filter((a) => {
+    const matchesResource =
+      resourceIds.length === 0 || selectedResourceNames.has(a.resourceName)
+    const matchesService =
+      serviceIds.length === 0 || selectedServiceNames.has(a.serviceName)
+    return matchesResource && matchesService
+  })
 
   const goToPrev = () => setDateParam(toDateKey(subDays(selectedDate, 1)))
   const goToNext = () => setDateParam(toDateKey(addDays(selectedDate, 1)))
@@ -65,7 +103,7 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Button
           aria-label="Previous day"
           size="icon-sm"
@@ -94,6 +132,23 @@ export function AdminDashboard() {
             Hoy
           </Button>
         )}
+
+        <div className="ml-auto flex items-center gap-1.5">
+          <FilterSelect
+            label="Recursos"
+            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
+            selectedIds={resourceIds}
+            onSelectedIdsChange={setResourceIds}
+            isLoading={isLoadingResources}
+          />
+          <FilterSelect
+            label="Servicios"
+            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
+            selectedIds={serviceIds}
+            onSelectedIdsChange={setServiceIds}
+            isLoading={isLoadingServices}
+          />
+        </div>
       </div>
 
       <Separator />
@@ -109,7 +164,7 @@ export function AdminDashboard() {
           Ha ocurrido un error al cargar las citas. Por favor, inténtalo de
           nuevo.
         </p>
-      ) : sorted.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <Empty>
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -122,25 +177,23 @@ export function AdminDashboard() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <>
-          <ol aria-label="Appointments" className="flex flex-col gap-2">
-            {sorted.map((appointment) => (
-              <li key={appointment.id}>
-                <AppointmentCard
-                  appointment={appointment}
-                  onClick={() => openDetail(appointment)}
-                />
-              </li>
-            ))}
-          </ol>
-
-          <AppointmentDetailModal
-            appointment={selectedAppointment}
-            open={detailOpen}
-            onOpenChange={setDetailOpen}
-          />
-        </>
+        <ol aria-label="Appointments" className="flex flex-col gap-2">
+          {filtered.map((appointment) => (
+            <li key={appointment.id}>
+              <AppointmentCard
+                appointment={appointment}
+                onClick={() => openDetail(appointment)}
+              />
+            </li>
+          ))}
+        </ol>
       )}
+
+      <AppointmentDetailModal
+        appointment={selectedAppointment}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </div>
   )
 }
