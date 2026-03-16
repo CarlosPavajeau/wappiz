@@ -39,7 +39,7 @@ export function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         disabled={disabled}
-        render={<Button variant="outline" />}
+        render={<Button variant="outline" size="sm" />}
         className={cn(
           "w-44 justify-start gap-2 font-normal",
           !value && "text-muted-foreground"

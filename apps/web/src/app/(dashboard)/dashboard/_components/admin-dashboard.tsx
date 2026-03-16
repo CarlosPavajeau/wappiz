@@ -25,8 +25,18 @@ const STATUS_VARIANT = {
   pending: "outline",
 } as const
 
+const STATUS_LABEL = {
+  cancelled: "Cancelada",
+  confirmed: "Confirmada",
+  pending: "Pendente",
+} as const
+
 function statusVariant(status: string) {
   return STATUS_VARIANT[status as keyof typeof STATUS_VARIANT] ?? "outline"
+}
+
+function statusLabel(status: string) {
+  return STATUS_LABEL[status as keyof typeof STATUS_LABEL] ?? status
 }
 
 function formatTime(iso: string) {
@@ -134,7 +144,7 @@ export function AdminDashboard() {
               key={appointment.id}
               className="flex items-stretch gap-3 rounded-lg border border-border p-3"
             >
-              <div className="flex min-w-[4.5rem] flex-col items-end justify-center gap-0.5 tabular-nums">
+              <div className="flex min-w-18 flex-col items-end justify-center gap-0.5 tabular-nums">
                 <span className="text-xs font-medium text-foreground">
                   {formatTime(appointment.startsAt)}
                 </span>
@@ -147,8 +157,11 @@ export function AdminDashboard() {
 
               <div className="flex flex-1 flex-col justify-center gap-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant={statusVariant(appointment.status)}>
-                    {appointment.status}
+                  <Badge
+                    variant={statusVariant(appointment.status)}
+                    className="rounded-sm"
+                  >
+                    {statusLabel(appointment.status)}
                   </Badge>
                 </div>
                 <p className="text-xs text-muted-foreground">
