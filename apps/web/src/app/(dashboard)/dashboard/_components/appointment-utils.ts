@@ -1,7 +1,5 @@
 import { format } from "date-fns"
 
-import { api } from "@/lib/client-api"
-
 export const STATUS_VARIANT = {
   cancelled: "destructive",
   confirmed: "default",
@@ -13,10 +11,6 @@ export const STATUS_LABEL = {
   confirmed: "Confirmada",
   pending: "Pendente",
 } as const
-
-export type Appointment = NonNullable<
-  Awaited<ReturnType<typeof api.appointments.list>>
->[number]
 
 export function statusVariant(status: string) {
   return STATUS_VARIANT[status as keyof typeof STATUS_VARIANT] ?? "outline"

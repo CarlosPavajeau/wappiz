@@ -6,5 +6,5 @@ export type Appointment = {
   startsAt: string
   endsAt: string
   status: string
-  priceAtBooking: string
+  priceAtBooking: number
 }

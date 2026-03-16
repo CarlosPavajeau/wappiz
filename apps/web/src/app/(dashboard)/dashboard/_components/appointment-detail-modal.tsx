@@ -1,8 +1,10 @@
 "use client"
 
-import { differenceInMinutes, format } from "date-fns"
+import type { Appointment } from "@wappiz/api-client/types/appointments"
+import { differenceInMinutes, format, formatDuration } from "date-fns"
+import { es } from "date-fns/locale"
 import { Clock, DollarSign, Scissors, User } from "lucide-react"
-import { type ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -24,12 +26,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
 
-import {
-  type Appointment,
-  formatTime,
-  statusLabel,
-  statusVariant,
-} from "./appointment-utils"
+import { formatTime, statusLabel, statusVariant } from "./appointment-utils"
 
 function DetailRow({
   icon,
@@ -61,25 +58,28 @@ function DetailRow({
   )
 }
 
-function AppointmentDetailContent({
-  appointment,
-}: {
+const currencyFormat = new Intl.NumberFormat("en-CO", {
+  style: "currency",
+  currency: "COP",
+})
+
+type Props = {
   appointment: Appointment
-}) {
+}
+
+function AppointmentDetailContent({ appointment }: Readonly<Props>) {
   const start = new Date(appointment.startsAt)
   const end = new Date(appointment.endsAt)
   const totalMinutes = differenceInMinutes(end, start)
-  const hours = Math.floor(totalMinutes / 60)
-  const mins = totalMinutes % 60
-  const duration =
-    hours > 0
-      ? `${hours}h${mins > 0 ? ` ${mins}min` : ""}`
-      : `${totalMinutes}min`
+  const totalTime = formatDuration(
+    { minutes: totalMinutes },
+    {
+      locale: es,
+      format: ["minutes", "hours"],
+    }
+  )
 
-  const price = Number.parseFloat(appointment.priceAtBooking)
-  const formattedPrice = Number.isNaN(price)
-    ? appointment.priceAtBooking
-    : `$${price.toFixed(2)}`
+  const formattedPrice = currencyFormat.format(appointment.priceAtBooking)
 
   const dateLabel = format(start, "dd/MM/yyyy")
 
@@ -114,7 +114,7 @@ function AppointmentDetailContent({
           icon={<Clock className="size-4" />}
           label="Horario"
           value={`${formatTime(appointment.startsAt)} – ${formatTime(appointment.endsAt)}`}
-          subvalue={`${dateLabel} · ${duration}`}
+          subvalue={`${dateLabel} · ${totalTime}`}
         />
         <DetailRow
           icon={<DollarSign className="size-4" />}
