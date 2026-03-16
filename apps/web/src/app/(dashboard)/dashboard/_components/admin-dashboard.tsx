@@ -8,6 +8,13 @@ import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/client-api"
@@ -90,7 +97,7 @@ export function AdminDashboard() {
 
         {!isViewingToday && (
           <Button size="sm" variant="ghost" onClick={goToToday}>
-            Today
+            Hoy
           </Button>
         )}
       </div>
@@ -105,13 +112,21 @@ export function AdminDashboard() {
         </div>
       ) : isError ? (
         <p className="text-sm text-destructive">
-          Failed to load appointments. Please try again.
+          Ha ocurrido un error al cargar las citas. Por favor, inténtalo de
+          nuevo.
         </p>
       ) : sorted.length === 0 ? (
-        <div className="flex flex-col items-center gap-2 py-12 text-muted-foreground">
-          <CalendarDays className="size-8" aria-hidden="true" />
-          <p className="text-sm">No appointments for this day</p>
-        </div>
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <CalendarDays className="size-8" aria-hidden="true" />
+            </EmptyMedia>
+            <EmptyTitle>No se encontraron citas</EmptyTitle>
+            <EmptyDescription>
+              No hay citas programadas para esta fecha.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <ol aria-label="Appointments" className="flex flex-col gap-2">
           {sorted.map((appointment) => (
