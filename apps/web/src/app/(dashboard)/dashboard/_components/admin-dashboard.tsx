@@ -133,7 +133,7 @@ export function AdminDashboard() {
           </Button>
         )}
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           <FilterSelect
             label="Recursos"
             items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
