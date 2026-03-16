@@ -23,6 +23,7 @@ type FilterSelectProps = {
   selectedIds: string[]
   onSelectedIdsChange: (ids: string[]) => void
   isLoading?: boolean
+  className?: string
 }
 
 export function FilterSelect({
@@ -31,6 +32,7 @@ export function FilterSelect({
   selectedIds,
   onSelectedIdsChange,
   isLoading = false,
+  className,
 }: FilterSelectProps) {
   const count = selectedIds.length
 
@@ -45,7 +47,11 @@ export function FilterSelect({
   return (
     <Popover>
       <PopoverTrigger
-        className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+        className={cn(
+          buttonVariants({ variant: "outline", size: "sm" }),
+          "w-full justify-between",
+          className
+        )}
       >
         {label}
         {count > 0 && <Badge className="ml-0.5">{count}</Badge>}

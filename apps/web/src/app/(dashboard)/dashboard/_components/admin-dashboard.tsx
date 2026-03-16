@@ -103,37 +103,39 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Button
-          aria-label="Previous day"
-          size="icon-sm"
-          variant="outline"
-          onClick={goToPrev}
-        >
-          <ChevronLeft />
-        </Button>
-
-        <DatePicker
-          value={selectedDate}
-          onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
-        />
-
-        <Button
-          aria-label="Next day"
-          size="icon-sm"
-          variant="outline"
-          onClick={goToNext}
-        >
-          <ChevronRight />
-        </Button>
-
-        {!isViewingToday && (
-          <Button size="sm" variant="ghost" onClick={goToToday}>
-            Hoy
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-1.5">
+          <Button
+            aria-label="Previous day"
+            size="icon-sm"
+            variant="outline"
+            onClick={goToPrev}
+          >
+            <ChevronLeft />
           </Button>
-        )}
 
-        <div className="ml-auto flex items-center gap-1.5">
+          <DatePicker
+            value={selectedDate}
+            onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+          />
+
+          <Button
+            aria-label="Next day"
+            size="icon-sm"
+            variant="outline"
+            onClick={goToNext}
+          >
+            <ChevronRight />
+          </Button>
+
+          {!isViewingToday && (
+            <Button size="sm" variant="ghost" onClick={goToToday}>
+              Hoy
+            </Button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-1.5 sm:ml-auto sm:flex">
           <FilterSelect
             label="Recursos"
             items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
