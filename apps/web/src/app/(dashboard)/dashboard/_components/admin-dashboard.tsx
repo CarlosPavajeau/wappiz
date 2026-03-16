@@ -5,7 +5,6 @@ import { addDays, format, isToday, subDays } from "date-fns"
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
 import {
@@ -16,48 +15,21 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import { Skeleton } from "@/components/ui/skeleton"
 import { api } from "@/lib/client-api"
 
-const STATUS_VARIANT = {
-  cancelled: "destructive",
-  confirmed: "default",
-  pending: "outline",
-} as const
-
-const STATUS_LABEL = {
-  cancelled: "Cancelada",
-  confirmed: "Confirmada",
-  pending: "Pendente",
-} as const
-
-function statusVariant(status: string) {
-  return STATUS_VARIANT[status as keyof typeof STATUS_VARIANT] ?? "outline"
-}
-
-function statusLabel(status: string) {
-  return STATUS_LABEL[status as keyof typeof STATUS_LABEL] ?? status
-}
-
-function formatTime(iso: string) {
-  return format(new Date(iso), "h:mm a")
-}
+import { AppointmentCard, AppointmentSkeleton } from "./appointment-card"
+import { AppointmentDetailModal } from "./appointment-detail-modal"
+import { type Appointment } from "./appointment-utils"
 
 function toDateKey(date: Date) {
   return format(date, "yyyy-MM-dd")
 }
 
-function AppointmentSkeleton() {
-  return (
-    <div className="flex items-center gap-4 rounded-lg border border-border p-3">
-      <Skeleton className="h-9 w-16 shrink-0" />
-      <Skeleton className="h-9 flex-1" />
-    </div>
-  )
-}
-
 export function AdminDashboard() {
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<Appointment | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const dateKey = toDateKey(selectedDate)
   const isViewingToday = isToday(selectedDate)
@@ -81,6 +53,11 @@ export function AdminDashboard() {
   const goToPrev = () => setSelectedDate((d) => subDays(d, 1))
   const goToNext = () => setSelectedDate((d) => addDays(d, 1))
   const goToToday = () => setSelectedDate(new Date())
+
+  const openDetail = (appointment: Appointment) => {
+    setSelectedAppointment(appointment)
+    setDetailOpen(true)
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -138,39 +115,24 @@ export function AdminDashboard() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <ol aria-label="Appointments" className="flex flex-col gap-2">
-          {sorted.map((appointment) => (
-            <li
-              key={appointment.id}
-              className="flex items-stretch gap-3 rounded-lg border border-border p-3"
-            >
-              <div className="flex min-w-18 flex-col items-end justify-center gap-0.5 tabular-nums">
-                <span className="text-xs font-medium text-foreground">
-                  {formatTime(appointment.startsAt)}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {formatTime(appointment.endsAt)}
-                </span>
-              </div>
+        <>
+          <ol aria-label="Appointments" className="flex flex-col gap-2">
+            {sorted.map((appointment) => (
+              <li key={appointment.id}>
+                <AppointmentCard
+                  appointment={appointment}
+                  onClick={() => openDetail(appointment)}
+                />
+              </li>
+            ))}
+          </ol>
 
-              <Separator orientation="vertical" />
-
-              <div className="flex flex-1 flex-col justify-center gap-1">
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={statusVariant(appointment.status)}
-                    className="rounded-sm"
-                  >
-                    {statusLabel(appointment.status)}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {`${appointment.resourceName} · ${appointment.serviceName}`}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
+          <AppointmentDetailModal
+            appointment={selectedAppointment}
+            open={detailOpen}
+            onOpenChange={setDetailOpen}
+          />
+        </>
       )}
     </div>
   )

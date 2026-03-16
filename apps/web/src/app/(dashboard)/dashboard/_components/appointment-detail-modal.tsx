@@ -1,0 +1,177 @@
+"use client"
+
+import { differenceInMinutes, format } from "date-fns"
+import { Clock, DollarSign, Scissors, User } from "lucide-react"
+import { type ReactNode } from "react"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
+import { Separator } from "@/components/ui/separator"
+import { useIsMobile } from "@/hooks/use-mobile"
+
+import {
+  type Appointment,
+  formatTime,
+  statusLabel,
+  statusVariant,
+} from "./appointment-utils"
+
+function DetailRow({
+  icon,
+  label,
+  value,
+  subvalue,
+}: {
+  icon: ReactNode
+  label: string
+  value: string
+  subvalue?: string
+}) {
+  return (
+    <div className="flex items-start gap-3">
+      <span
+        className="mt-0.5 flex size-4 shrink-0 items-center justify-center text-muted-foreground"
+        aria-hidden="true"
+      >
+        {icon}
+      </span>
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <dt className="text-xs text-muted-foreground">{label}</dt>
+        <dd className="text-sm font-medium">{value}</dd>
+        {subvalue && (
+          <dd className="text-xs text-muted-foreground">{subvalue}</dd>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function AppointmentDetailContent({
+  appointment,
+}: {
+  appointment: Appointment
+}) {
+  const start = new Date(appointment.startsAt)
+  const end = new Date(appointment.endsAt)
+  const totalMinutes = differenceInMinutes(end, start)
+  const hours = Math.floor(totalMinutes / 60)
+  const mins = totalMinutes % 60
+  const duration =
+    hours > 0
+      ? `${hours}h${mins > 0 ? ` ${mins}min` : ""}`
+      : `${totalMinutes}min`
+
+  const price = Number.parseFloat(appointment.priceAtBooking)
+  const formattedPrice = Number.isNaN(price)
+    ? appointment.priceAtBooking
+    : `$${price.toFixed(2)}`
+
+  const dateLabel = format(start, "dd/MM/yyyy")
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Badge
+        variant={statusVariant(appointment.status)}
+        className="w-fit rounded-sm"
+      >
+        {statusLabel(appointment.status)}
+      </Badge>
+
+      <Separator />
+
+      <dl className="flex flex-col gap-3">
+        <DetailRow
+          icon={<User className="size-4" />}
+          label="Cliente"
+          value={appointment.customerName}
+        />
+        <DetailRow
+          icon={<Scissors className="size-4" />}
+          label="Servicio"
+          value={appointment.serviceName}
+        />
+        <DetailRow
+          icon={<User className="size-4" />}
+          label="Profesional"
+          value={appointment.resourceName}
+        />
+        <DetailRow
+          icon={<Clock className="size-4" />}
+          label="Horario"
+          value={`${formatTime(appointment.startsAt)} – ${formatTime(appointment.endsAt)}`}
+          subvalue={`${dateLabel} · ${duration}`}
+        />
+        <DetailRow
+          icon={<DollarSign className="size-4" />}
+          label="Precio"
+          value={formattedPrice}
+        />
+      </dl>
+    </div>
+  )
+}
+
+export function AppointmentDetailModal({
+  appointment,
+  open,
+  onOpenChange,
+}: {
+  appointment: Appointment | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const isMobile = useIsMobile()
+
+  if (!appointment) return null
+
+  const title = appointment.customerName
+  const description = `${appointment.serviceName} · ${formatTime(appointment.startsAt)}`
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{title}</DrawerTitle>
+            <DrawerDescription>{description}</DrawerDescription>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-4 pb-2">
+            <AppointmentDetailContent appointment={appointment} />
+          </div>
+          <DrawerFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cerrar
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <AppointmentDetailContent appointment={appointment} />
+      </DialogContent>
+    </Dialog>
+  )
+}
