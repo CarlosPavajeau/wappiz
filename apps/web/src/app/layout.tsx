@@ -5,15 +5,16 @@ import "../index.css"
 import { Geist, Geist_Mono } from "next/font/google"
 
 import Providers from "@/components/providers"
+import { cn } from "@/lib/utils"
 
-const geistSans = Geist({
+const fontSans = Geist({
   subsets: ["latin"],
-  variable: "--font-geist-sans",
+  variable: "--font-sans",
 })
 
-const geistMono = Geist_Mono({
+const fontMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-mono",
 })
 
 export const metadata: Metadata = {
@@ -27,10 +28,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html
+      lang="es"
+      suppressHydrationWarning
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        fontSans.variable
+      )}
+    >
+      <body>
         <Providers>
           <div className="grid grid-rows-[auto_1fr] h-svh">{children}</div>
         </Providers>
