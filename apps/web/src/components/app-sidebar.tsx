@@ -16,9 +16,9 @@ import {
 } from "@/components/ui/sidebar"
 
 const NAV_ITEMS = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/dashboard/services", icon: Package, label: "Services" },
-  { href: "/dashboard/resources", icon: Users, label: "Resources" },
+  { href: "/dashboard", icon: LayoutDashboard, label: "Citas" },
+  { href: "/dashboard/services", icon: Package, label: "Servicios" },
+  { href: "/dashboard/resources", icon: Users, label: "Recursos" },
 ] as const
 
 export function AppSidebar() {
@@ -51,7 +51,6 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       isActive={isActive}
                       render={<Link href={href} />}
-                      size="lg"
                     >
                       <Icon />
                       <span>{label}</span>
