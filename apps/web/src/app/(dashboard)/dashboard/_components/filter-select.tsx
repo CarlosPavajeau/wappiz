@@ -1,16 +1,16 @@
 "use client"
 
-import { ChevronDown } from "lucide-react"
+import { ChevronDownIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import { buttonVariants } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui/button"
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { cn } from "@/lib/utils"
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export type FilterSelectItem = {
   id: string
@@ -23,7 +23,6 @@ type FilterSelectProps = {
   selectedIds: string[]
   onSelectedIdsChange: (ids: string[]) => void
   isLoading?: boolean
-  className?: string
 }
 
 export function FilterSelect({
@@ -32,7 +31,6 @@ export function FilterSelect({
   selectedIds,
   onSelectedIdsChange,
   isLoading = false,
-  className,
 }: FilterSelectProps) {
   const count = selectedIds.length
 
@@ -45,42 +43,37 @@ export function FilterSelect({
   }
 
   return (
-    <Popover>
-      <PopoverTrigger
-        className={cn(
-          buttonVariants({ variant: "outline", size: "sm" }),
-          className
-        )}
-      >
-        {label}
-        {count > 0 && <Badge className="ml-0.5">{count}</Badge>}
-        <ChevronDown className="text-muted-foreground ml-auto" />
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-44 gap-0 p-1.5">
-        {isLoading ? (
-          <p className="text-muted-foreground px-2 py-1.5 text-xs">
-            Cargando...
-          </p>
-        ) : items.length === 0 ? (
-          <p className="text-muted-foreground px-2 py-1.5 text-xs">
-            Sin opciones
-          </p>
-        ) : (
-          <ul className="flex flex-col">
-            {items.map((item) => (
-              <li key={item.id}>
-                <label className="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm select-none">
-                  <Checkbox
-                    checked={selectedIds.includes(item.id)}
-                    onCheckedChange={() => toggle(item.id)}
-                  />
-                  <span className="truncate">{item.label}</span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        )}
-      </PopoverContent>
-    </Popover>
+    <DropdownMenu disabled={isLoading}>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="outline" size="sm">
+            {label}
+            {count > 0 && (
+              <Badge
+                className="ml-0.5 rounded-sm px-1 py-px text-[0.625rem] leading-none h-4.5 min-w-4.5"
+                variant="secondary"
+              >
+                {count}
+              </Badge>
+            )}
+
+            <ChevronDownIcon data-icon="inline-end" />
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="start" className="w-44 gap-0 p-1.5">
+        <DropdownMenuGroup>
+          {items.map((item) => (
+            <DropdownMenuCheckboxItem
+              key={item.id}
+              checked={selectedIds.includes(item.id)}
+              onCheckedChange={() => toggle(item.id)}
+            >
+              {item.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
