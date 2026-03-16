@@ -135,7 +135,7 @@ export function AdminDashboard() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-1.5 sm:ml-auto sm:flex">
+        <div className="grid grid-cols-2 gap-1.5 sm:order-first sm:flex">
           <FilterSelect
             label="Recursos"
             items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
