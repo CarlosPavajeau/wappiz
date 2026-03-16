@@ -49,7 +49,6 @@ export function FilterSelect({
       <PopoverTrigger
         className={cn(
           buttonVariants({ variant: "outline", size: "sm" }),
-          "w-full justify-between",
           className
         )}
       >

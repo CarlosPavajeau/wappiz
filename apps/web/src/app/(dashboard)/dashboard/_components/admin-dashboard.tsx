@@ -103,63 +103,51 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <div className="flex items-center gap-1.5 sm:order-last">
-          <Button
-            aria-label="Previous day"
-            size="icon-sm"
-            variant="outline"
-            onClick={goToPrev}
-          >
-            <ChevronLeft />
-          </Button>
+      <div className="flex items-center gap-1.5">
+        <Button
+          aria-label="Previous day"
+          size="icon-sm"
+          variant="outline"
+          onClick={goToPrev}
+        >
+          <ChevronLeft />
+        </Button>
 
-          <DatePicker
-            value={selectedDate}
-            onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+        <DatePicker
+          value={selectedDate}
+          onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+        />
+
+        <Button
+          aria-label="Next day"
+          size="icon-sm"
+          variant="outline"
+          onClick={goToNext}
+        >
+          <ChevronRight />
+        </Button>
+
+        {!isViewingToday && (
+          <Button size="sm" variant="ghost" onClick={goToToday}>
+            Hoy
+          </Button>
+        )}
+
+        <div className="ml-auto flex items-center gap-1.5">
+          <FilterSelect
+            label="Recursos"
+            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
+            selectedIds={resourceIds}
+            onSelectedIdsChange={setResourceIds}
+            isLoading={isLoadingResources}
           />
-
-          <Button
-            aria-label="Next day"
-            size="icon-sm"
-            variant="outline"
-            onClick={goToNext}
-          >
-            <ChevronRight />
-          </Button>
-
-          {!isViewingToday && (
-            <Button size="sm" variant="ghost" onClick={goToToday}>
-              Hoy
-            </Button>
-          )}
-        </div>
-
-        <div className="flex w-full gap-1.5 sm:w-auto sm:order-first">
-          <div className="flex-1 sm:flex-none">
-            <FilterSelect
-              label="Recursos"
-              items={(resources ?? []).map((r) => ({
-                id: r.id,
-                label: r.name,
-              }))}
-              selectedIds={resourceIds}
-              onSelectedIdsChange={setResourceIds}
-              isLoading={isLoadingResources}
-            />
-          </div>
-          <div className="flex-1 sm:flex-none">
-            <FilterSelect
-              label="Servicios"
-              items={(services ?? []).map((s) => ({
-                id: s.id,
-                label: s.name,
-              }))}
-              selectedIds={serviceIds}
-              onSelectedIdsChange={setServiceIds}
-              isLoading={isLoadingServices}
-            />
-          </div>
+          <FilterSelect
+            label="Servicios"
+            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
+            selectedIds={serviceIds}
+            onSelectedIdsChange={setServiceIds}
+            isLoading={isLoadingServices}
+          />
         </div>
       </div>
 
