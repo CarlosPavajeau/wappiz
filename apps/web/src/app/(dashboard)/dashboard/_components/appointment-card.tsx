@@ -1,13 +1,10 @@
+import type { Appointment } from "@wappiz/api-client/types/appointments"
+
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 
-import {
-  type Appointment,
-  formatTime,
-  statusLabel,
-  statusVariant,
-} from "./appointment-utils"
+import { formatTime, statusLabel, statusVariant } from "./appointment-utils"
 
 export function AppointmentSkeleton() {
   return (
