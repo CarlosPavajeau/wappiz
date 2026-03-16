@@ -1,5 +1,7 @@
 "use client"
 
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { ChevronDownIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -56,8 +58,11 @@ export function FilterSelect({
                 {count}
               </Badge>
             )}
-
-            <ChevronDownIcon data-icon="inline-end" />
+            <HugeiconsIcon
+              icon={ArrowDown01Icon}
+              data-icon="inline-end"
+              strokeWidth={2}
+            />
           </Button>
         }
       />

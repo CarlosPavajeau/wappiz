@@ -1,8 +1,14 @@
 "use client"
 
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  CalendarOffIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useQuery } from "@tanstack/react-query"
+import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { addDays, format, isToday, parseISO, subDays } from "date-fns"
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react"
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs"
 import { useState } from "react"
 
@@ -20,7 +26,6 @@ import { api } from "@/lib/client-api"
 
 import { AppointmentCard, AppointmentSkeleton } from "./appointment-card"
 import { AppointmentDetailModal } from "./appointment-detail-modal"
-import { type Appointment } from "./appointment-utils"
 import { FilterSelect } from "./filter-select"
 
 function toDateKey(date: Date) {
@@ -126,7 +131,7 @@ export function AdminDashboard() {
             variant="outline"
             onClick={goToPrev}
           >
-            <ChevronLeft />
+            <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
           </Button>
 
           <DatePicker
@@ -140,7 +145,7 @@ export function AdminDashboard() {
             variant="outline"
             onClick={goToNext}
           >
-            <ChevronRight />
+            <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
           </Button>
 
           {!isViewingToday && (
@@ -168,11 +173,12 @@ export function AdminDashboard() {
         <Empty>
           <EmptyHeader>
             <EmptyMedia variant="icon">
-              <CalendarDays className="size-8" aria-hidden="true" />
+              <HugeiconsIcon icon={CalendarOffIcon} strokeWidth={2} />
             </EmptyMedia>
             <EmptyTitle>No se encontraron citas</EmptyTitle>
             <EmptyDescription>
-              No hay citas programadas para esta fecha.
+              No hay citas programadas para esta fecha o para los filtros
+              aplicados.
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

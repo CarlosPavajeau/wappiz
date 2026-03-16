@@ -1,8 +1,9 @@
 "use client"
 
+import { Calendar04Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { CalendarIcon } from "lucide-react"
 import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -46,7 +47,11 @@ export function DatePicker({
           !value && "text-muted-foreground"
         )}
       >
-        <CalendarIcon aria-hidden="true" />
+        <HugeiconsIcon
+          icon={Calendar04Icon}
+          strokeWidth={2}
+          data-icon="inline-start"
+        />
         {value
           ? format(value, "MMM d, yyyy", {
               locale: es,

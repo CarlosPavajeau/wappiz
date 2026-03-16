@@ -1,5 +1,11 @@
 "use client"
 
+import {
+  Appointment01Icon,
+  ResourcesAddIcon,
+  ServiceIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { LayoutDashboard, Package, Users } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -17,9 +23,21 @@ import {
 } from "@/components/ui/sidebar"
 
 const NAV_ITEMS = [
-  { href: "/dashboard", icon: LayoutDashboard, label: "Citas" },
-  { href: "/dashboard/services", icon: Package, label: "Servicios" },
-  { href: "/dashboard/resources", icon: Users, label: "Recursos" },
+  {
+    href: "/dashboard",
+    icon: () => <HugeiconsIcon icon={Appointment01Icon} strokeWidth={2} />,
+    label: "Citas",
+  },
+  {
+    href: "/dashboard/services",
+    icon: () => <HugeiconsIcon icon={ServiceIcon} strokeWidth={2} />,
+    label: "Servicios",
+  },
+  {
+    href: "/dashboard/resources",
+    icon: () => <HugeiconsIcon icon={ResourcesAddIcon} strokeWidth={2} />,
+    label: "Recursos",
+  },
 ] as const
 
 export function AppSidebar() {
