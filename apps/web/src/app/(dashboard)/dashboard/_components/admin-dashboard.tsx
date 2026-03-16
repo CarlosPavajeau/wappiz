@@ -103,52 +103,52 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-1.5">
-        <div className="flex items-center gap-1.5">
-          <FilterSelect
-            label="Recursos"
-            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
-            selectedIds={resourceIds}
-            onSelectedIdsChange={setResourceIds}
-            isLoading={isLoadingResources}
-          />
-          <FilterSelect
-            label="Servicios"
-            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
-            selectedIds={serviceIds}
-            onSelectedIdsChange={setServiceIds}
-            isLoading={isLoadingServices}
-          />
-        </div>
-
-        <Button
-          aria-label="Previous day"
-          size="icon-sm"
-          variant="outline"
-          onClick={goToPrev}
-        >
-          <ChevronLeft />
-        </Button>
-
-        <DatePicker
-          value={selectedDate}
-          onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <FilterSelect
+          label="Recursos"
+          items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
+          selectedIds={resourceIds}
+          onSelectedIdsChange={setResourceIds}
+          isLoading={isLoadingResources}
+        />
+        <FilterSelect
+          label="Servicios"
+          items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
+          selectedIds={serviceIds}
+          onSelectedIdsChange={setServiceIds}
+          isLoading={isLoadingServices}
         />
 
-        <Button
-          aria-label="Next day"
-          size="icon-sm"
-          variant="outline"
-          onClick={goToNext}
-        >
-          <ChevronRight />
-        </Button>
-
-        {!isViewingToday && (
-          <Button size="sm" variant="ghost" onClick={goToToday}>
-            Hoy
+        <div className="flex items-center gap-1">
+          <Button
+            aria-label="Previous day"
+            size="icon-sm"
+            variant="outline"
+            onClick={goToPrev}
+          >
+            <ChevronLeft />
           </Button>
-        )}
+
+          <DatePicker
+            value={selectedDate}
+            onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+          />
+
+          <Button
+            aria-label="Next day"
+            size="icon-sm"
+            variant="outline"
+            onClick={goToNext}
+          >
+            <ChevronRight />
+          </Button>
+
+          {!isViewingToday && (
+            <Button size="sm" variant="ghost" onClick={goToToday}>
+              Hoy
+            </Button>
+          )}
+        </div>
       </div>
 
       <Separator />
