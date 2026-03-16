@@ -1,6 +1,7 @@
 "use client"
 
 import { format } from "date-fns"
+import { es } from "date-fns/locale"
 import { CalendarIcon } from "lucide-react"
 import { useState } from "react"
 
@@ -46,7 +47,11 @@ export function DatePicker({
         )}
       >
         <CalendarIcon aria-hidden="true" />
-        {value ? format(value, "MMM d, yyyy") : placeholder}
+        {value
+          ? format(value, "MMM d, yyyy", {
+              locale: es,
+            })
+          : placeholder}
       </PopoverTrigger>
 
       <PopoverContent align="start" className="w-auto p-0">
@@ -55,6 +60,7 @@ export function DatePicker({
           mode="single"
           selected={value}
           onSelect={handleSelect}
+          locale={es}
         />
       </PopoverContent>
     </Popover>
