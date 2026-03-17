@@ -5,6 +5,7 @@ import { getServerApi } from "@/lib/server-api"
 
 import { LinkServicesDialog } from "./_components/link-services-dialog"
 import { ResourceServiceCard } from "./_components/resource-service-card"
+import { ScheduleOverridesCard } from "./_components/schedule-overrides-card"
 import { WorkingHoursCard } from "./_components/working-hours-card"
 
 type Props = {
@@ -15,10 +16,11 @@ type Props = {
 export default async function ResourcePage({ params, searchParams }: Props) {
   const [{ id }, { setup }] = await Promise.all([params, searchParams])
   const api = await getServerApi()
-  const [resource, services, allServices] = await Promise.all([
+  const [resource, services, allServices, overrides] = await Promise.all([
     api.resources.get(id),
     api.resources.services(id),
     api.services.list(),
+    api.resources.listOverrides(id),
   ])
 
   const linkedServiceIds = services.map((s) => s.id)
@@ -66,7 +68,7 @@ export default async function ResourcePage({ params, searchParams }: Props) {
             <h1 className="text-2xl font-semibold tracking-tight">
               {resource.name}
             </h1>
-            <Badge variant="outline" className="mt-1 capitalize lowercase">
+            <Badge variant="outline" className="mt-1 capitalize">
               {resource.type}
             </Badge>
           </div>
@@ -74,11 +76,14 @@ export default async function ResourcePage({ params, searchParams }: Props) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <WorkingHoursCard
-          resourceId={id}
-          workingHours={resource.workingHours}
-          defaultOpen={setup === "working-hours"}
-        />
+        <div className="space-y-6">
+          <WorkingHoursCard
+            resourceId={id}
+            workingHours={resource.workingHours}
+            defaultOpen={setup === "working-hours"}
+          />
+          <ScheduleOverridesCard resourceId={id} overrides={overrides} />
+        </div>
 
         <section aria-labelledby="services-heading" className="space-y-4">
           <div className="flex items-center justify-between gap-4">

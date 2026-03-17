@@ -32,3 +32,25 @@ export type UpdateWorkingHoursRequest = {
   endTime: string
   isActive: boolean
 }
+
+export type ScheduleOverride = {
+  id: string
+  date: string
+  isDayOff: boolean
+  startTime?: string
+  endTime?: string
+  reason: string
+}
+
+export type CreateScheduleOverrideRequest = {
+  date: string
+  isDayOff: boolean
+  startTime?: string
+  endTime?: string
+  reason: string
+}
+
+export type DeleteScheduleOverrideRequest = {
+  resourceId: string
+  overrideId: string
+}

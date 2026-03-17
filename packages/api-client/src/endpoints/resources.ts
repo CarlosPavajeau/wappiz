@@ -3,7 +3,10 @@ import type { EndpointDefinition } from "../core/types"
 import type {
   AssignServicesRequest,
   CreateResourceRequest,
+  CreateScheduleOverrideRequest,
+  DeleteScheduleOverrideRequest,
   Resource,
+  ScheduleOverride,
   UpdateWorkingHoursRequest,
 } from "../types/resources"
 import type { Service } from "../types/services"
@@ -17,6 +20,19 @@ const definitions = {
     method: "POST",
     path: "/resources",
   } as EndpointDefinition<Resource, CreateResourceRequest>,
+  createOverride: {
+    method: "POST",
+    path: (id: string) => `/resources/${id}/overrides`,
+  } as EndpointDefinition<
+    ScheduleOverride,
+    CreateScheduleOverrideRequest,
+    string
+  >,
+  deleteOverride: {
+    method: "DELETE",
+    path: ({ resourceId, overrideId }: DeleteScheduleOverrideRequest) =>
+      `/resources/${resourceId}/overrides/${overrideId}`,
+  } as EndpointDefinition<void, void, DeleteScheduleOverrideRequest>,
   get: {
     method: "GET",
     path: (id: string) => `/resources/${id}`,
@@ -25,6 +41,10 @@ const definitions = {
     method: "GET",
     path: "/resources",
   } as EndpointDefinition<Resource[]>,
+  listOverrides: {
+    method: "GET",
+    path: (id: string) => `/resources/${id}/overrides`,
+  } as EndpointDefinition<ScheduleOverride[], void, string>,
   services: {
     method: "GET",
     path: (id: string) => `/resources/${id}/services`,
