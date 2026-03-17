@@ -4,6 +4,8 @@ import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
   CalendarOffIcon,
+  Refresh03Icon,
+  RefreshIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useQuery } from "@tanstack/react-query"
@@ -22,6 +24,11 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
 
 import { AppointmentCard, AppointmentSkeleton } from "./appointment-card"
@@ -56,6 +63,7 @@ export function AdminDashboard() {
     data: appointments,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryFn: () => api.appointments.list({ params: { date: dateParam } }),
     queryKey: ["appointments", dateParam],
@@ -154,6 +162,19 @@ export function AdminDashboard() {
             </Button>
           )}
         </div>
+
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Button variant="ghost" onClick={() => refetch()}>
+                <HugeiconsIcon icon={Refresh03Icon} strokeWidth={2} />
+              </Button>
+            }
+          />
+          <TooltipContent>
+            <p>Recargar citas</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       <Separator />
@@ -161,6 +182,7 @@ export function AdminDashboard() {
       {isLoading ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: 4 }, (_, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: is an array generated
             <AppointmentSkeleton key={i} />
           ))}
         </div>

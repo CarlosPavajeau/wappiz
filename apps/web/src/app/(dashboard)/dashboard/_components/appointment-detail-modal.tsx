@@ -3,8 +3,6 @@
 import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { differenceInMinutes, format, formatDuration } from "date-fns"
 import { es } from "date-fns/locale"
-import { Clock, DollarSign, Scissors, User } from "lucide-react"
-import type { ReactNode } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,24 +27,16 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { formatTime, statusLabel, statusVariant } from "./appointment-utils"
 
 function DetailRow({
-  icon,
   label,
   value,
   subvalue,
 }: {
-  icon: ReactNode
   label: string
   value: string
   subvalue?: string
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span
-        className="mt-0.5 flex size-4 shrink-0 items-center justify-center text-muted-foreground"
-        aria-hidden="true"
-      >
-        {icon}
-      </span>
       <div className="flex min-w-0 flex-col gap-0.5">
         <dt className="text-xs text-muted-foreground">{label}</dt>
         <dd className="text-sm font-medium">{value}</dd>
@@ -58,9 +48,11 @@ function DetailRow({
   )
 }
 
-const currencyFormat = new Intl.NumberFormat("en-CO", {
-  style: "currency",
+const currencyFormat = new Intl.NumberFormat("es-CO", {
   currency: "COP",
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 2,
+  style: "currency",
 })
 
 type Props = {
@@ -95,32 +87,15 @@ function AppointmentDetailContent({ appointment }: Readonly<Props>) {
       <Separator />
 
       <dl className="flex flex-col gap-3">
+        <DetailRow label="Cliente" value={appointment.customerName} />
+        <DetailRow label="Servicio" value={appointment.serviceName} />
+        <DetailRow label="Profesional" value={appointment.resourceName} />
         <DetailRow
-          icon={<User className="size-4" />}
-          label="Cliente"
-          value={appointment.customerName}
-        />
-        <DetailRow
-          icon={<Scissors className="size-4" />}
-          label="Servicio"
-          value={appointment.serviceName}
-        />
-        <DetailRow
-          icon={<User className="size-4" />}
-          label="Profesional"
-          value={appointment.resourceName}
-        />
-        <DetailRow
-          icon={<Clock className="size-4" />}
           label="Horario"
           value={`${formatTime(appointment.startsAt)} – ${formatTime(appointment.endsAt)}`}
           subvalue={`${dateLabel} · ${totalTime}`}
         />
-        <DetailRow
-          icon={<DollarSign className="size-4" />}
-          label="Precio"
-          value={formattedPrice}
-        />
+        <DetailRow label="Precio" value={formattedPrice} />
       </dl>
     </div>
   )
