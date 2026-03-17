@@ -6,6 +6,7 @@ import { authResource } from "./endpoints/auth"
 import { onboardingResource } from "./endpoints/onboarding"
 import { resourcesEndpoints } from "./endpoints/resources"
 import { servicesEndpoint } from "./endpoints/services"
+import { tenantEndpoints } from "./endpoints/tenants"
 
 const RESOURCES = {
   admin: adminResource,
@@ -14,6 +15,7 @@ const RESOURCES = {
   onboarding: onboardingResource,
   resources: resourcesEndpoints,
   services: servicesEndpoint,
+  tenants: tenantEndpoints,
 } as const
 
 export type Api = ReturnType<typeof createClient>

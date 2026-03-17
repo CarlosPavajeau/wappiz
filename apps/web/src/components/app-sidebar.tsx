@@ -6,6 +6,7 @@ import {
   ServiceIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import type { Tenant } from "@wappiz/api-client/types/tenants"
 import { LayoutDashboard, Package, Users } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -40,7 +41,11 @@ const NAV_ITEMS = [
   },
 ] as const
 
-export function AppSidebar() {
+type Props = {
+  tenant: Tenant
+}
+
+export function AppSidebar({ tenant }: Readonly<Props>) {
   const pathname = usePathname()
   const { isMobile, openMobile, setOpenMobile } = useSidebar()
 
@@ -61,7 +66,7 @@ export function AppSidebar() {
           className="inline-flex size-8 items-center justify-center rounded-md border border-border bg-accent text-xs font-semibold text-foreground"
           href="/dashboard"
         >
-          W
+          {tenant.name[0]}
         </Link>
       </SidebarHeader>
 

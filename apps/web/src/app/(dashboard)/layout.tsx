@@ -9,6 +9,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { getServerApi } from "@/lib/server-api"
 
 export default async function DashboardLayout({
   children,
@@ -23,9 +24,12 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
+  const api = await getServerApi()
+  const tenant = await api.tenants.me()
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar tenant={tenant} />
 
       <SidebarInset>
         <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center border-b border-border bg-background/75 backdrop-blur-xl">
@@ -39,7 +43,7 @@ export default async function DashboardLayout({
                 className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground"
                 href="/dashboard"
               >
-                Wappiz
+                {tenant.name}
               </Link>
             </div>
 
