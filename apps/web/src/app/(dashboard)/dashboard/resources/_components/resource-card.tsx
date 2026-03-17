@@ -36,7 +36,7 @@ function ResourceAvatar({ name }: { name: string }) {
     <div
       role="img"
       aria-label={name}
-      className="bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold"
+      className="bg-primary/10 text-primary ring-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold ring-1"
     >
       {initials}
     </div>
@@ -50,7 +50,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
   )
 
   return (
-    <Card className="hover:ring-foreground/20 relative transition-shadow">
+    <Card className="ring-border hover:ring-foreground/30 relative ring-1 transition-shadow duration-200">
       <CardHeader>
         <div className="flex items-center gap-3">
           <ResourceAvatar name={resource.name} />
