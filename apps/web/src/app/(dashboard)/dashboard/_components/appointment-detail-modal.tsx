@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/drawer"
 import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { priceFormatter } from "@/lib/intl"
 
 import { formatTime, statusLabel, statusVariant } from "./appointment-utils"
 
@@ -48,13 +49,6 @@ function DetailRow({
   )
 }
 
-const currencyFormat = new Intl.NumberFormat("es-CO", {
-  currency: "COP",
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 2,
-  style: "currency",
-})
-
 type Props = {
   appointment: Appointment
 }
@@ -71,7 +65,7 @@ function AppointmentDetailContent({ appointment }: Readonly<Props>) {
     }
   )
 
-  const formattedPrice = currencyFormat.format(appointment.priceAtBooking)
+  const formattedPrice = priceFormatter.format(appointment.priceAtBooking)
 
   const dateLabel = format(start, "dd/MM/yyyy")
 

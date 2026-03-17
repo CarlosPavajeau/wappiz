@@ -9,13 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-
-const priceFormatter = new Intl.NumberFormat("es-CO", {
-  currency: "COP",
-  maximumFractionDigits: 2,
-  minimumFractionDigits: 2,
-  style: "currency",
-})
+import { priceFormatter } from "@/lib/intl"
 
 export function ServiceCard({ service }: { service: Service }) {
   return (
