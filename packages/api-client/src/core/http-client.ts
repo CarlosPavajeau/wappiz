@@ -55,7 +55,6 @@ export class HttpClient {
         "Content-Type": "application/json",
         ...headers,
       },
-      timeout,
       paramsSerializer: (params) => {
         const parts: string[] = []
         for (const [key, value] of Object.entries(params)) {
@@ -73,6 +72,7 @@ export class HttpClient {
         }
         return parts.join("&")
       },
+      timeout,
       ...axiosConfig,
     })
 

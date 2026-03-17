@@ -60,8 +60,8 @@ function AppointmentDetailContent({ appointment }: Readonly<Props>) {
   const totalTime = formatDuration(
     { minutes: totalMinutes },
     {
-      locale: es,
       format: ["minutes", "hours"],
+      locale: es,
     }
   )
 
@@ -106,7 +106,7 @@ export function AppointmentDetailModal({
 }) {
   const isMobile = useIsMobile()
 
-  if (!appointment) return null
+  if (!appointment) {return null}
 
   const title = appointment.customerName
   const description = `${appointment.serviceName} · ${formatTime(appointment.startsAt)}`

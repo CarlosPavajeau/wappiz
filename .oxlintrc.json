@@ -6,7 +6,7 @@
   ],
   "rules": {
     "func-style": [
-      "warning",
+      "warn",
       "expression",
       {
         "overrides": {
