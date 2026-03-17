@@ -106,7 +106,9 @@ export function AppointmentDetailModal({
 }) {
   const isMobile = useIsMobile()
 
-  if (!appointment) {return null}
+  if (!appointment) {
+    return null
+  }
 
   const title = appointment.customerName
   const description = `${appointment.serviceName} · ${formatTime(appointment.startsAt)}`
