@@ -65,8 +65,15 @@ export function AdminDashboard() {
     isError,
     refetch,
   } = useQuery({
-    queryFn: () => api.appointments.list({ params: { date: dateParam } }),
-    queryKey: ["appointments", dateParam],
+    queryFn: () =>
+      api.appointments.list({
+        params: {
+          date: dateParam,
+          ...(resourceIds.length > 0 && { resource: resourceIds }),
+          ...(serviceIds.length > 0 && { service: serviceIds }),
+        },
+      }),
+    queryKey: ["appointments", dateParam, resourceIds, serviceIds],
   })
 
   const { data: resources, isLoading: isLoadingResources } = useQuery({
@@ -79,31 +86,12 @@ export function AdminDashboard() {
     queryKey: ["services"],
   })
 
-  const sorted = appointments
+  const filtered = appointments
     ? [...appointments].toSorted(
         (a, b) =>
           new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
       )
     : []
-
-  const selectedResourceNames = new Set(
-    resourceIds
-      .map((id) => resources?.find((r) => r.id === id)?.name)
-      .filter(Boolean)
-  )
-  const selectedServiceNames = new Set(
-    serviceIds
-      .map((id) => services?.find((s) => s.id === id)?.name)
-      .filter(Boolean)
-  )
-
-  const filtered = sorted.filter((a) => {
-    const matchesResource =
-      resourceIds.length === 0 || selectedResourceNames.has(a.resourceName)
-    const matchesService =
-      serviceIds.length === 0 || selectedServiceNames.has(a.serviceName)
-    return matchesResource && matchesService
-  })
 
   const goToPrev = () => setDateParam(toDateKey(subDays(selectedDate, 1)))
   const goToNext = () => setDateParam(toDateKey(addDays(selectedDate, 1)))

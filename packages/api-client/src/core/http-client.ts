@@ -56,6 +56,23 @@ export class HttpClient {
         ...headers,
       },
       timeout,
+      paramsSerializer: (params) => {
+        const parts: string[] = []
+        for (const [key, value] of Object.entries(params)) {
+          if (Array.isArray(value)) {
+            for (const item of value) {
+              parts.push(
+                `${encodeURIComponent(key)}=${encodeURIComponent(item)}`
+              )
+            }
+          } else if (value !== undefined && value !== null) {
+            parts.push(
+              `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+            )
+          }
+        }
+        return parts.join("&")
+      },
       ...axiosConfig,
     })
 
