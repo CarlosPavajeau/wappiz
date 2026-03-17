@@ -16,3 +16,5 @@ export type CreateServiceRequest = {
   bufferMinutes: number
   price: number
 }
+
+export type UpdateServiceRequest = CreateServiceRequest

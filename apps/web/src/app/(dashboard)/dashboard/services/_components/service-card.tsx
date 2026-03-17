@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/card"
 import { priceFormatter } from "@/lib/intl"
 
+import { UpdateServiceDialog } from "./update-service-dialog"
+
 export function ServiceCard({ service }: { service: Service }) {
   return (
     <Card>
@@ -23,10 +25,11 @@ export function ServiceCard({ service }: { service: Service }) {
             </CardDescription>
           )}
         </div>
-        <CardAction>
+        <CardAction className="flex items-center gap-2">
           <Badge variant="secondary">
             {priceFormatter.format(service.price)}
           </Badge>
+          <UpdateServiceDialog service={service} />
         </CardAction>
       </CardHeader>
 
