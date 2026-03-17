@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { AxiosError } from "axios"
 import { useState } from "react"
 
+import { TooltipProvider } from "@/components/ui/tooltip"
+
 import { ThemeProvider } from "./theme-provider"
 import { Toaster } from "./ui/sonner"
 
@@ -38,10 +40,12 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <Toaster richColors />
-      </QueryClientProvider>
+      <TooltipProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+          <Toaster richColors />
+        </QueryClientProvider>
+      </TooltipProvider>
     </ThemeProvider>
   )
 }
