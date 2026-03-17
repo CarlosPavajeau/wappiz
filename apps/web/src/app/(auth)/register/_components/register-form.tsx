@@ -195,6 +195,17 @@ export function RegisterForm() {
             {isPending && <Spinner className="animate-spin" />}
             Crear cuenta
           </Button>
+
+          <p className="text-center text-xs text-muted-foreground">
+            Al crear una cuenta aceptás nuestra{" "}
+            <Link
+              href="/politica-de-privacidad"
+              className="underline-offset-4 hover:underline"
+            >
+              Política de privacidad
+            </Link>
+            .
+          </p>
         </form>
       </CardContent>
 

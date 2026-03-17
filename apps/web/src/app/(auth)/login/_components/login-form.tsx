@@ -140,7 +140,7 @@ export function LoginForm() {
         </form>
       </CardContent>
 
-      <CardFooter className="justify-center">
+      <CardFooter className="flex-col gap-3">
         <p className="text-sm text-muted-foreground">
           ¿No tienes una cuenta?{" "}
           <Link
@@ -148,6 +148,14 @@ export function LoginForm() {
             className="font-medium text-foreground underline-offset-4 hover:underline"
           >
             Crear una
+          </Link>
+        </p>
+        <p className="text-xs text-muted-foreground">
+          <Link
+            href="/politica-de-privacidad"
+            className="underline-offset-4 hover:underline"
+          >
+            Política de privacidad
           </Link>
         </p>
       </CardFooter>
