@@ -2,8 +2,9 @@
 
 import { createApi } from "@wappiz/api-client"
 import type { TokenPair } from "@wappiz/api-client/core/types/index"
+import { auth } from "@wappiz/auth"
 import { env } from "@wappiz/env/web"
-import { cookies } from "next/headers"
+import { headers } from "next/headers"
 
 /**
  * Returns an `api` instance backed by a server-side ApiClient that reads the
@@ -15,11 +16,13 @@ import { cookies } from "next/headers"
  */
 export async function getServerApi() {
   const baseURL = env.NEXT_PUBLIC_API_URL ?? ""
-  const cookieStore = await cookies()
+  const { token } = await auth.api.getToken({
+    headers: await headers(),
+  })
 
   const tokenProvider = () => {
-    const accessToken = cookieStore.get("accessToken")?.value ?? ""
-    const refreshToken = cookieStore.get("refreshToken")?.value ?? ""
+    const accessToken = token
+    const refreshToken = token
     return { accessToken, refreshToken } as TokenPair
   }
 

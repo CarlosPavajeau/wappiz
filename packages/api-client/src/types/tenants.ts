@@ -7,3 +7,7 @@ export type Tenant = {
   plan: string
   settings: Record<string, string>
 }
+
+export type CreateTenantRequest = {
+  name: string
+}

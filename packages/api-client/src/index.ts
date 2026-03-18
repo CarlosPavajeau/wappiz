@@ -73,14 +73,6 @@ export function createApi(options: ClientOptions) {
   return createClient({
     auth: {
       onTokenUpdate,
-      refresh: {
-        buildBody: (refreshToken) => ({ refreshToken }),
-        endpoint: "/auth/refresh",
-        extractTokens: (data) => {
-          const d = data as { accessToken: string; refreshToken: string }
-          return { accessToken: d.accessToken, refreshToken: d.refreshToken }
-        },
-      },
       tokenProvider,
     },
     baseURL,

@@ -1,13 +1,20 @@
-import { getServerApi } from "@/lib/server-api"
+import { auth } from "@wappiz/auth"
+import { headers } from "next/headers"
+import { redirect } from "next/navigation"
 
 import { AdminDashboard } from "./_components/admin-dashboard"
 import { PendingActivations } from "./_components/pending-activations"
 
 export default async function DashboardPage() {
-  const api = await getServerApi()
-  const me = await api.auth.me()
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
 
-  const isSuperAdmin = me.role === "superadmin"
+  if (!session) {
+    redirect("/login")
+  }
+
+  const isSuperAdmin = false
 
   return <div>{isSuperAdmin ? <PendingActivations /> : <AdminDashboard />}</div>
 }

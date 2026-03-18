@@ -1,31 +1,17 @@
 import { createApi } from "@wappiz/api-client"
 import { env } from "@wappiz/env/web"
-import Cookies from "js-cookie"
+
+import { authClient } from "./auth-client"
 
 export const api = createApi({
   baseURL: env.NEXT_PUBLIC_API_URL,
-  onTokenUpdate: (tokens) => {
-    if (!tokens) {
-      return
-    }
+  tokenProvider: async () => {
+    const { data } = await authClient.token()
 
-    const { accessToken, refreshToken } = tokens
-
-    Cookies.set("accessToken", accessToken, {
-      secure: true,
-    })
-    Cookies.set("refreshToken", refreshToken, {
-      secure: true,
-    })
-  },
-  tokenProvider: () => {
-    const accessToken = Cookies.get("accessToken")
-    const refreshToken = Cookies.get("refreshToken")
-
-    if (!accessToken || !refreshToken) {
+    if (!data) {
       return null
     }
 
-    return { accessToken, refreshToken }
+    return { accessToken: data.token, refreshToken: data.token }
   },
 })

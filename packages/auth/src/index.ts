@@ -25,8 +25,6 @@ export const auth = betterAuth({
         definePayload: ({ user }) => ({
           ...user,
           role: "admin",
-          tenant_id: "123",
-          user_id: user.id,
         }),
       },
     }),
