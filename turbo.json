@@ -3,6 +3,14 @@
   "ui": "tui",
   "tasks": {
     "build": {
+      "env": [
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "AUTH_GOOGLE_ID",
+        "AUTH_GOOGLE_SECRET",
+        "CORS_ORIGIN"
+      ],
       "dependsOn": [
         "^build"
       ],
