@@ -6,7 +6,6 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { type } from "arktype"
 import { isAxiosError } from "axios"
-import Cookies from "js-cookie"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
-import { api } from "@/lib/client-api"
+import { authClient } from "@/lib/auth-client"
 
 const registerSchema = type({
   confirmPassword: type("string").configure({
@@ -57,7 +56,11 @@ export function RegisterForm() {
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: Omit<RegisterFormData, "confirmPassword">) =>
-      api.auth.register(data),
+      authClient.signUp.email({
+        email: data.email,
+        name: data.name,
+        password: data.password,
+      }),
     onError: (error) => {
       const message = isAxiosError(error)
         ? (error.response?.data?.message ??
@@ -65,14 +68,18 @@ export function RegisterForm() {
         : "Algo salió mal. Por favor, inténtalo de nuevo."
       toast.error(message)
     },
-    onSuccess: (tokens) => {
-      const { accessToken, refreshToken } = tokens
-
-      Cookies.set("accessToken", accessToken, { secure: true })
-      Cookies.set("refreshToken", refreshToken, { secure: true })
-
-      toast.success("¡Cuenta creada! Por favor, inicia sesión.")
-      router.push("/onboarding")
+    onSuccess: (result) => {
+      if (result.data) {
+        toast.success("¡Cuenta creada! Por favor, inicia sesión.")
+        router.push("/onboarding")
+      } else if (result.error) {
+        const message =
+          result.error.message ??
+          "Algo salió mal. Por favor, inténtalo de nuevo."
+        toast.error(message)
+      } else {
+        toast.error("Algo salió mal. Por favor, inténtalo de nuevo.")
+      }
     },
   })
 
@@ -99,11 +106,11 @@ export function RegisterForm() {
       <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
         <FieldGroup>
           <Field data-invalid={!!errors.name}>
-            <FieldLabel htmlFor="name">Nombre de la barbería</FieldLabel>
+            <FieldLabel htmlFor="name">Nombre</FieldLabel>
             <Input
               id="name"
               type="text"
-              placeholder="Escribe el nombre de tu barbería"
+              placeholder="Escribe tu nombre"
               autoComplete="name"
               aria-invalid={!!errors.name}
               {...register("name")}

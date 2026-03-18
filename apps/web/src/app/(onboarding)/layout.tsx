@@ -1,4 +1,5 @@
-import { cookies } from "next/headers"
+import { auth } from "@wappiz/auth"
+import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 export default async function OnboardingLayout({
@@ -6,9 +7,11 @@ export default async function OnboardingLayout({
 }: {
   children: React.ReactNode
 }) {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("accessToken")
-  if (!token) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  if (!session?.user) {
     redirect("/login")
   }
 

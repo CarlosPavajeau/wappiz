@@ -37,7 +37,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left brand panel — desktop only */}
-      <div className="hidden lg:flex lg:w-[480px] xl:w-[540px] flex-shrink-0 flex-col justify-between bg-zinc-950 p-12">
+      <div className="hidden lg:flex lg:w-120 xl:w-135 shrink-0 flex-col justify-between bg-zinc-950 p-12">
         <Link href="/" className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
             <HugeiconsIcon
@@ -67,7 +67,7 @@ export default function LoginPage() {
           <ul className="space-y-3">
             {features.map(({ icon: Icon, label }) => (
               <li key={label} className="flex items-center gap-3">
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/8">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/8">
                   <HugeiconsIcon
                     icon={Icon}
                     size={16}

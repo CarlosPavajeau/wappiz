@@ -6,7 +6,12 @@ export const env = createEnv({
   emptyStringAsUndefined: true,
   runtimeEnv: process.env,
   server: {
+    AUTH_GOOGLE_ID: z.string(),
+    AUTH_GOOGLE_SECRET: z.string(),
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.url(),
     CORS_ORIGIN: z.url(),
+    DATABASE_URL: z.string(),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),

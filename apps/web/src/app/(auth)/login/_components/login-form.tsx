@@ -6,7 +6,6 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { type } from "arktype"
 import { isAxiosError } from "axios"
-import Cookies from "js-cookie"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -22,7 +21,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
-import { api } from "@/lib/client-api"
+import { authClient } from "@/lib/auth-client"
 
 const loginSchema = type({
   email: type("string.email").configure({
@@ -48,7 +47,11 @@ export function LoginForm() {
   })
 
   const { mutate, isPending } = useMutation({
-    mutationFn: (data: LoginFormData) => api.auth.login(data),
+    mutationFn: (data: LoginFormData) =>
+      authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+      }),
     onError: (error) => {
       const message = isAxiosError(error)
         ? (error.response?.data?.message ??
@@ -56,13 +59,17 @@ export function LoginForm() {
         : "Algo salió mal. Por favor, inténtalo de nuevo."
       toast.error(message)
     },
-    onSuccess: (tokens) => {
-      const { accessToken, refreshToken } = tokens
-
-      Cookies.set("accessToken", accessToken, { secure: true })
-      Cookies.set("refreshToken", refreshToken, { secure: true })
-
-      router.push("/dashboard")
+    onSuccess: (result) => {
+      if (result.data) {
+        router.push("/dashboard")
+      } else if (result.error) {
+        const message =
+          result.error.message ??
+          "Algo salió mal. Por favor, inténtalo de nuevo."
+        toast.error(message)
+      } else {
+        toast.error("Algo salió mal. Por favor, inténtalo de nuevo.")
+      }
     },
   })
 
