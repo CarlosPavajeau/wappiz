@@ -7,7 +7,6 @@ import {
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
-import { LayoutDashboard, Package, Users } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -61,13 +60,19 @@ export function AppSidebar({ tenant }: Readonly<Props>) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <Link
-          aria-label="Go to home"
-          className="inline-flex size-8 items-center justify-center rounded-md border border-border bg-accent text-xs font-semibold text-foreground"
-          href="/dashboard"
-        >
-          {tenant.name[0]}
-        </Link>
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground">
+            {tenant.name[0].toUpperCase()}
+          </div>
+          <div className="flex min-w-0 flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-sm font-semibold leading-tight">
+              {tenant.name}
+            </span>
+            <span className="truncate text-xs capitalize text-muted-foreground">
+              {tenant.plan}
+            </span>
+          </div>
+        </div>
       </SidebarHeader>
 
       <SidebarContent>
