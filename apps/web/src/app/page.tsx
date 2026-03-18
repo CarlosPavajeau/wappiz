@@ -22,25 +22,25 @@ export const metadata: Metadata = {
 const FEATURES = [
   {
     description:
-      "Agregá personal, salas o equipos y definí horarios y disponibilidad individuales.",
+      "Agrega personal, salas o equipos y define horarios y disponibilidad individuales.",
     icon: UserMultipleIcon,
     title: "Gestión de recursos",
   },
   {
     description:
-      "Definí servicios con duración y precio, y asignalos a recursos específicos.",
+      "Define servicios con duración y precio, y asignalos a recursos específicos.",
     icon: Settings01Icon,
     title: "Catálogo de servicios",
   },
   {
     description:
-      "Configurá horarios de atención, tiempos de buffer y ventanas de disponibilidad por recurso.",
+      "Configura horarios de atención, tiempos de buffer y ventanas de disponibilidad por recurso.",
     icon: Calendar01Icon,
     title: "Agenda inteligente",
   },
   {
     description:
-      "Agregá excepciones por feriados, vacaciones o cambios puntuales de disponibilidad en segundos.",
+      "Agrega excepciones por feriados, vacaciones o cambios puntuales de disponibilidad en segundos.",
     icon: Clock01Icon,
     title: "Excepciones de horario",
   },
@@ -249,7 +249,7 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-12 space-y-3 text-center">
             <h2 className="text-3xl font-bold tracking-tight">
-              Todo lo que necesitás para gestionar citas
+              Todo lo que necesitas para gestionar citas
             </h2>
             <p className="mx-auto max-w-xl text-muted-foreground">
               Una sola plataforma para manejar recursos, servicios y horarios —
@@ -289,7 +289,7 @@ export default function Home() {
             ¿Listo para simplificar tu agenda?
           </h2>
           <p className="text-muted-foreground">
-            Sumate a los negocios que ya usan wappiz para gestionar citas sin
+            Súmate a los negocios que ya usan wappiz para gestionar citas sin
             esfuerzo por WhatsApp.
           </p>
           <Link
@@ -336,7 +336,10 @@ export default function Home() {
               <span aria-hidden="true" className="hidden sm:inline">
                 ·
               </span>
-              <p>© 2026 wappiz. Todos los derechos reservados.</p>
+              <p>
+                © {new Date().getFullYear()} wappiz. Todos los derechos
+                reservados.
+              </p>
             </div>
 
             {/* Theme toggle */}
