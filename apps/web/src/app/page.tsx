@@ -1,12 +1,13 @@
 import {
-  ArrowRight,
-  Calendar,
-  CheckCircle,
-  Clock,
-  MessageCircle,
-  Settings,
-  Users,
-} from "lucide-react"
+  ArrowRight01Icon,
+  BubbleChatIcon,
+  Calendar01Icon,
+  CheckmarkCircle01Icon,
+  Clock01Icon,
+  Settings01Icon,
+  UserMultipleIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import type { Metadata } from "next"
 import Link from "next/link"
 
@@ -15,32 +16,32 @@ import { ModeToggle } from "@/components/mode-toggle"
 export const metadata: Metadata = {
   description:
     "Permite que tus clientes agenden citas directamente desde WhatsApp. Gestiona recursos, servicios y disponibilidad en un solo lugar.",
-  title: "wappiz — Turnos por WhatsApp",
+  title: "wappiz — Citas por WhatsApp",
 }
 
 const FEATURES = [
   {
     description:
       "Agregá personal, salas o equipos y definí horarios y disponibilidad individuales.",
-    icon: Users,
+    icon: UserMultipleIcon,
     title: "Gestión de recursos",
   },
   {
     description:
       "Definí servicios con duración y precio, y asignalos a recursos específicos.",
-    icon: Settings,
+    icon: Settings01Icon,
     title: "Catálogo de servicios",
   },
   {
     description:
       "Configurá horarios de atención, tiempos de buffer y ventanas de disponibilidad por recurso.",
-    icon: Calendar,
+    icon: Calendar01Icon,
     title: "Agenda inteligente",
   },
   {
     description:
       "Agregá excepciones por feriados, vacaciones o cambios puntuales de disponibilidad en segundos.",
-    icon: Clock,
+    icon: Clock01Icon,
     title: "Excepciones de horario",
   },
 ]
@@ -83,8 +84,11 @@ export default function Home() {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <MessageCircle
-                className="h-4 w-4 text-primary-foreground"
+              <HugeiconsIcon
+                icon={BubbleChatIcon}
+                size={16}
+                strokeWidth={1.5}
+                className="text-primary-foreground"
                 aria-hidden="true"
               />
             </div>
@@ -113,21 +117,26 @@ export default function Home() {
           {/* Copy */}
           <div className="space-y-7">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#25D366]/25 bg-[#25D366]/10 px-3 py-1.5 text-sm font-medium text-[#128C7E]">
-              <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
-              Agenda de turnos por WhatsApp
+              <HugeiconsIcon
+                icon={BubbleChatIcon}
+                size={14}
+                strokeWidth={1.5}
+                aria-hidden="true"
+              />
+              Agenda de citas por WhatsApp
             </div>
 
             <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-              Turnos,
+              Citas,
               <br />
-              agendados por
+              agendadas por
               <br />
               <span className="text-[#25D366]">WhatsApp.</span>
             </h1>
 
             <p className="max-w-md text-lg leading-relaxed text-muted-foreground">
-              Permitís que tus clientes agenden desde el chat que ya usan.
-              Gestioná recursos, servicios y disponibilidad — todo en un solo
+              Permite que tus clientes agenden desde el chat que ya usan.
+              Gestiona recursos, servicios y disponibilidad — todo en un solo
               lugar.
             </p>
 
@@ -137,7 +146,12 @@ export default function Home() {
                 className="inline-flex items-center gap-2 rounded-lg bg-[#25D366] px-6 py-3 text-sm font-semibold text-[#052e16] transition-colors hover:bg-[#1db356]"
               >
                 Empezar gratis
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={16}
+                  strokeWidth={1.5}
+                  aria-hidden="true"
+                />
               </Link>
               <Link
                 href="/login"
@@ -154,8 +168,11 @@ export default function Home() {
                 "Configuración en minutos",
               ].map((item) => (
                 <li key={item} className="flex items-center gap-1.5">
-                  <CheckCircle
-                    className="h-4 w-4 shrink-0 text-[#25D366]"
+                  <HugeiconsIcon
+                    icon={CheckmarkCircle01Icon}
+                    size={16}
+                    strokeWidth={1.5}
+                    className="shrink-0 text-[#25D366]"
                     aria-hidden="true"
                   />
                   {item}
@@ -166,11 +183,17 @@ export default function Home() {
 
           {/* WhatsApp chat mockup */}
           <div className="relative flex items-center justify-center">
-            <div className="relative w-[300px] overflow-hidden rounded-[2rem] border-4 border-foreground/10 bg-background shadow-2xl">
+            <div className="relative w-[300px] overflow-hidden rounded-xl border-4 border-foreground/10 bg-background shadow-2xl">
               {/* Chat header */}
               <div className="flex items-center gap-3 bg-[#075E54] px-4 py-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366]">
-                  <Calendar className="h-4 w-4 text-white" aria-hidden="true" />
+                  <HugeiconsIcon
+                    icon={Calendar01Icon}
+                    size={16}
+                    strokeWidth={1.5}
+                    className="text-white"
+                    aria-hidden="true"
+                  />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-white">wappiz</p>
@@ -179,13 +202,13 @@ export default function Home() {
               </div>
 
               {/* Messages */}
-              <div
-                aria-label="Ejemplo de conversación de WhatsApp para agendar un turno"
-                className="min-h-[320px] space-y-2 bg-[#ECE5DD] p-3 dark:bg-[#0D1418]"
+              <section
+                aria-label="Ejemplo de conversación de WhatsApp para agendar una cita"
+                className="min-h-80 space-y-2 bg-[#ECE5DD] p-3 dark:bg-[#0D1418]"
               >
                 <ChatBubble
                   side="left"
-                  text="¡Hola! Quiero sacar turno para un corte 💇"
+                  text="¡Hola! Quiero sacar cita para un corte 💇"
                   time="10:24"
                 />
                 <ChatBubble
@@ -206,10 +229,10 @@ export default function Home() {
                 <ChatBubble side="left" text="Hoy, 15:00" time="10:25" />
                 <ChatBubble
                   side="right"
-                  text="✅ ¡Turno confirmado! Te esperamos hoy a las 15:00."
+                  text="✅ ¡Cita confirmada! Te esperamos hoy a las 15:00."
                   time="10:25"
                 />
-              </div>
+              </section>
             </div>
 
             {/* Ambient glow */}
@@ -226,7 +249,7 @@ export default function Home() {
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-12 space-y-3 text-center">
             <h2 className="text-3xl font-bold tracking-tight">
-              Todo lo que necesitás para gestionar turnos
+              Todo lo que necesitás para gestionar citas
             </h2>
             <p className="mx-auto max-w-xl text-muted-foreground">
               Una sola plataforma para manejar recursos, servicios y horarios —
@@ -241,8 +264,11 @@ export default function Home() {
                 className="group space-y-3 rounded-xl border border-border/60 p-5 transition-colors hover:border-[#25D366]/40"
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#25D366]/10 transition-colors group-hover:bg-[#25D366]/20">
-                  <f.icon
-                    className="h-5 w-5 text-[#25D366]"
+                  <HugeiconsIcon
+                    icon={f.icon}
+                    size={20}
+                    strokeWidth={1.5}
+                    className="text-[#25D366]"
                     aria-hidden="true"
                   />
                 </div>
@@ -263,7 +289,7 @@ export default function Home() {
             ¿Listo para simplificar tu agenda?
           </h2>
           <p className="text-muted-foreground">
-            Sumate a los negocios que ya usan wappiz para gestionar turnos sin
+            Sumate a los negocios que ya usan wappiz para gestionar citas sin
             esfuerzo por WhatsApp.
           </p>
           <Link
@@ -271,7 +297,12 @@ export default function Home() {
             className="inline-flex items-center gap-2 rounded-lg bg-[#25D366] px-8 py-3.5 font-semibold text-[#052e16] transition-colors hover:bg-[#1db356]"
           >
             Empezar gratis
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              size={16}
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
           </Link>
         </div>
       </section>
@@ -283,8 +314,11 @@ export default function Home() {
             {/* Brand */}
             <div className="flex items-center gap-2 text-sm font-medium">
               <div className="flex h-5 w-5 items-center justify-center rounded bg-[#25D366]">
-                <MessageCircle
-                  className="h-3 w-3 text-[#052e16]"
+                <HugeiconsIcon
+                  icon={BubbleChatIcon}
+                  size={12}
+                  strokeWidth={1.5}
+                  className="text-[#052e16]"
                   aria-hidden="true"
                 />
               </div>
