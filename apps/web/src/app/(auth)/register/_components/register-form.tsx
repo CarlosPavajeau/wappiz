@@ -1,11 +1,12 @@
 "use client"
 
 import { arktypeResolver } from "@hookform/resolvers/arktype"
+import { EyeIcon, ViewOffSlashIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { type } from "arktype"
 import { isAxiosError } from "axios"
 import Cookies from "js-cookie"
-import { Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -13,14 +14,6 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import {
   Field,
   FieldError,
@@ -75,12 +68,8 @@ export function RegisterForm() {
     onSuccess: (tokens) => {
       const { accessToken, refreshToken } = tokens
 
-      Cookies.set("accessToken", accessToken, {
-        secure: true,
-      })
-      Cookies.set("refreshToken", refreshToken, {
-        secure: true,
-      })
+      Cookies.set("accessToken", accessToken, { secure: true })
+      Cookies.set("refreshToken", refreshToken, { secure: true })
 
       toast.success("¡Cuenta creada! Por favor, inicia sesión.")
       router.push("/onboarding")
@@ -97,119 +86,129 @@ export function RegisterForm() {
   })
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <CardTitle className="text-xl">Crea una cuenta</CardTitle>
-        <CardDescription>Empieza a usar wappiz hoy</CardDescription>
-      </CardHeader>
+    <div className="w-full max-w-sm">
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Crea una cuenta
+        </h2>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Empieza a usar wappiz hoy. Es gratis.
+        </p>
+      </div>
 
-      <CardContent>
-        <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
-          <FieldGroup>
-            <Field data-invalid={!!errors.name}>
-              <FieldLabel htmlFor="name">Nombre de la barbería</FieldLabel>
+      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
+        <FieldGroup>
+          <Field data-invalid={!!errors.name}>
+            <FieldLabel htmlFor="name">Nombre de la barbería</FieldLabel>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Escribe el nombre de tu barbería"
+              autoComplete="name"
+              aria-invalid={!!errors.name}
+              {...register("name")}
+            />
+            <FieldError errors={[errors.name]} />
+          </Field>
+
+          <Field data-invalid={!!errors.email}>
+            <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              placeholder="tu@ejemplo.com"
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              {...register("email")}
+            />
+            <FieldError errors={[errors.email]} />
+          </Field>
+
+          <Field data-invalid={!!errors.password}>
+            <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+            <div className="relative">
               <Input
-                id="name"
-                type="text"
-                placeholder="Escribe el nombre de tu barbería"
-                autoComplete="name"
-                aria-invalid={!!errors.name}
-                {...register("name")}
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Mín. 8 caracteres"
+                autoComplete="new-password"
+                className="pr-9"
+                aria-invalid={!!errors.password}
+                {...register("password")}
               />
-              <FieldError errors={[errors.name]} />
-            </Field>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={
+                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                <HugeiconsIcon
+                  icon={showPassword ? ViewOffSlashIcon : EyeIcon}
+                  size={16}
+                  strokeWidth={1.5}
+                />
+              </Button>
+            </div>
+            <FieldError errors={[errors.password]} />
+          </Field>
 
-            <Field data-invalid={!!errors.email}>
-              <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
+          <Field data-invalid={!!errors.confirmPassword}>
+            <FieldLabel htmlFor="confirmPassword">
+              Confirmar contraseña
+            </FieldLabel>
+            <div className="relative">
               <Input
-                id="email"
-                type="email"
-                placeholder="tu@ejemplo.com"
-                autoComplete="email"
-                aria-invalid={!!errors.email}
-                {...register("email")}
+                id="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                placeholder="Repite tu contraseña"
+                autoComplete="new-password"
+                className="pr-9"
+                aria-invalid={!!errors.confirmPassword}
+                {...register("confirmPassword")}
               />
-              <FieldError errors={[errors.email]} />
-            </Field>
-
-            <Field data-invalid={!!errors.password}>
-              <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Mín. 8 caracteres"
-                  autoComplete="new-password"
-                  className="pr-9"
-                  aria-invalid={!!errors.password}
-                  {...register("password")}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label={
+                  showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"
+                }
+                onClick={() => setShowConfirm((prev) => !prev)}
+              >
+                <HugeiconsIcon
+                  icon={showConfirm ? ViewOffSlashIcon : EyeIcon}
+                  size={16}
+                  strokeWidth={1.5}
                 />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                  }
-                  onClick={() => setShowPassword((prev) => !prev)}
-                >
-                  {showPassword ? <EyeOff /> : <Eye />}
-                </Button>
-              </div>
-              <FieldError errors={[errors.password]} />
-            </Field>
+              </Button>
+            </div>
+            <FieldError errors={[errors.confirmPassword]} />
+          </Field>
+        </FieldGroup>
 
-            <Field data-invalid={!!errors.confirmPassword}>
-              <FieldLabel htmlFor="confirmPassword">
-                Confirmar contraseña
-              </FieldLabel>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirm ? "text" : "password"}
-                  placeholder="Repite tu contraseña"
-                  autoComplete="new-password"
-                  className="pr-9"
-                  aria-invalid={!!errors.confirmPassword}
-                  {...register("confirmPassword")}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={
-                    showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"
-                  }
-                  onClick={() => setShowConfirm((prev) => !prev)}
-                >
-                  {showConfirm ? <EyeOff /> : <Eye />}
-                </Button>
-              </div>
-              <FieldError errors={[errors.confirmPassword]} />
-            </Field>
-          </FieldGroup>
+        <Button type="submit" className="mt-2 w-full" disabled={isPending}>
+          {isPending && <Spinner className="animate-spin" />}
+          Crear cuenta
+        </Button>
 
-          <Button type="submit" className="mt-1 w-full" disabled={isPending}>
-            {isPending && <Spinner className="animate-spin" />}
-            Crear cuenta
-          </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          Al crear una cuenta aceptás nuestra{" "}
+          <Link
+            href="/politica-de-privacidad"
+            className="underline-offset-4 hover:underline"
+          >
+            Política de privacidad
+          </Link>
+          .
+        </p>
+      </form>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Al crear una cuenta aceptás nuestra{" "}
-            <Link
-              href="/politica-de-privacidad"
-              className="underline-offset-4 hover:underline"
-            >
-              Política de privacidad
-            </Link>
-            .
-          </p>
-        </form>
-      </CardContent>
-
-      <CardFooter className="justify-center">
+      <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
           ¿Ya tienes una cuenta?{" "}
           <Link
@@ -219,7 +218,7 @@ export function RegisterForm() {
             Iniciar sesión
           </Link>
         </p>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   )
 }

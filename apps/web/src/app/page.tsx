@@ -82,9 +82,9 @@ export default function Home() {
       <nav className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#25D366]">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <MessageCircle
-                className="h-4 w-4 text-white"
+                className="h-4 w-4 text-primary-foreground"
                 aria-hidden="true"
               />
             </div>
