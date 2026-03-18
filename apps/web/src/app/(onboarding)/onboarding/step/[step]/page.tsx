@@ -1,20 +1,32 @@
-import type { UserResponse } from "@wappiz/api-client/types/auth"
 import type { OnboardingProgress } from "@wappiz/api-client/types/onboarding"
+import { auth } from "@wappiz/auth"
+import { headers } from "next/headers"
 import { notFound, redirect } from "next/navigation"
 
 import { StepBarberForm } from "@/components/onboarding/step-barber-form"
 import { StepServicesForm } from "@/components/onboarding/step-services-form"
+import { StepTenantForm } from "@/components/onboarding/step-tenant-form"
 import { StepWhatsAppForm } from "@/components/onboarding/step-whatsapp-form"
 import { getServerApi } from "@/lib/server-api"
 
-const MIN_STEP = 2
+const MIN_STEP = 1
 const MAX_STEP = 4
 
-export default async function StepPage({
-  params,
-}: {
+type Props = {
   params: Promise<{ step: string }>
-}) {
+}
+
+export default async function StepPage({ params }: Readonly<Props>) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
+
+  console.log("session", session)
+
+  if (!session) {
+    redirect("/login")
+  }
+
   const { step: stepStr } = await params
   const step = Number(stepStr)
 
@@ -28,17 +40,20 @@ export default async function StepPage({
     const api = await getServerApi()
     progress = await api.onboarding.progress()
   } catch {
-    redirect("/login")
+    notFound()
   }
 
   if (progress.isCompleted) {
-    redirect("/")
+    redirect("/dashboard")
   }
 
   if (step !== progress.currentStep) {
     redirect(`/onboarding/step/${progress.currentStep}`)
   }
 
+  if (step === 1) {
+    return <StepTenantForm />
+  }
   if (step === 2) {
     return <StepBarberForm />
   }
@@ -46,17 +61,5 @@ export default async function StepPage({
     return <StepServicesForm />
   }
 
-  // Step 4 — needs the user's email to pre-fill the contact field
-  let user: Pick<UserResponse, "email"> | null = null
-
-  try {
-    const api = await getServerApi()
-    user = await api.auth.me()
-  } catch {
-    redirect("/login")
-  }
-
-  console.log("[onboarding/page]: current user are", user)
-
-  return <StepWhatsAppForm initialEmail={user.email} />
+  return <StepWhatsAppForm initialEmail={session.user.email} />
 }
