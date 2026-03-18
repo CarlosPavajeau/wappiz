@@ -1,3 +1,4 @@
+import { MessageCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function AuthLayout({
@@ -7,19 +8,19 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="sticky top-0 z-50 border-border border-b bg-background/75 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-md">
         <nav
-          aria-label="Navegacion principal"
-          className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
+          aria-label="Navegación principal"
+          className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6"
         >
-          <Link
-            className="inline-flex items-center gap-2 font-semibold text-foreground text-sm tracking-tight"
-            href="/"
-          >
-            <span className="inline-flex size-6 items-center justify-center rounded-md border border-border bg-accent text-xs">
-              W
-            </span>
-            Wappiz
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#25D366]">
+              <MessageCircle
+                className="h-4 w-4 text-white"
+                aria-hidden="true"
+              />
+            </div>
+            <span className="text-lg font-semibold tracking-tight">wappiz</span>
           </Link>
         </nav>
       </header>

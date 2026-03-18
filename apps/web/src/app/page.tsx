@@ -278,27 +278,36 @@ export default function Home() {
 
       {/* ── Footer ─────────────────────────────────────────────────── */}
       <footer className="border-t border-border/40 py-6">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 text-sm text-muted-foreground sm:px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-5 w-5 items-center justify-center rounded bg-[#25D366]">
-              <MessageCircle
-                className="h-3 w-3 text-white"
-                aria-hidden="true"
-              />
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
+            {/* Brand */}
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex h-5 w-5 items-center justify-center rounded bg-[#25D366]">
+                <MessageCircle
+                  className="h-3 w-3 text-[#052e16]"
+                  aria-hidden="true"
+                />
+              </div>
+              <span>wappiz</span>
             </div>
-            <span className="font-medium">wappiz</span>
+
+            {/* Links */}
+            <div className="flex flex-col items-start gap-1.5 text-xs text-muted-foreground sm:flex-row sm:items-center sm:gap-3">
+              <Link
+                href="/politica-de-privacidad"
+                className="transition-colors hover:text-foreground"
+              >
+                Política de privacidad
+              </Link>
+              <span aria-hidden="true" className="hidden sm:inline">
+                ·
+              </span>
+              <p>© 2026 wappiz. Todos los derechos reservados.</p>
+            </div>
+
+            {/* Theme toggle */}
+            <ModeToggle />
           </div>
-          <div className="flex items-center gap-3">
-            <p>© 2026 wappiz. Todos los derechos reservados.</p>
-            <span aria-hidden="true">·</span>
-            <Link
-              href="/politica-de-privacidad"
-              className="transition-colors hover:text-foreground"
-            >
-              Política de privacidad
-            </Link>
-          </div>
-          <ModeToggle />
         </div>
       </footer>
     </main>
