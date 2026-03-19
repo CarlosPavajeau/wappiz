@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
 import { createContext } from "react"
 
+import { authClient } from "@/lib/auth-client"
 import { api } from "@/lib/client-api"
 
 type TenantContext = {
@@ -21,7 +22,11 @@ type TenantProviderProps = {
 }
 
 export const TenantProvider = ({ children }: TenantProviderProps) => {
+  const { data, isPending } = authClient.useSession()
+  const shouldFetch = !isPending && data?.user.role !== "admin"
+
   const { data: tenant, isLoading } = useQuery({
+    enabled: shouldFetch,
     queryFn: () => api.tenants.byUser(),
     queryKey: ["tenant"],
     staleTime: 5 * 60 * 1000,
