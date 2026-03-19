@@ -2,12 +2,16 @@ import { relations } from "drizzle-orm"
 import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 export const user = pgTable("users", {
+  banExpires: timestamp("ban_expires", { precision: 6, withTimezone: true }),
+  banReason: text("ban_reason"),
+  banned: boolean("banned"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").default(false).notNull(),
   id: text("id").primaryKey(),
   image: text("image"),
   name: text("name").notNull(),
+  role: text("role"),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
@@ -20,6 +24,7 @@ export const session = pgTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     expiresAt: timestamp("expires_at").notNull(),
     id: text("id").primaryKey(),
+    impersonatedBy: text("impersonated_by"),
     ipAddress: text("ip_address"),
     token: text("token").notNull().unique(),
     updatedAt: timestamp("updated_at")
