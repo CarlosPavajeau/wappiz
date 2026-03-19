@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     redirect("/login")
   }
 
-  const isSuperAdmin = false
+  const isSuperAdmin = session.user.role === "admin"
 
   return <div>{isSuperAdmin ? <PendingActivations /> : <AdminDashboard />}</div>
 }
