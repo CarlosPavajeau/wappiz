@@ -25,7 +25,6 @@ export const auth = betterAuth({
       jwt: {
         definePayload: ({ user }) => ({
           ...user,
-          role: "admin",
         }),
       },
     }),
