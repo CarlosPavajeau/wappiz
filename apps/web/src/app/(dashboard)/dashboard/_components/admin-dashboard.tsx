@@ -167,7 +167,7 @@ export function AdminDashboard() {
       <Separator />
 
       {isLoading ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col divide-y divide-border">
           {Array.from({ length: 4 }, (_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: is an array generated
             <AppointmentSkeleton key={i} />
@@ -192,7 +192,10 @@ export function AdminDashboard() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <ol aria-label="Appointments" className="flex flex-col gap-2">
+        <ol
+          aria-label="Appointments"
+          className="flex flex-col divide-y divide-border gap-2"
+        >
           {filtered.map((appointment) => (
             <li key={appointment.id}>
               <AppointmentCard

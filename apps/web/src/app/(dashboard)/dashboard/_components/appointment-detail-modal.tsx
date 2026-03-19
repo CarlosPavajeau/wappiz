@@ -4,12 +4,12 @@ import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { differenceInMinutes, format, formatDuration } from "date-fns"
 import { es } from "date-fns/locale"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -25,7 +25,8 @@ import { Separator } from "@/components/ui/separator"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { priceFormatter } from "@/lib/intl"
 
-import { formatTime, statusLabel, statusVariant } from "./appointment-utils"
+import { formatTime } from "./appointment-utils"
+import { StatusBadge } from "./status-badge"
 
 function DetailRow({
   label,
@@ -66,17 +67,11 @@ function AppointmentDetailContent({ appointment }: Readonly<Props>) {
   )
 
   const formattedPrice = priceFormatter.format(appointment.priceAtBooking)
-
   const dateLabel = format(start, "dd/MM/yyyy")
 
   return (
     <div className="flex flex-col gap-4">
-      <Badge
-        variant={statusVariant(appointment.status)}
-        className="w-fit rounded-sm"
-      >
-        {statusLabel(appointment.status)}
-      </Badge>
+      <StatusBadge status={appointment.status} />
 
       <Separator />
 
@@ -142,6 +137,7 @@ export function AppointmentDetailModal({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <AppointmentDetailContent appointment={appointment} />
+        <DialogFooter showCloseButton />
       </DialogContent>
     </Dialog>
   )
