@@ -31,3 +31,13 @@ export type UpdateAppointmentStatusRequest = {
   reason?: string | null
   cancelled_by?: CancelledBy | null
 }
+
+export type AppointmentStatusHistory = {
+  id: string
+  fromStatus: AppointmentStatus
+  toStatus: AppointmentStatus
+  changedBy: string
+  changedByRole: string
+  reason: string
+  createdAt: string
+}

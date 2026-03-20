@@ -1,28 +1,29 @@
 "use client"
 
-import type { Appointment } from "@wappiz/api-client/types/appointments"
+import type {
+  Appointment,
+  AppointmentStatusHistory,
+} from "@wappiz/api-client/types/appointments"
+import { useQuery } from "@tanstack/react-query"
 import { differenceInMinutes, format, formatDuration } from "date-fns"
 import { es } from "date-fns/locale"
 
-import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import { useIsMobile } from "@/hooks/use-mobile"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { Skeleton } from "@/components/ui/skeleton"
+import { api } from "@/lib/client-api"
 import { priceFormatter } from "@/lib/intl"
 
 import { formatTime } from "./appointment-utils"
@@ -50,11 +51,64 @@ function DetailRow({
   )
 }
 
-type Props = {
-  appointment: Appointment
+function HistoryItem({ entry }: { entry: AppointmentStatusHistory }) {
+  const date = format(new Date(entry.createdAt), "dd/MM/yyyy · h:mm a")
+
+  return (
+    <li className="flex gap-3">
+      <div
+        aria-hidden
+        className="flex flex-col items-center"
+      >
+        <div className="mt-1 size-2 shrink-0 rounded-full bg-border ring-2 ring-background" />
+        <div className="mt-1 w-px flex-1 bg-border last:hidden" />
+      </div>
+      <div className="flex flex-col gap-1 pb-4">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+          <StatusBadge status={entry.fromStatus} />
+          <span className="text-muted-foreground" aria-label="hacia">→</span>
+          <StatusBadge status={entry.toStatus} />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {entry.changedBy}
+          {entry.changedByRole ? ` · ${entry.changedByRole}` : ""}
+        </p>
+        {entry.reason ? (
+          <p className="text-xs text-foreground/70 italic">"{entry.reason}"</p>
+        ) : null}
+        <time className="text-xs text-muted-foreground/60" dateTime={entry.createdAt}>
+          {date}
+        </time>
+      </div>
+    </li>
+  )
 }
 
-function AppointmentDetailContent({ appointment }: Readonly<Props>) {
+function HistorySkeleton() {
+  return (
+    <div className="flex flex-col gap-4" aria-busy aria-label="Cargando historial">
+      {Array.from({ length: 3 }).map((_, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
+        <div key={i} className="flex gap-3">
+          <div className="flex flex-col items-center">
+            <Skeleton className="mt-1 size-2 rounded-full" />
+            <Skeleton className="mt-1 w-px flex-1" />
+          </div>
+          <div className="flex flex-col gap-1.5 pb-4">
+            <div className="flex gap-1.5">
+              <Skeleton className="h-5 w-20 rounded-full" />
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-3 w-24" />
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function AppointmentDetailContent({ appointment }: { appointment: Appointment }) {
   const start = new Date(appointment.startsAt)
   const end = new Date(appointment.endsAt)
   const totalMinutes = differenceInMinutes(end, start)
@@ -69,8 +123,13 @@ function AppointmentDetailContent({ appointment }: Readonly<Props>) {
   const formattedPrice = priceFormatter.format(appointment.priceAtBooking)
   const dateLabel = format(start, "dd/MM/yyyy")
 
+  const { data: history, isLoading: isLoadingHistory } = useQuery({
+    queryKey: ["appointments", appointment.id, "history"],
+    queryFn: () => api.appointments.history(appointment.id),
+  })
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <StatusBadge status={appointment.status} />
 
       <Separator />
@@ -86,6 +145,36 @@ function AppointmentDetailContent({ appointment }: Readonly<Props>) {
         />
         <DetailRow label="Precio" value={formattedPrice} />
       </dl>
+
+      <Separator />
+
+      <section aria-labelledby="history-heading">
+        <h3
+          id="history-heading"
+          className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+        >
+          Historial de estados
+        </h3>
+
+        {isLoadingHistory ? (
+          <HistorySkeleton />
+        ) : history && history.length > 0 ? (
+          <ol className="flex flex-col">
+            {history.map((entry) => (
+              <HistoryItem key={entry.id} entry={entry} />
+            ))}
+          </ol>
+        ) : (
+          <Empty className="border-0 p-0 py-4">
+            <EmptyHeader>
+              <EmptyTitle>Sin historial</EmptyTitle>
+              <EmptyDescription>
+                No hay cambios de estado registrados para esta cita.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
+      </section>
     </div>
   )
 }
@@ -99,8 +188,6 @@ export function AppointmentDetailModal({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const isMobile = useIsMobile()
-
   if (!appointment) {
     return null
   }
@@ -108,37 +195,18 @@ export function AppointmentDetailModal({
   const title = appointment.customerName
   const description = `${appointment.serviceName} · ${formatTime(appointment.startsAt)}`
 
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-            <DrawerDescription>{description}</DrawerDescription>
-          </DrawerHeader>
-          <div className="overflow-y-auto px-4 pb-2">
-            <AppointmentDetailContent appointment={appointment} />
-          </div>
-          <DrawerFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cerrar
-            </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
-    )
-  }
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <AppointmentDetailContent appointment={appointment} />
-        <DialogFooter showCloseButton />
-      </DialogContent>
-    </Dialog>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex flex-col gap-0 overflow-hidden p-0">
+        <SheetHeader className="px-5 pt-5 pb-4">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto px-5 pb-6">
+          <AppointmentDetailContent appointment={appointment} />
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
