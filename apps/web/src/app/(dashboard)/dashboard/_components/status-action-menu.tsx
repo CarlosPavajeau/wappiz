@@ -168,7 +168,7 @@ export function StatusActionMenu({
             )
           }
         />
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-40">
           {transitions.map((status) => {
             const config = getStatusConfig(status)
             return (
