@@ -1,5 +1,7 @@
 "use client"
 
+import { Moon02Icon, Sun01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
@@ -30,7 +32,8 @@ export function ModeToggle() {
         }
       >
         <span className="relative flex size-4" aria-hidden="true">
-          <Sun
+          <HugeiconsIcon
+            icon={Sun01Icon}
             className={cn(
               "absolute inset-0 size-4 transition-[transform,opacity] duration-200 motion-reduce:transition-none",
               isDark
@@ -38,7 +41,8 @@ export function ModeToggle() {
                 : "rotate-0 scale-100 opacity-100"
             )}
           />
-          <Moon
+          <HugeiconsIcon
+            icon={Moon02Icon}
             className={cn(
               "absolute inset-0 size-4 transition-[transform,opacity] duration-200 motion-reduce:transition-none",
               isDark
