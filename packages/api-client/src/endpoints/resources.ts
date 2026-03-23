@@ -7,6 +7,7 @@ import type {
   DeleteScheduleOverrideRequest,
   Resource,
   ScheduleOverride,
+  UpdateResourceRequest,
   UpdateWorkingHoursRequest,
 } from "../types/resources"
 import type { Service } from "../types/services"
@@ -49,6 +50,10 @@ const definitions = {
     method: "GET",
     path: (id: string) => `/resources/${id}/services`,
   } as EndpointDefinition<Service[], void, string>,
+  update: {
+    method: "PUT",
+    path: (id: string) => `/resources/${id}`,
+  } as EndpointDefinition<Resource, UpdateResourceRequest, string>,
   updateWorkingHours: {
     method: "PUT",
     path: (id: string) => `/resources/${id}/working-hours`,

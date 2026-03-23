@@ -54,3 +54,9 @@ export type DeleteScheduleOverrideRequest = {
   resourceId: string
   overrideId: string
 }
+
+export type UpdateResourceRequest = {
+  name: string
+  type: string
+  avatarURL?: string
+}

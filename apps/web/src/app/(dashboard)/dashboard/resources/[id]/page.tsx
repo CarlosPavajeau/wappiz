@@ -17,6 +17,7 @@ import { getServerApi } from "@/lib/server-api"
 import { LinkServicesDialog } from "./_components/link-services-dialog"
 import { ResourceServiceCard } from "./_components/resource-service-card"
 import { ScheduleOverridesCard } from "./_components/schedule-overrides-card"
+import { UpdateResourceDialog } from "./_components/update-resource-dialog"
 import { WorkingHoursCard } from "./_components/working-hours-card"
 
 type Props = {
@@ -85,6 +86,16 @@ export default async function ResourcePage({ params, searchParams }: Props) {
               {resource.type}
             </Badge>
           </div>
+        </div>
+        <div className="shrink-0">
+          <UpdateResourceDialog
+            resourceId={id}
+            defaultValues={{
+              name: resource.name,
+              type: resource.type,
+              avatarURL: resource.avatarUrl,
+            }}
+          />
         </div>
       </header>
 
