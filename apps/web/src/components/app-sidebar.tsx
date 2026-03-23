@@ -4,6 +4,7 @@ import {
   Appointment01Icon,
   ResourcesAddIcon,
   ServiceIcon,
+  Settings01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
@@ -43,6 +44,11 @@ const USER_NAV_ITEMS = [
     href: "/dashboard/resources",
     icon: () => <HugeiconsIcon icon={ResourcesAddIcon} strokeWidth={2} />,
     label: "Recursos",
+  },
+  {
+    href: "/dashboard/settings",
+    icon: () => <HugeiconsIcon icon={Settings01Icon} strokeWidth={2} />,
+    label: "Ajustes",
   },
 ] as const
 
