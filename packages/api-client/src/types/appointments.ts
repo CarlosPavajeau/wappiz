@@ -1,6 +1,7 @@
 export type AppointmentStatus =
   | "pending"
   | "confirmed"
+  | "check_in"
   | "in_progress"
   | "completed"
   | "cancelled"

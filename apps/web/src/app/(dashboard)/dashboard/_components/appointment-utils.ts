@@ -10,6 +10,7 @@ import { format } from "date-fns"
 
 export const STATUS_VARIANT = {
   cancelled: "destructive",
+  check_in: "default",
   completed: "secondary",
   confirmed: "default",
   in_progress: "default",
@@ -19,6 +20,7 @@ export const STATUS_VARIANT = {
 
 export const STATUS_LABEL = {
   cancelled: "Cancelada",
+  check_in: "Check-in",
   completed: "Completada",
   confirmed: "Confirmada",
   in_progress: "En progreso",
@@ -40,8 +42,9 @@ export function formatTime(iso: string) {
 
 const TRANSITIONS: Record<AppointmentStatus, AppointmentStatus[]> = {
   cancelled: [],
+  check_in: ["in_progress", "cancelled", "no_show"],
   completed: [],
-  confirmed: ["in_progress", "cancelled", "no_show"],
+  confirmed: ["check_in", "cancelled", "no_show"],
   in_progress: ["completed", "cancelled"],
   no_show: [],
   pending: ["confirmed", "cancelled"],
@@ -55,6 +58,7 @@ type StatusConfig = {
 
 const STATUS_CONFIG: Record<AppointmentStatus, StatusConfig> = {
   cancelled: { color: "red", icon: Cancel01Icon, label: "Cancelada" },
+  check_in: { color: "teal", icon: User02Icon, label: "Check-in" },
   completed: {
     color: "gray",
     icon: CheckmarkCircle01Icon,
