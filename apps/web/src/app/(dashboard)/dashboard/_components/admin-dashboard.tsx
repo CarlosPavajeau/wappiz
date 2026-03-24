@@ -54,7 +54,11 @@ export function AdminDashboard() {
   )
   const [statuses, setStatuses] = useQueryState(
     "statuses",
-    parseAsArrayOf(parseAsString).withDefault(["in_progress", "confirmed", "check_in"])
+    parseAsArrayOf(parseAsString).withDefault([
+      "in_progress",
+      "confirmed",
+      "check_in",
+    ])
   )
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null)
