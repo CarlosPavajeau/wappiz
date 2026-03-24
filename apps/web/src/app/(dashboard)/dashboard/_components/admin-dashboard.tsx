@@ -32,6 +32,7 @@ import { api } from "@/lib/client-api"
 
 import { AppointmentCard, AppointmentSkeleton } from "./appointment-card"
 import { AppointmentDetailModal } from "./appointment-detail-modal"
+import { STATUS_LABEL } from "./appointment-utils"
 import { FilterSelect } from "./filter-select"
 
 function toDateKey(date: Date) {
@@ -50,6 +51,10 @@ export function AdminDashboard() {
   const [serviceIds, setServiceIds] = useQueryState(
     "services",
     parseAsArrayOf(parseAsString).withDefault([])
+  )
+  const [statuses, setStatuses] = useQueryState(
+    "statuses",
+    parseAsArrayOf(parseAsString).withDefault(["in_progress", "confirmed", "check_in"])
   )
   const [selectedAppointment, setSelectedAppointment] =
     useState<Appointment | null>(null)
@@ -70,9 +75,10 @@ export function AdminDashboard() {
           date: dateParam,
           ...(resourceIds.length > 0 && { resource: resourceIds }),
           ...(serviceIds.length > 0 && { service: serviceIds }),
+          ...(statuses.length > 0 && { status: statuses }),
         },
       }),
-    queryKey: ["appointments", dateParam, resourceIds, serviceIds],
+    queryKey: ["appointments", dateParam, resourceIds, serviceIds, statuses],
   })
 
   const { data: resources, isLoading: isLoadingResources } = useQuery({
@@ -84,6 +90,11 @@ export function AdminDashboard() {
     queryFn: () => api.services.list(),
     queryKey: ["services"],
   })
+
+  const statusItems = Object.entries(STATUS_LABEL).map(([id, label]) => ({
+    id,
+    label,
+  }))
 
   const filtered = appointments
     ? [...appointments].toSorted(
@@ -117,6 +128,12 @@ export function AdminDashboard() {
           selectedIds={serviceIds}
           onSelectedIdsChange={setServiceIds}
           isLoading={isLoadingServices}
+        />
+        <FilterSelect
+          label="Estado"
+          items={statusItems}
+          selectedIds={statuses}
+          onSelectedIdsChange={setStatuses}
         />
 
         <div className="flex items-center gap-1">
