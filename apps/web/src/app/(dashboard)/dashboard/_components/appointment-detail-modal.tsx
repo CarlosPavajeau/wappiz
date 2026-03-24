@@ -1,10 +1,10 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query"
 import type {
   Appointment,
   AppointmentStatusHistory,
 } from "@wappiz/api-client/types/appointments"
-import { useQuery } from "@tanstack/react-query"
 import { differenceInMinutes, format, formatDuration } from "date-fns"
 import { es } from "date-fns/locale"
 
@@ -56,17 +56,16 @@ function HistoryItem({ entry }: { entry: AppointmentStatusHistory }) {
 
   return (
     <li className="flex gap-3">
-      <div
-        aria-hidden
-        className="flex flex-col items-center"
-      >
+      <div aria-hidden className="flex flex-col items-center">
         <div className="mt-1 size-2 shrink-0 rounded-full bg-border ring-2 ring-background" />
         <div className="mt-1 w-px flex-1 bg-border last:hidden" />
       </div>
       <div className="flex flex-col gap-1 pb-4">
         <div className="flex flex-wrap items-center gap-1.5 text-xs">
           <StatusBadge status={entry.fromStatus} />
-          <span className="text-muted-foreground" aria-label="hacia">→</span>
+          <span className="text-muted-foreground" aria-label="hacia">
+            →
+          </span>
           <StatusBadge status={entry.toStatus} />
         </div>
         <p className="text-xs text-muted-foreground">
@@ -76,7 +75,10 @@ function HistoryItem({ entry }: { entry: AppointmentStatusHistory }) {
         {entry.reason ? (
           <p className="text-xs text-foreground/70 italic">"{entry.reason}"</p>
         ) : null}
-        <time className="text-xs text-muted-foreground/60" dateTime={entry.createdAt}>
+        <time
+          className="text-xs text-muted-foreground/60"
+          dateTime={entry.createdAt}
+        >
           {date}
         </time>
       </div>
@@ -86,7 +88,11 @@ function HistoryItem({ entry }: { entry: AppointmentStatusHistory }) {
 
 function HistorySkeleton() {
   return (
-    <div className="flex flex-col gap-4" aria-busy aria-label="Cargando historial">
+    <div
+      className="flex flex-col gap-4"
+      aria-busy
+      aria-label="Cargando historial"
+    >
       {Array.from({ length: 3 }).map((_, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: static skeleton list
         <div key={i} className="flex gap-3">
@@ -108,7 +114,11 @@ function HistorySkeleton() {
   )
 }
 
-function AppointmentDetailContent({ appointment }: { appointment: Appointment }) {
+function AppointmentDetailContent({
+  appointment,
+}: {
+  appointment: Appointment
+}) {
   const start = new Date(appointment.startsAt)
   const end = new Date(appointment.endsAt)
   const totalMinutes = differenceInMinutes(end, start)
@@ -124,8 +134,8 @@ function AppointmentDetailContent({ appointment }: { appointment: Appointment })
   const dateLabel = format(start, "dd/MM/yyyy")
 
   const { data: history, isLoading: isLoadingHistory } = useQuery({
-    queryKey: ["appointments", appointment.id, "history"],
     queryFn: () => api.appointments.history(appointment.id),
+    queryKey: ["appointments", appointment.id, "history"],
   })
 
   return (
@@ -158,7 +168,7 @@ function AppointmentDetailContent({ appointment }: { appointment: Appointment })
 
         {isLoadingHistory ? (
           <HistorySkeleton />
-        ) : history && history.length > 0 ? (
+        ) : (history && history.length > 0 ? (
           <ol className="flex flex-col">
             {history.map((entry) => (
               <HistoryItem key={entry.id} entry={entry} />
@@ -173,7 +183,7 @@ function AppointmentDetailContent({ appointment }: { appointment: Appointment })
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
-        )}
+        ))}
       </section>
     </div>
   )
@@ -197,7 +207,10 @@ export function AppointmentDetailModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex flex-col gap-0 overflow-hidden p-0">
+      <SheetContent
+        side="right"
+        className="flex flex-col gap-0 overflow-hidden p-0"
+      >
         <SheetHeader className="px-5 pt-5 pb-4">
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{description}</SheetDescription>

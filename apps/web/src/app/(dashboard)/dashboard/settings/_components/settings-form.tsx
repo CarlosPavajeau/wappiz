@@ -2,12 +2,11 @@
 
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
+import type { TenantSettings } from "@wappiz/api-client/types/tenants"
 import { type } from "arktype"
 import { useRouter } from "next/navigation"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
-
-import type { TenantSettings } from "@wappiz/api-client/types/tenants"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"

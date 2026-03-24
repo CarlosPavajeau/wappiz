@@ -91,9 +91,9 @@ export default async function ResourcePage({ params, searchParams }: Props) {
           <UpdateResourceDialog
             resourceId={id}
             defaultValues={{
+              avatarURL: resource.avatarUrl,
               name: resource.name,
               type: resource.type,
-              avatarURL: resource.avatarUrl,
             }}
           />
         </div>
