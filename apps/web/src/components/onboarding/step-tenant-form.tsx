@@ -1,11 +1,11 @@
-"use client"
-
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
+import { isAxiosError } from "axios"
 import { Info, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
+import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -26,18 +26,14 @@ import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
 const tenantSchema = type({
   name: "string >= 2",
 })
 
 type TenantFormData = typeof tenantSchema.infer
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export function StepTenantForm() {
-  const router = useRouter()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -50,8 +46,17 @@ export function StepTenantForm() {
 
   const { mutate } = useMutation({
     mutationFn: (data: TenantFormData) => api.tenants.create(data),
+    onError: (error) => {
+      if (isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message ?? "Error al crear el negocio"
+        )
+      } else {
+        toast.error("Error al crear el negocio")
+      }
+    },
     onSuccess: () => {
-      router.push("/onboarding/step/2")
+      navigate({ params: { step: "2" }, to: "/onboarding/step/$step" })
     },
   })
 

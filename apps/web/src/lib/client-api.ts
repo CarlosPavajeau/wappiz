@@ -1,17 +1,17 @@
 import { createApi } from "@wappiz/api-client"
 import { env } from "@wappiz/env/web"
 
-import { authClient } from "./auth-client"
+import { getToken } from "@/functions/get-token"
 
 export const api = createApi({
-  baseURL: env.NEXT_PUBLIC_API_URL,
+  baseURL: env.VITE_API_URL,
   tokenProvider: async () => {
-    const { data } = await authClient.token()
+    const token = await getToken()
 
-    if (!data) {
+    if (!token) {
       return null
     }
 
-    return { accessToken: data.token, refreshToken: data.token }
+    return { accessToken: token, refreshToken: token }
   },
 })

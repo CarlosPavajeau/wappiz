@@ -1,12 +1,10 @@
-"use client"
-
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation, useQuery } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import type { ServiceTemplate } from "@wappiz/api-client/types/onboarding"
 import { type } from "arktype"
-import axios from "axios"
+import { isAxiosError } from "axios"
 import { Info, Loader2, Plus, Trash2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -38,8 +36,6 @@ import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const MAX_SERVICES = 10
 
 const DURATION_OPTIONS = [
@@ -57,8 +53,6 @@ const TEMPLATE_LABELS: Record<"basic" | "complete" | "manual", string> = {
   manual: "Manual",
 }
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
 const serviceItemSchema = type({
   bufferMinutes: "number >= 0",
   durationMinutes: "number > 0",
@@ -72,22 +66,18 @@ const servicesSchema = type({
 
 type ServicesFormData = typeof servicesSchema.infer
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 type Screen = "template" | "edit"
 
 export function StepServicesForm() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [screen, setScreen] = useState<Screen>("template")
 
-  // ── Template query ────────────────────────────────────────────────────────
   const { data: templatesData, isPending: isLoadingTemplates } = useQuery({
     queryFn: () => api.onboarding.templates(),
     queryKey: ["onboarding", "templates"],
     staleTime: Number.POSITIVE_INFINITY,
   })
 
-  // ── Form ─────────────────────────────────────────────────────────────────
   const {
     register,
     control,
@@ -103,20 +93,22 @@ export function StepServicesForm() {
     name: "services",
   })
 
-  // ── Mutation ─────────────────────────────────────────────────────────────
   const { mutate, isPending } = useMutation({
     mutationFn: (data: ServicesFormData) => api.onboarding.completeStep3(data),
     onError: (error) => {
-      const message = axios.isAxiosError(error)
+      const message = isAxiosError(error)
         ? (error.response?.data?.message ??
           "No se pudo guardar. Intenta de nuevo.")
         : "Algo salió mal. Intenta de nuevo."
       toast.error(message)
     },
-    onSuccess: () => router.push("/onboarding/step/4"),
+    onSuccess: () =>
+      navigate({
+        params: { step: "4" },
+        to: "/onboarding/step/$step",
+      }),
   })
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
   const handleTemplateSelect = (services: ServiceTemplate[]) => {
     const initial =
       services.length > 0
@@ -126,7 +118,6 @@ export function StepServicesForm() {
     setScreen("edit")
   }
 
-  // ─── Template selection screen ─────────────────────────────────────────────
   if (screen === "template") {
     return (
       <div className="flex flex-col gap-6">
@@ -179,7 +170,6 @@ export function StepServicesForm() {
     )
   }
 
-  // ─── Edit services screen ──────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-6">
       <StepIndicator currentStep={3} />
@@ -198,14 +188,12 @@ export function StepServicesForm() {
             onSubmit={handleSubmit((data) => mutate(data))}
             className="flex flex-col gap-5"
           >
-            {/* Services list */}
             <FieldGroup>
               {fields.map((field, index) => (
                 <div
                   key={field.id}
                   className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-2"
                 >
-                  {/* Name */}
                   <Field
                     data-invalid={!!errors.services?.[index]?.name}
                     className="col-span-4"
@@ -222,7 +210,6 @@ export function StepServicesForm() {
                         {...register(`services.${index}.name`)}
                       />
 
-                      {/* Duration */}
                       <Controller
                         control={control}
                         name={`services.${index}.durationMinutes`}
@@ -250,7 +237,6 @@ export function StepServicesForm() {
                         )}
                       />
 
-                      {/* Price */}
                       <Field
                         data-invalid={!!errors.services?.[index]?.price}
                         className="w-28"
@@ -267,7 +253,6 @@ export function StepServicesForm() {
                         />
                       </Field>
 
-                      {/* Remove */}
                       <Button
                         type="button"
                         variant="ghost"
@@ -281,7 +266,6 @@ export function StepServicesForm() {
                       </Button>
                     </div>
 
-                    {/* Per-field errors */}
                     <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2">
                       <FieldError errors={[errors.services?.[index]?.name]} />
                       <div className="col-span-3" />
@@ -290,7 +274,6 @@ export function StepServicesForm() {
                 </div>
               ))}
 
-              {/* Add service */}
               <Button
                 type="button"
                 variant="outline"
@@ -311,7 +294,6 @@ export function StepServicesForm() {
               </Button>
             </FieldGroup>
 
-            {/* Tip */}
             <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
               <Info className="mt-px size-4 shrink-0 text-primary/70" />
               <p>
@@ -319,7 +301,6 @@ export function StepServicesForm() {
               </p>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-3 pt-1">
               <button
                 type="button"

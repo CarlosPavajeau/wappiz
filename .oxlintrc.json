@@ -2,22 +2,27 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "extends": [
     "./node_modules/ultracite/config/oxlint/core/.oxlintrc.json",
-    "./node_modules/ultracite/config/oxlint/next/.oxlintrc.json"
+    "./node_modules/ultracite/config/oxlint/react/.oxlintrc.json"
   ],
   "rules": {
-    "func-style": [
-      "off",
-      "expression",
+    "no-use-before-define": [
+      "warn",
       {
-        "overrides": {
-          "namedExports": "declaration"
-        },
-        "allowArrowFunctions": true
+        "functions": false,
+        "classes": true,
+        "variables": true
       }
     ],
+    "func-style": "off",
     "typescript/consistent-type-definitions": [
       "error",
       "type"
+    ],
+    "max-statements": [
+      "warn",
+      {
+        "max": 20
+      }
     ]
   }
 }

@@ -1,11 +1,9 @@
-"use client"
-
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
-import axios from "axios"
+import { isAxiosError } from "axios"
 import { ChevronLeft, Clock, Loader2, Smartphone } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -29,8 +27,6 @@ import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
 const whatsappSchema = type({
   contactEmail: "string.email",
   "notes?": "string",
@@ -38,10 +34,8 @@ const whatsappSchema = type({
 
 type WhatsAppFormData = typeof whatsappSchema.infer
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
-  const router = useRouter()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -62,13 +56,16 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
         ...(data.notes ? { notes: data.notes } : {}),
       }),
     onError: (error) => {
-      const message = axios.isAxiosError(error)
+      const message = isAxiosError(error)
         ? (error.response?.data?.message ??
           "No se pudo enviar. Intenta de nuevo.")
         : "Algo salió mal. Intenta de nuevo."
       toast.error(message)
     },
-    onSuccess: () => router.push("/dashboard"),
+    onSuccess: () =>
+      navigate({
+        to: "/dashboard",
+      }),
   })
 
   return (
@@ -89,7 +86,6 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
             onSubmit={handleSubmit((data) => mutate(data))}
             className="flex flex-col gap-5"
           >
-            {/* Info banner */}
             <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
               <Smartphone className="mt-0.5 size-5 shrink-0 text-primary" />
               <div className="flex flex-col gap-0.5">
@@ -105,7 +101,6 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
             </div>
 
             <FieldGroup>
-              {/* Contact email */}
               <Field data-invalid={!!errors.contactEmail}>
                 <FieldLabel htmlFor="contactEmail">
                   Correo de contacto
@@ -121,7 +116,6 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
                 <FieldError errors={[errors.contactEmail]} />
               </Field>
 
-              {/* Notes */}
               <Field data-invalid={!!errors.notes}>
                 <FieldLabel htmlFor="notes">
                   Notas adicionales{" "}
@@ -139,7 +133,6 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
               </Field>
             </FieldGroup>
 
-            {/* Activation time card */}
             <div className="flex items-center gap-3 rounded-xl border px-4 py-3">
               <Clock className="size-5 shrink-0 text-muted-foreground" />
               <div className="flex flex-col">
@@ -152,11 +145,15 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-3 pt-1">
               <button
                 type="button"
-                onClick={() => router.push("/onboarding/step/3")}
+                onClick={() =>
+                  navigate({
+                    params: { step: "3" },
+                    to: "/onboarding/step/$step",
+                  })
+                }
                 className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <ChevronLeft className="size-4" />

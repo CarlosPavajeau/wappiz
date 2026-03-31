@@ -3,8 +3,8 @@ import * as schema from "@wappiz/db/schema/auth"
 import { env } from "@wappiz/env/server"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { nextCookies } from "better-auth/next-js"
 import { jwt, admin } from "better-auth/plugins"
+import { tanstackStartCookies } from "better-auth/tanstack-start"
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -28,7 +28,7 @@ export const auth = betterAuth({
         }),
       },
     }),
-    nextCookies(),
+    tanstackStartCookies(),
   ],
   secret: env.BETTER_AUTH_SECRET,
   socialProviders: {
