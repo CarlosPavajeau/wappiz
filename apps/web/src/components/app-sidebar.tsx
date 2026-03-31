@@ -7,9 +7,8 @@ import {
   Settings01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { Link, useLocation } from "@tanstack/react-router"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
 import { use } from "react"
 
 import {
@@ -131,7 +130,7 @@ function NavMenu({
           <SidebarMenuItem key={href}>
             <SidebarMenuButton
               isActive={isActive}
-              render={<Link href={href} />}
+              render={<Link to={href} />}
               onClick={onNavigate}
             >
               <Icon />
@@ -145,7 +144,9 @@ function NavMenu({
 }
 
 export function AppSidebar() {
-  const pathname = usePathname()
+  const pathname = useLocation({
+    select: (location) => location.pathname,
+  })
   const { data, isPending } = authClient.useSession()
   const { tenant, isLoading } = use(tenantContext)
   const { isMobile, openMobile, setOpenMobile } = useSidebar()

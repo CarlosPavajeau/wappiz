@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
-import { createContext } from "react"
+import { createContext, use, useMemo } from "react"
 
 import { authClient } from "@/lib/auth-client"
 import { api } from "@/lib/client-api"
@@ -32,7 +32,10 @@ export const TenantProvider = ({ children }: TenantProviderProps) => {
     staleTime: 5 * 60 * 1000,
   })
 
-  const contextValue = { isLoading, tenant }
+  const contextValue = useMemo(
+    () => ({ isLoading, tenant }),
+    [tenant, isLoading]
+  )
 
   return (
     <tenantContext.Provider value={contextValue}>

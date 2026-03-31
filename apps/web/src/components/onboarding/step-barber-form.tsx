@@ -1,11 +1,9 @@
-"use client"
-
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
-import axios from "axios"
+import { isAxiosError } from "axios"
 import { ChevronLeft, Info, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -37,8 +35,6 @@ import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
 
-// ─── Time options 06:00 → 23:00 in 30-min intervals ─────────────────────────
-
 const TIME_OPTIONS = Array.from({ length: 35 }, (_, i) => {
   const totalMinutes = 6 * 60 + i * 30
   const hours = Math.floor(totalMinutes / 60)
@@ -50,8 +46,6 @@ const TIME_OPTIONS = Array.from({ length: 35 }, (_, i) => {
   return { label, value }
 })
 
-// ─── Days ─────────────────────────────────────────────────────────────────────
-
 const DAYS = [
   { label: "Dom", value: 0 },
   { label: "Lun", value: 1 },
@@ -62,8 +56,6 @@ const DAYS = [
   { label: "Sáb", value: 6 },
 ]
 
-// ─── Schema ───────────────────────────────────────────────────────────────────
-
 const barberSchema = type({
   endTime: "string",
   name: "string >= 2",
@@ -73,10 +65,8 @@ const barberSchema = type({
 
 type BarberFormData = typeof barberSchema.infer
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export function StepBarberForm() {
-  const router = useRouter()
+  const navigate = useNavigate()
 
   const {
     register,
@@ -97,13 +87,17 @@ export function StepBarberForm() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: BarberFormData) => api.onboarding.completeStep2(data),
     onError: (error) => {
-      const message = axios.isAxiosError(error)
+      const message = isAxiosError(error)
         ? (error.response?.data?.message ??
           "No se pudo guardar. Intenta de nuevo.")
         : "Algo salió mal. Intenta de nuevo."
       toast.error(message)
     },
-    onSuccess: () => router.push("/onboarding/step/3"),
+    onSuccess: () =>
+      navigate({
+        params: { step: "3" },
+        to: "/onboarding/step/$step",
+      }),
   })
 
   const onSubmit = handleSubmit((data) => {
@@ -135,7 +129,6 @@ export function StepBarberForm() {
         <CardContent>
           <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
             <FieldGroup>
-              {/* Name */}
               <Field data-invalid={!!errors.name}>
                 <FieldLabel htmlFor="name">Nombre</FieldLabel>
                 <Input
@@ -149,7 +142,6 @@ export function StepBarberForm() {
                 <FieldError errors={[errors.name]} />
               </Field>
 
-              {/* Working days */}
               <Controller
                 control={control}
                 name="workingDays"
@@ -188,7 +180,6 @@ export function StepBarberForm() {
                 )}
               />
 
-              {/* Schedule */}
               <Field>
                 <FieldTitle>Horario de atención</FieldTitle>
                 <div className="grid grid-cols-2 gap-3">
@@ -255,7 +246,6 @@ export function StepBarberForm() {
               </Field>
             </FieldGroup>
 
-            {/* Tip */}
             <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
               <Info className="mt-px size-4 shrink-0 text-primary/70" />
               <p>
@@ -264,11 +254,15 @@ export function StepBarberForm() {
               </p>
             </div>
 
-            {/* Actions */}
             <div className="flex items-center gap-3 pt-1">
               <button
                 type="button"
-                onClick={() => router.push("/onboarding/step/1")}
+                onClick={() =>
+                  navigate({
+                    params: { step: "1" },
+                    to: "/onboarding/step/$step",
+                  })
+                }
                 className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
                 <ChevronLeft className="size-4" />

@@ -1,8 +1,5 @@
-"use client"
-
 import { Moon02Icon, Sun01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -12,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Kbd } from "@/components/ui/kbd"
+import { useTheme } from "@/hooks/use-theme"
 import { cn } from "@/lib/utils"
 
 export function ModeToggle() {
