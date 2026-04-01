@@ -1,5 +1,8 @@
 import { HttpClient } from "./core/http-client"
+import { ApiError } from "./core/types"
 import type { ApiClientConfig, TokenPair } from "./core/types"
+
+export { ApiError }
 import { adminResource } from "./endpoints/admin"
 import { appointmentsEndpoints } from "./endpoints/appointments"
 import { authResource } from "./endpoints/auth"

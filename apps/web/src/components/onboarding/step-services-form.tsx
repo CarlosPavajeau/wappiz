@@ -3,7 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import type { ServiceTemplate } from "@wappiz/api-client/types/onboarding"
 import { type } from "arktype"
-import { isAxiosError } from "axios"
+import { ApiError } from "@wappiz/api-client"
 import { Info, Loader2, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
@@ -96,11 +96,11 @@ export function StepServicesForm() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: ServicesFormData) => api.onboarding.completeStep3(data),
     onError: (error) => {
-      const message = isAxiosError(error)
-        ? (error.response?.data?.message ??
-          "No se pudo guardar. Intenta de nuevo.")
-        : "Algo salió mal. Intenta de nuevo."
-      toast.error(message)
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Algo salió mal. Intenta de nuevo."
+      )
     },
     onSuccess: () =>
       navigate({

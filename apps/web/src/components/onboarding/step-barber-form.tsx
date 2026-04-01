@@ -2,7 +2,7 @@ import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
-import { isAxiosError } from "axios"
+import { ApiError } from "@wappiz/api-client"
 import { ChevronLeft, Info, Loader2 } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -87,11 +87,11 @@ export function StepBarberForm() {
   const { mutate, isPending } = useMutation({
     mutationFn: (data: BarberFormData) => api.onboarding.completeStep2(data),
     onError: (error) => {
-      const message = isAxiosError(error)
-        ? (error.response?.data?.message ??
-          "No se pudo guardar. Intenta de nuevo.")
-        : "Algo salió mal. Intenta de nuevo."
-      toast.error(message)
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Algo salió mal. Intenta de nuevo."
+      )
     },
     onSuccess: () =>
       navigate({
