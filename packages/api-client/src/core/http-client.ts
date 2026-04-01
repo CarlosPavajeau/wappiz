@@ -76,10 +76,7 @@ export class HttpClient implements FetchClient {
 
     this.baseURL = baseURL
     this.timeout = timeout
-    this.defaultHeaders = {
-      "Content-Type": "application/json",
-      ...headers,
-    }
+    this.defaultHeaders = { ...headers }
 
     const baseFetch = <T>(
       fetchConfig: FetchRequestConfig,
@@ -107,19 +104,23 @@ export class HttpClient implements FetchClient {
       : controller.signal
 
     try {
+      const requestHeaders = new Headers({
+        ...this.defaultHeaders,
+        ...config.headers,
+        ...extraHeaders,
+      })
+
+      if (config.data !== undefined && !requestHeaders.has("Content-Type")) {
+        requestHeaders.set("Content-Type", "application/json")
+      }
+
       const response = await fetch(url, {
         body:
           config.data !== undefined ? JSON.stringify(config.data) : undefined,
-        headers: {
-          ...this.defaultHeaders,
-          ...config.headers,
-          ...extraHeaders,
-        },
+        headers: requestHeaders,
         method: config.method,
         signal,
       })
-
-      clearTimeout(timeoutId)
 
       const text = await response.text()
       let data: unknown = null
@@ -144,14 +145,24 @@ export class HttpClient implements FetchClient {
 
       return data as T
     } catch (error) {
-      clearTimeout(timeoutId)
       if (error instanceof ApiError) {
         throw error
       }
       if (error instanceof DOMException && error.name === "AbortError") {
-        throw new ApiError("Request timed out", 0, "TIMEOUT", undefined, error)
+        if (controller.signal.aborted) {
+          throw new ApiError(
+            "Request timed out",
+            0,
+            "TIMEOUT",
+            undefined,
+            error
+          )
+        }
+        throw new ApiError("Request aborted", 0, "ABORTED", undefined, error)
       }
       throw ApiError.fromError(error)
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
