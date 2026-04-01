@@ -1,10 +1,8 @@
-"use client"
-
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
+import { useRouter } from "@tanstack/react-router"
 import type { PendingActivationsResponse } from "@wappiz/api-client/types/admin"
 import { type } from "arktype"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -81,7 +79,7 @@ export function PendingActivationCard({ request }: Props) {
     onSuccess: () => {
       setOpen(false)
       toast.success(`${request.tenantName} activado correctamente`)
-      router.refresh()
+      router.invalidate()
     },
   })
 
