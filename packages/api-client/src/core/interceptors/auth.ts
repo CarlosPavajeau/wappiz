@@ -75,6 +75,7 @@ export function createAuthMiddleware(
       if (isRefreshing) {
         return new Promise<T>((resolve, reject) => {
           failedQueue.push({
+            reject,
             resolve: (token) => {
               baseFetch<T>(requestConfig, {
                 [headerName]: `${tokenPrefix} ${token}`,
@@ -82,7 +83,6 @@ export function createAuthMiddleware(
                 .then(resolve)
                 .catch(reject)
             },
-            reject,
           })
         })
       }
@@ -92,15 +92,15 @@ export function createAuthMiddleware(
       try {
         const currentTokens = await tokenProvider()
         if (!currentTokens?.refreshToken) {
-          throw new Error("No refresh token available")
+          throw new Error("No refresh token available", { cause: error })
         }
 
         const refreshed = await baseFetch<unknown>(
           {
-            method: "POST",
-            url: endpoint,
             data: buildBody(currentTokens.refreshToken),
+            method: "POST",
             skipAuth: true,
+            url: endpoint,
           },
           {}
         )

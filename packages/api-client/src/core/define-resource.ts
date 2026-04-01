@@ -84,7 +84,9 @@ function createEndpointFn(
         ...(skipAuth !== undefined && { skipAuth }),
       })
     } catch (error) {
-      if (error instanceof ApiError) throw error
+      if (error instanceof ApiError) {
+        throw error
+      }
       throw ApiError.fromError(error)
     }
   }
