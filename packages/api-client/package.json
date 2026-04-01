@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@wappiz/env": "workspace:*",
-    "axios": "catalog:",
     "js-cookie": "^3.0.5"
   },
   "devDependencies": {

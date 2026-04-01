@@ -2,7 +2,7 @@ import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
-import { isAxiosError } from "axios"
+import { ApiError } from "@wappiz/api-client"
 import { ChevronLeft, Clock, Loader2, Smartphone } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -56,11 +56,11 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
         ...(data.notes ? { notes: data.notes } : {}),
       }),
     onError: (error) => {
-      const message = isAxiosError(error)
-        ? (error.response?.data?.message ??
-          "No se pudo enviar. Intenta de nuevo.")
-        : "Algo salió mal. Intenta de nuevo."
-      toast.error(message)
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Algo salió mal. Intenta de nuevo."
+      )
     },
     onSuccess: () =>
       navigate({

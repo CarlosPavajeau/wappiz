@@ -23,7 +23,6 @@
     "@wappiz/auth": "workspace:*",
     "@wappiz/env": "workspace:*",
     "arktype": "^2.1.29",
-    "axios": "^1.13.6",
     "babel-plugin-react-compiler": "^1.0.0",
     "better-auth": "catalog:",
     "class-variance-authority": "^0.7.1",

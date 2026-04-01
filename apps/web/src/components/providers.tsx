@@ -1,7 +1,7 @@
 "use client"
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { AxiosError } from "axios"
+import { ApiError } from "@wappiz/api-client"
 import { useState } from "react"
 
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -19,10 +19,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             refetchOnWindowFocus: false,
             retry: (failureCount, error) => {
               // Don't retry on 500 errors
-              if (
-                error instanceof AxiosError &&
-                error.response?.status === 500
-              ) {
+              if (error instanceof ApiError && (error as ApiError).status === 500) {
                 return false
               }
               return failureCount < 2
