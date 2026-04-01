@@ -3,6 +3,7 @@ import { ApiError } from "./core/types"
 import type { ApiClientConfig, TokenPair } from "./core/types"
 
 export { ApiError }
+
 import { adminResource } from "./endpoints/admin"
 import { appointmentsEndpoints } from "./endpoints/appointments"
 import { authResource } from "./endpoints/auth"
@@ -28,29 +29,14 @@ export type Api = ReturnType<typeof createClient>
  *
  * @example
  * ```ts
- * // Server-side
  * const api = createClient({
  *   baseURL: API_URL,
  *   auth: {
- *     tokenProvider: () => getTokensFromCookies(),
- *     onTokenUpdate: (tokens) => setTokenCookies(tokens),
- *     refresh: { endpoint: "/auth/refresh" },
+ *     tokenProvider: () => getToken(),
  *   },
  * });
  *
- * // Client-side (React component via context)
- * const api = createClient({
- *   baseURL: API_URL,
- *   auth: {
- *     tokenProvider: () => getTokensFromStore(),
- *     onTokenUpdate: (tokens) => updateStore(tokens),
- *     refresh: { endpoint: "/auth/refresh" },
- *   },
- * });
- *
- * // Usage — expressive and fully typed
- * const { accessToken } = await api.auth.login({ email, password });
- * const { data: services } = await api.services.list();
+ * const orders = await api.orders.list();
  * ```
  */
 export function createClient(config: ApiClientConfig) {
@@ -61,23 +47,18 @@ export function createClient(config: ApiClientConfig) {
 export type ClientOptions = {
   baseURL: string
   tokenProvider: () => TokenPair | null | Promise<TokenPair | null>
-  onTokenUpdate?: (tokens: TokenPair | null) => void | Promise<void>
   timeout?: number
   headers?: Record<string, string>
 }
 
 /**
- * Simplified factory with refresh flow pre-configured.
- * Uses the standard `/auth/refresh` endpoint and token shape.
+ * Simplified factory for token-based auth without refresh.
  */
 export function createApi(options: ClientOptions) {
-  const { baseURL, tokenProvider, onTokenUpdate, timeout, headers } = options
+  const { baseURL, tokenProvider, timeout, headers } = options
 
   return createClient({
-    auth: {
-      onTokenUpdate,
-      tokenProvider,
-    },
+    auth: { tokenProvider },
     baseURL,
     headers,
     timeout,

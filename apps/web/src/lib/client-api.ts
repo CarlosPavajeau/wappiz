@@ -50,6 +50,6 @@ export const api = createApi({
   tokenProvider: async () => {
     const token = await getCachedToken()
     if (!token) return null
-    return { accessToken: token, refreshToken: token }
+    return { accessToken: token }
   },
 })

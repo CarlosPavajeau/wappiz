@@ -1,34 +1,12 @@
 export type TokenPair = {
   accessToken: string
-  refreshToken: string
 }
 
 export type TokenProvider = () => TokenPair | null | Promise<TokenPair | null>
 
-export type TokenPersister = (tokens: TokenPair | null) => void | Promise<void>
-
-export type RefreshConfig = {
-  /** Endpoint path for token refresh (e.g., "/auth/refresh") */
-  endpoint: string
-  /**
-   * Build the refresh request body from the current refresh token.
-   * @default (refreshToken) => ({ refreshToken })
-   */
-  buildBody?: (refreshToken: string) => Record<string, unknown>
-  /**
-   * Extract the new token pair from the refresh response.
-   * @default (data) => data as TokenPair
-   */
-  extractTokens?: (data: unknown) => TokenPair
-}
-
 export type AuthConfig = {
   /** Async or sync function that returns the current token pair */
   tokenProvider: TokenProvider
-  /** Called when tokens are refreshed or cleared */
-  onTokenUpdate?: TokenPersister
-  /** Configuration for silent refresh on 401 */
-  refresh?: RefreshConfig
   /** Header name for the access token @default "Authorization" */
   headerName?: string
   /** Token prefix @default "Bearer" */

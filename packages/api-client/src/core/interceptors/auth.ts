@@ -1,10 +1,4 @@
-import { ApiError } from "../types"
-import type { AuthConfig, FetchRequestConfig, TokenPair } from "../types"
-
-type FailedRequest = {
-  resolve: (token: string) => void
-  reject: (error: unknown) => void
-}
+import type { AuthConfig, FetchRequestConfig } from "../types"
 
 export type BaseFetchFn = <T>(
   config: FetchRequestConfig,
@@ -17,109 +11,20 @@ export function createAuthMiddleware(
 ): <T>(config: FetchRequestConfig) => Promise<T> {
   const {
     tokenProvider,
-    onTokenUpdate,
-    refresh,
     headerName = "Authorization",
     tokenPrefix = "Bearer",
   } = config
 
-  let isRefreshing = false
-  let failedQueue: FailedRequest[] = []
-
-  const processQueue = (error: unknown, token: string | null): void => {
-    for (const pending of failedQueue) {
-      if (error || !token) {
-        pending.reject(error)
-      } else {
-        pending.resolve(token)
-      }
-    }
-    failedQueue = []
-  }
-
   return async <T>(requestConfig: FetchRequestConfig): Promise<T> => {
-    // Build auth header upfront (skip if skipAuth)
-    let authHeader: Record<string, string> = {}
-    if (!requestConfig.skipAuth) {
-      const tokens = await tokenProvider()
-      if (tokens?.accessToken) {
-        authHeader = { [headerName]: `${tokenPrefix} ${tokens.accessToken}` }
-      }
+    if (requestConfig.skipAuth) {
+      return baseFetch<T>(requestConfig)
     }
 
-    // No refresh config — just inject header and send
-    if (!refresh || requestConfig.skipAuth) {
-      return baseFetch<T>(requestConfig, authHeader)
-    }
+    const tokens = await tokenProvider()
+    const authHeader = tokens?.accessToken
+      ? { [headerName]: `${tokenPrefix} ${tokens.accessToken}` }
+      : {}
 
-    const {
-      endpoint,
-      buildBody = (refreshToken: string) => ({ refreshToken }),
-      extractTokens = (data: unknown) => data as TokenPair,
-    } = refresh
-
-    try {
-      return await baseFetch<T>(requestConfig, authHeader)
-    } catch (error) {
-      if (!(error instanceof ApiError) || error.status !== 401) {
-        throw error
-      }
-
-      // Don't retry the refresh endpoint itself to avoid infinite loops
-      if (requestConfig.url === endpoint) {
-        await onTokenUpdate?.(null)
-        throw error
-      }
-
-      // Another refresh is in progress — queue this request
-      if (isRefreshing) {
-        return new Promise<T>((resolve, reject) => {
-          failedQueue.push({
-            reject,
-            resolve: (token) => {
-              baseFetch<T>(requestConfig, {
-                [headerName]: `${tokenPrefix} ${token}`,
-              })
-                .then(resolve)
-                .catch(reject)
-            },
-          })
-        })
-      }
-
-      isRefreshing = true
-
-      try {
-        const currentTokens = await tokenProvider()
-        if (!currentTokens?.refreshToken) {
-          throw new Error("No refresh token available", { cause: error })
-        }
-
-        const refreshed = await baseFetch<unknown>(
-          {
-            data: buildBody(currentTokens.refreshToken),
-            method: "POST",
-            skipAuth: true,
-            url: endpoint,
-          },
-          {}
-        )
-
-        const newTokens = extractTokens(refreshed)
-        await onTokenUpdate?.(newTokens)
-
-        processQueue(null, newTokens.accessToken)
-
-        return baseFetch<T>(requestConfig, {
-          [headerName]: `${tokenPrefix} ${newTokens.accessToken}`,
-        })
-      } catch (refreshError) {
-        processQueue(refreshError, null)
-        await onTokenUpdate?.(null)
-        throw refreshError
-      } finally {
-        isRefreshing = false
-      }
-    }
+    return baseFetch<T>(requestConfig, authHeader)
   }
 }
