@@ -41,7 +41,10 @@ async function getCachedToken(): Promise<string | null> {
     return null
   }
 
-  cache = { expiresAt: parseJwtExpiry(token) ?? now + FALLBACK_TTL_MS, value: token }
+  cache = {
+    expiresAt: parseJwtExpiry(token) ?? now + FALLBACK_TTL_MS,
+    value: token,
+  }
   return token
 }
 
@@ -49,7 +52,9 @@ export const api = createApi({
   baseURL: env.VITE_API_URL,
   tokenProvider: async () => {
     const token = await getCachedToken()
-    if (!token) return null
+    if (!token) {
+      return null
+    }
     return { accessToken: token }
   },
 })
