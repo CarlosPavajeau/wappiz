@@ -1,10 +1,10 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation, useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
+import { ApiError } from "@wappiz/api-client"
 import type { ServiceTemplate } from "@wappiz/api-client/types/onboarding"
 import { type } from "arktype"
-import { ApiError } from "@wappiz/api-client"
-import { Info, Loader2, Plus, Trash2 } from "lucide-react"
+import { Info, Plus, Trash2 } from "lucide-react"
 import { useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
@@ -82,7 +83,7 @@ export function StepServicesForm() {
     register,
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ServicesFormData>({
     defaultValues: { services: [] },
     resolver: arktypeResolver(servicesSchema),
@@ -93,7 +94,7 @@ export function StepServicesForm() {
     name: "services",
   })
 
-  const { mutate, isPending } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: (data: ServicesFormData) => api.onboarding.completeStep3(data),
     onError: (error) => {
       toast.error(
@@ -117,6 +118,10 @@ export function StepServicesForm() {
     replace(initial)
     setScreen("edit")
   }
+
+  const onSubmit = handleSubmit(async (data) => {
+    await mutateAsync(data)
+  })
 
   if (screen === "template") {
     return (
@@ -183,11 +188,7 @@ export function StepServicesForm() {
         </CardHeader>
 
         <CardContent>
-          <form
-            noValidate
-            onSubmit={handleSubmit((data) => mutate(data))}
-            className="flex flex-col gap-5"
-          >
+          <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
             <FieldGroup>
               {fields.map((field, index) => (
                 <div
@@ -309,8 +310,8 @@ export function StepServicesForm() {
               >
                 ← Cambiar plantilla
               </button>
-              <Button type="submit" className="ml-auto" disabled={isPending}>
-                {isPending && <Loader2 className="animate-spin" />}
+              <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+                {isSubmitting && <Spinner />}
                 Continuar
               </Button>
             </div>

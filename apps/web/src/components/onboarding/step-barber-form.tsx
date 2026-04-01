@@ -1,8 +1,8 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { type } from "arktype"
 import { ApiError } from "@wappiz/api-client"
+import { type } from "arktype"
 import { ChevronLeft, Info, Loader2 } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
@@ -73,7 +74,7 @@ export function StepBarberForm() {
     control,
     handleSubmit,
     setError,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<BarberFormData>({
     defaultValues: {
       endTime: "19:00",
@@ -84,7 +85,7 @@ export function StepBarberForm() {
     resolver: arktypeResolver(barberSchema),
   })
 
-  const { mutate, isPending } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: (data: BarberFormData) => api.onboarding.completeStep2(data),
     onError: (error) => {
       toast.error(
@@ -100,7 +101,7 @@ export function StepBarberForm() {
       }),
   })
 
-  const onSubmit = handleSubmit((data) => {
+  const onSubmit = handleSubmit(async (data) => {
     if (data.workingDays.length === 0) {
       setError("workingDays", { message: "Selecciona al menos un día." })
       return
@@ -111,7 +112,8 @@ export function StepBarberForm() {
       })
       return
     }
-    mutate(data)
+
+    await mutateAsync(data)
   })
 
   return (
@@ -120,7 +122,7 @@ export function StepBarberForm() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Tu primer barbero</CardTitle>
+          <CardTitle className="text-xl">Tu primer recurso</CardTitle>
           <CardDescription>
             Agrega el primer miembro de tu equipo
           </CardDescription>
@@ -249,27 +251,14 @@ export function StepBarberForm() {
             <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
               <Info className="mt-px size-4 shrink-0 text-primary/70" />
               <p>
-                Podrás agregar más barberos y personalizar horarios individuales
+                Podrás agregar más recursos y personalizar horarios individuales
                 desde el panel.
               </p>
             </div>
 
             <div className="flex items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() =>
-                  navigate({
-                    params: { step: "1" },
-                    to: "/onboarding/step/$step",
-                  })
-                }
-                className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ChevronLeft className="size-4" />
-                Atrás
-              </button>
-              <Button type="submit" className="ml-auto" disabled={isPending}>
-                {isPending && <Loader2 className="animate-spin" />}
+              <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+                {isSubmitting && <Spinner />}
                 Continuar
               </Button>
             </div>

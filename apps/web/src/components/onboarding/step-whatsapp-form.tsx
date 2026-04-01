@@ -1,9 +1,9 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { type } from "arktype"
 import { ApiError } from "@wappiz/api-client"
-import { ChevronLeft, Clock, Loader2, Smartphone } from "lucide-react"
+import { type } from "arktype"
+import { Clock, Smartphone } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -22,6 +22,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/client-api"
 
@@ -40,7 +41,7 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<WhatsAppFormData>({
     defaultValues: {
       contactEmail: initialEmail,
@@ -49,7 +50,7 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
     resolver: arktypeResolver(whatsappSchema),
   })
 
-  const { mutate, isPending } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: (data: WhatsAppFormData) =>
       api.onboarding.completeStep4({
         contactEmail: data.contactEmail,
@@ -68,6 +69,10 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
       }),
   })
 
+  const onSubmit = handleSubmit(async (data) => {
+    await mutateAsync(data)
+  })
+
   return (
     <div className="flex flex-col gap-6">
       <StepIndicator currentStep={4} />
@@ -81,11 +86,7 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
         </CardHeader>
 
         <CardContent>
-          <form
-            noValidate
-            onSubmit={handleSubmit((data) => mutate(data))}
-            className="flex flex-col gap-5"
-          >
+          <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
             <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
               <Smartphone className="mt-0.5 size-5 shrink-0 text-primary" />
               <div className="flex flex-col gap-0.5">
@@ -146,21 +147,8 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
             </div>
 
             <div className="flex items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() =>
-                  navigate({
-                    params: { step: "3" },
-                    to: "/onboarding/step/$step",
-                  })
-                }
-                className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <ChevronLeft className="size-4" />
-                Atrás
-              </button>
-              <Button type="submit" className="ml-auto" disabled={isPending}>
-                {isPending && <Loader2 className="animate-spin" />}
+              <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+                {isSubmitting && <Spinner />}
                 Finalizar y explorar el panel
               </Button>
             </div>

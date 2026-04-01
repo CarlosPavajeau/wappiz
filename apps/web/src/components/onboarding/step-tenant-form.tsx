@@ -1,8 +1,8 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { type } from "arktype"
 import { ApiError } from "@wappiz/api-client"
+import { type } from "arktype"
 import { Info, Loader2 } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -22,6 +22,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
@@ -44,7 +45,7 @@ export function StepTenantForm() {
     resolver: arktypeResolver(tenantSchema),
   })
 
-  const { mutate } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationFn: (data: TenantFormData) => api.tenants.create(data),
     onError: (error) => {
       toast.error(
@@ -56,8 +57,8 @@ export function StepTenantForm() {
     },
   })
 
-  const onSubmit = handleSubmit((data) => {
-    mutate(data)
+  const onSubmit = handleSubmit(async (data) => {
+    await mutateAsync(data)
   })
 
   return (
@@ -100,7 +101,7 @@ export function StepTenantForm() {
 
             <div className="flex items-center pt-1">
               <Button type="submit" className="ml-auto" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="animate-spin" />}
+                {isSubmitting && <Spinner />}
                 Continuar
               </Button>
             </div>
