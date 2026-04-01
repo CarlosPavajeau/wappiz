@@ -1,8 +1,7 @@
-import type { AxiosInstance } from "axios"
-
 import { ApiError } from "./types"
 import type {
   EndpointDefinition,
+  FetchClient,
   HttpMethod,
   RequestOptions,
   ResourceApi,
@@ -21,20 +20,20 @@ const METHODS_WITH_BODY = new Set<HttpMethod>(["POST", "PUT", "PATCH"])
  *   create: { method: "POST", path: "/orders" },
  * });
  *
- * // Later, bind to an axios instance:
- * const orders = ordersResource(axiosInstance);
+ * // Later, bind to a client instance:
+ * const orders = ordersResource(client);
  * const data = await orders.list();
  * const order = await orders.getById({ id: "123" });
  * ```
  */
 export function defineResource<
   TDefs extends Record<string, EndpointDefinition<any, any, any>>,
->(definitions: TDefs): (axios: AxiosInstance) => ResourceApi<TDefs> {
-  return (axios: AxiosInstance) => {
+>(definitions: TDefs): (client: FetchClient) => ResourceApi<TDefs> {
+  return (client: FetchClient) => {
     const resource = {} as Record<string, Function>
 
     for (const [name, def] of Object.entries(definitions)) {
-      resource[name] = createEndpointFn(axios, def)
+      resource[name] = createEndpointFn(client, def)
     }
 
     return resource as ResourceApi<TDefs>
@@ -42,7 +41,7 @@ export function defineResource<
 }
 
 function createEndpointFn(
-  axios: AxiosInstance,
+  client: FetchClient,
   def: EndpointDefinition
 ): Function {
   const hasBody = METHODS_WITH_BODY.has(def.method)
@@ -72,20 +71,21 @@ function createEndpointFn(
       options = args[argIndex] as RequestOptions
     }
 
-    const { skipAuth, ...axiosOptions } = options
+    const { skipAuth, params, headers, signal } = options
 
     try {
-      const response = await axios.request({
+      return await client.request({
         method: def.method,
         url: resolvedPath,
         ...(body !== undefined && { data: body }),
-        ...axiosOptions,
-        ...(skipAuth && { skipAuth }),
+        ...(params !== undefined && { params }),
+        ...(headers !== undefined && { headers }),
+        ...(signal !== undefined && { signal }),
+        ...(skipAuth !== undefined && { skipAuth }),
       })
-
-      return response.data
     } catch (error) {
-      throw ApiError.fromAxiosError(error)
+      if (error instanceof ApiError) throw error
+      throw ApiError.fromError(error)
     }
   }
 }

@@ -1,5 +1,3 @@
-import type { AxiosRequestConfig, AxiosResponse } from "axios"
-
 export type TokenPair = {
   accessToken: string
   refreshToken: string
@@ -19,7 +17,7 @@ export type RefreshConfig = {
   buildBody?: (refreshToken: string) => Record<string, unknown>
   /**
    * Extract the new token pair from the refresh response.
-   * @default (data) => ({ accessToken: data.accessToken, refreshToken: data.refreshToken })
+   * @default (data) => data as TokenPair
    */
   extractTokens?: (data: unknown) => TokenPair
 }
@@ -44,14 +42,34 @@ export type ApiClientConfig = {
   timeout?: number
   /** Additional default headers */
   headers?: Record<string, string>
-  /** Additional Axios config */
-  axiosConfig?: Omit<AxiosRequestConfig, "baseURL" | "timeout" | "headers">
+}
+
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+
+export type FetchRequestConfig = {
+  method: HttpMethod
+  url: string
+  data?: unknown
+  params?: Record<
+    string,
+    string | number | boolean | Array<string | number | boolean>
+  >
+  skipAuth?: boolean
+  headers?: Record<string, string>
+  signal?: AbortSignal
+}
+
+export type FetchClient = {
+  request<T>(config: FetchRequestConfig): Promise<T>
 }
 
 export type RequestOptions = {
   /** Skip auth header injection for this request */
   skipAuth?: boolean
-} & Omit<AxiosRequestConfig, "url" | "method" | "baseURL">
+  params?: FetchRequestConfig["params"]
+  headers?: Record<string, string>
+  signal?: AbortSignal
+}
 
 export class ApiError extends Error {
   constructor(
@@ -65,16 +83,9 @@ export class ApiError extends Error {
     this.name = "ApiError"
   }
 
-  static fromAxiosError(error: unknown): ApiError {
-    if (isAxiosErrorLike(error)) {
-      const response = error.response as AxiosResponse | undefined
-      return new ApiError(
-        response?.data?.message ?? error.message ?? "Request failed",
-        response?.status ?? 0,
-        response?.data?.code,
-        response?.data,
-        error
-      )
+  static fromError(error: unknown): ApiError {
+    if (error instanceof ApiError) {
+      return error
     }
     if (error instanceof Error) {
       return new ApiError(error.message, 0, undefined, undefined, error)
@@ -82,14 +93,6 @@ export class ApiError extends Error {
     return new ApiError("Unknown error", 0, undefined, undefined, error)
   }
 }
-
-function isAxiosErrorLike(
-  error: unknown
-): error is { message?: string; response?: unknown } {
-  return typeof error === "object" && error !== null && "response" in error
-}
-
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
 
 export type EndpointDefinition<
   TResponse = unknown,
