@@ -22,6 +22,7 @@ import { Route as AuthedDashboardIndexRouteImport } from './routes/_authed/dashb
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthedDashboardSettingsRouteImport } from './routes/_authed/dashboard.settings'
 import { Route as AuthedDashboardServicesRouteImport } from './routes/_authed/dashboard.services'
+import { Route as AuthedDashboardCustomersRouteImport } from './routes/_authed/dashboard.customers'
 import { Route as AuthedDashboardResourcesIndexRouteImport } from './routes/_authed/dashboard.resources.index'
 import { Route as AuthedOnboardingStepStepRouteImport } from './routes/_authed/onboarding.step.$step'
 import { Route as AuthedDashboardResourcesIdRouteImport } from './routes/_authed/dashboard.resources.$id'
@@ -89,6 +90,12 @@ const AuthedDashboardServicesRoute = AuthedDashboardServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => AuthedDashboardRoute,
 } as any)
+const AuthedDashboardCustomersRoute =
+  AuthedDashboardCustomersRouteImport.update({
+    id: '/customers',
+    path: '/customers',
+    getParentRoute: () => AuthedDashboardRoute,
+  } as any)
 const AuthedDashboardResourcesIndexRoute =
   AuthedDashboardResourcesIndexRouteImport.update({
     id: '/resources/',
@@ -115,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/sign-up': typeof AuthSignUpRoute
   '/dashboard': typeof AuthedDashboardRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRouteWithChildren
+  '/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -129,6 +137,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
+  '/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -148,6 +157,7 @@ export interface FileRoutesById {
   '/_auth/sign-up': typeof AuthSignUpRoute
   '/_authed/dashboard': typeof AuthedDashboardRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRouteWithChildren
+  '/_authed/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/_authed/dashboard/services': typeof AuthedDashboardServicesRoute
   '/_authed/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/dashboard'
     | '/onboarding'
+    | '/dashboard/customers'
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/api/auth/$'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sign-in'
     | '/sign-up'
+    | '/dashboard/customers'
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/api/auth/$'
@@ -198,6 +210,7 @@ export interface FileRouteTypes {
     | '/_auth/sign-up'
     | '/_authed/dashboard'
     | '/_authed/onboarding'
+    | '/_authed/dashboard/customers'
     | '/_authed/dashboard/services'
     | '/_authed/dashboard/settings'
     | '/api/auth/$'
@@ -309,6 +322,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardServicesRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
+    '/_authed/dashboard/customers': {
+      id: '/_authed/dashboard/customers'
+      path: '/customers'
+      fullPath: '/dashboard/customers'
+      preLoaderRoute: typeof AuthedDashboardCustomersRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
     '/_authed/dashboard/resources/': {
       id: '/_authed/dashboard/resources/'
       path: '/resources'
@@ -346,6 +366,7 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthedDashboardRouteChildren {
+  AuthedDashboardCustomersRoute: typeof AuthedDashboardCustomersRoute
   AuthedDashboardServicesRoute: typeof AuthedDashboardServicesRoute
   AuthedDashboardSettingsRoute: typeof AuthedDashboardSettingsRoute
   AuthedDashboardIndexRoute: typeof AuthedDashboardIndexRoute
@@ -354,6 +375,7 @@ interface AuthedDashboardRouteChildren {
 }
 
 const AuthedDashboardRouteChildren: AuthedDashboardRouteChildren = {
+  AuthedDashboardCustomersRoute: AuthedDashboardCustomersRoute,
   AuthedDashboardServicesRoute: AuthedDashboardServicesRoute,
   AuthedDashboardSettingsRoute: AuthedDashboardSettingsRoute,
   AuthedDashboardIndexRoute: AuthedDashboardIndexRoute,

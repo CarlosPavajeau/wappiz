@@ -5,6 +5,7 @@ import {
   ResourcesAddIcon,
   ServiceIcon,
   Settings01Icon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Link, useLocation } from "@tanstack/react-router"
@@ -43,6 +44,11 @@ const USER_NAV_ITEMS = [
     href: "/dashboard/resources",
     icon: () => <HugeiconsIcon icon={ResourcesAddIcon} strokeWidth={2} />,
     label: "Recursos",
+  },
+  {
+    href: "/dashboard/customers",
+    icon: () => <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />,
+    label: "Clientes",
   },
   {
     href: "/dashboard/settings",

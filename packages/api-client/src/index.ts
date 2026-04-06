@@ -7,6 +7,7 @@ export { ApiError }
 import { adminResource } from "./endpoints/admin"
 import { appointmentsEndpoints } from "./endpoints/appointments"
 import { authResource } from "./endpoints/auth"
+import { customersEndpoints } from "./endpoints/customers"
 import { onboardingResource } from "./endpoints/onboarding"
 import { resourcesEndpoints } from "./endpoints/resources"
 import { servicesEndpoint } from "./endpoints/services"
@@ -16,6 +17,7 @@ const RESOURCES = {
   admin: adminResource,
   appointments: appointmentsEndpoints,
   auth: authResource,
+  customers: customersEndpoints,
   onboarding: onboardingResource,
   resources: resourcesEndpoints,
   services: servicesEndpoint,
