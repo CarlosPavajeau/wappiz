@@ -8,6 +8,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { GoogleIcon } from "@/components/icons/google-icon"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -84,6 +85,17 @@ function RouteComponent() {
     },
   })
 
+  const { mutate: signInWithGoogle, isPending: isGooglePending } = useMutation({
+    mutationFn: () =>
+      authClient.signIn.social({
+        callbackURL: "/dashboard",
+        provider: "google",
+      }),
+    onError: () => {
+      toast.error("No se pudo registrar con Google. Inténtalo de nuevo.")
+    },
+  })
+
   const onSubmit = handleSubmit((data) => {
     if (data.password !== data.confirmPassword) {
       setError("confirmPassword", { message: "Las contraseñas no coinciden." })
@@ -92,6 +104,10 @@ function RouteComponent() {
     const { confirmPassword: _, ...payload } = data
     mutate(payload)
   })
+
+  const togglePassword = () => setShowPassword((prev) => !prev)
+  const toggleConfirm = () => setShowConfirm((prev) => !prev)
+  const handleGoogleSignIn = () => signInWithGoogle()
 
   return (
     <div className="w-full max-w-sm">
@@ -152,7 +168,7 @@ function RouteComponent() {
                 aria-label={
                   showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                 }
-                onClick={() => setShowPassword((prev) => !prev)}
+                onClick={togglePassword}
               >
                 <HugeiconsIcon
                   icon={showPassword ? ViewOffSlashIcon : EyeIcon}
@@ -186,7 +202,7 @@ function RouteComponent() {
                 aria-label={
                   showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"
                 }
-                onClick={() => setShowConfirm((prev) => !prev)}
+                onClick={toggleConfirm}
               >
                 <HugeiconsIcon
                   icon={showConfirm ? ViewOffSlashIcon : EyeIcon}
@@ -202,6 +218,28 @@ function RouteComponent() {
         <Button type="submit" className="mt-2 w-full" disabled={isPending}>
           {isPending && <Spinner className="animate-spin" />}
           Crear cuenta
+        </Button>
+
+        <div className="relative flex items-center gap-3">
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">o continúa con</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full gap-2 transition-colors duration-200"
+          disabled={isGooglePending || isPending}
+          onClick={handleGoogleSignIn}
+          aria-label="Registrarse con Google"
+        >
+          {isGooglePending ? (
+            <Spinner className="animate-spin" />
+          ) : (
+            <GoogleIcon size={18} />
+          )}
+          Continuar con Google
         </Button>
 
         <p className="text-center text-xs text-muted-foreground">
