@@ -19,7 +19,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             refetchOnWindowFocus: false,
             retry: (failureCount, error) => {
               // Don't retry on 500 errors
-              if (error instanceof ApiError && (error as ApiError).status === 500) {
+              if (
+                error instanceof ApiError &&
+                (error as ApiError).status === 500
+              ) {
                 return false
               }
               return failureCount < 2
