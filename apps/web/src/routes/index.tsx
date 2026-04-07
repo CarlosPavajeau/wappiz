@@ -20,6 +20,11 @@ export const Route = createFileRoute("/")({
           "Permite que tus clientes agenden citas directamente desde WhatsApp. Gestiona recursos, servicios y disponibilidad en un solo lugar.",
         title: "wappiz — Citas por WhatsApp",
       },
+      {
+        content:
+          "Permite que tus clientes agenden citas directamente desde WhatsApp. Gestiona recursos, servicios y disponibilidad en un solo lugar.",
+        name: "description",
+      },
     ],
   }),
 })

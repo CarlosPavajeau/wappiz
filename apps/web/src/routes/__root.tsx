@@ -42,6 +42,10 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         name: "viewport",
       },
       {
+        content: "wappiz, citas, whatsapp, agendamiento",
+        name: "keywords",
+      },
+      {
         title: "wappiz",
       },
     ],
