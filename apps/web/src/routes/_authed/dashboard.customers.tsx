@@ -203,6 +203,8 @@ function RouteComponent() {
               <TableHead>Nombre</TableHead>
               <TableHead>Teléfono</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead>No shows</TableHead>
+              <TableHead>Cancelaciones tardías</TableHead>
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
@@ -228,6 +230,12 @@ function RouteComponent() {
                   ) : (
                     <Badge variant="outline">Activo</Badge>
                   )}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {customer.noShowCount}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {customer.lateCancelCount}
                 </TableCell>
                 <TableCell>
                   <CustomerRowActions customer={customer} />

@@ -4,4 +4,6 @@ export type Customer = {
   name: string
   displayName: string
   isBlocked: boolean
+  noShowCount: number
+  lateCancelCount: number
 }
