@@ -175,8 +175,6 @@ function RouteComponent() {
         </div>
       </div>
 
-      <Separator />
-
       {customerCount === 0 ? (
         <Empty className="border py-20">
           <EmptyHeader>
