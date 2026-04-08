@@ -6,6 +6,7 @@ import {
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router"
+import { useEffect, useState } from "react"
 
 export const Route = createFileRoute("/_auth")({
   component: RouteComponent,
@@ -30,6 +31,44 @@ const features = [
   },
 ]
 
+const businessWords = [
+  "barbería",
+  "odontología",
+  "peluquería",
+  "spa",
+  "estética",
+  "fisioterapia",
+  "veterinaria",
+]
+
+function AnimatedWord() {
+  const [index, setIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setVisible(false)
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % businessWords.length)
+        setVisible(true)
+      }, 350)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <span
+      className="text-primary inline-block transition-all duration-300"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(-6px)",
+      }}
+    >
+      {businessWords[index]}
+    </span>
+  )
+}
+
 function RouteComponent() {
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -53,7 +92,7 @@ function RouteComponent() {
           <div className="space-y-10">
             <div className="space-y-4">
               <h1 className="text-4xl leading-tight font-bold tracking-tight text-white">
-                Gestiona tu barbería con WhatsApp
+                Gestiona tu <AnimatedWord /> con WhatsApp
               </h1>
               <p className="text-base leading-relaxed text-white/60">
                 Reservas, recordatorios y clientes en un solo lugar. Sin apps
