@@ -4,7 +4,7 @@ import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query
 
 import "./index.css"
 import "@fontsource-variable/geist/wght.css"
-import { Spinner } from "./components/ui/spinner"
+import { DefaultLoader } from "./components/default-loader"
 import { routeTree } from "./routeTree.gen"
 
 export const getRouter = () => {
@@ -12,7 +12,7 @@ export const getRouter = () => {
 
   const router = createTanStackRouter({
     context: { queryClient },
-    defaultPendingComponent: () => <Spinner />,
+    defaultPendingComponent: () => <DefaultLoader />,
     defaultPendingMinMs: 0,
     defaultPendingMs: 0,
     defaultPreloadStaleTime: 0,
