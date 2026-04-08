@@ -21,6 +21,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/_authed/dashboard/services")({
       services,
     }
   },
+  pendingComponent: PendingComponent,
 })
 
 type ViewMode = "cards" | "table"
@@ -108,12 +110,7 @@ function ServicesTableView({ services }: { services: Service[] }) {
 function RouteComponent() {
   const { services } = Route.useLoaderData()
   const [view, setView] = useState<ViewMode>(getInitialView)
-
   const serviceCount = services.length
-  const serviceLabel =
-    serviceCount === 0
-      ? "Sin servicios registrados"
-      : `${serviceCount} ${serviceCount === 1 ? "servicio" : "servicios"}`
 
   const handleViewChange = useCallback((value: unknown) => {
     if (value === "cards" || value === "table") {
@@ -193,6 +190,21 @@ function RouteComponent() {
       </div>
 
       {content}
+    </div>
+  )
+}
+
+function PendingComponent() {
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex items-start justify-between gap-4 sm:items-center">
+        <div className="flex shrink-0 items-center gap-2">
+          <Skeleton className="h-8 w-17" />
+          <Skeleton className="h-8 w-38" />
+        </div>
+      </div>
+
+      <Skeleton className="h-12 w-full" />
     </div>
   )
 }

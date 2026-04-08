@@ -20,6 +20,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/_authed/dashboard/resources/")({
       resources,
     }
   },
+  pendingComponent: PendingComponent,
 })
 
 type ViewMode = "cards" | "table"
@@ -130,12 +132,7 @@ function ResourcesTableView({ resources }: { resources: Resource[] }) {
 function RouteComponent() {
   const { resources } = Route.useLoaderData()
   const [view, setView] = useState<ViewMode>(getInitialView)
-
   const resourceCount = resources.length
-  const resourceLabel =
-    resourceCount === 0
-      ? "Sin recursos registrados"
-      : `${resourceCount} ${resourceCount === 1 ? `recurso` : `recursos`}`
 
   const handleViewChange = useCallback((value: unknown) => {
     if (value === "cards" || value === "table") {
@@ -215,6 +212,21 @@ function RouteComponent() {
       </div>
 
       {content}
+    </div>
+  )
+}
+
+function PendingComponent() {
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex items-start justify-between gap-4 sm:items-center">
+        <div className="flex shrink-0 items-center gap-2">
+          <Skeleton className="h-8 w-17" />
+          <Skeleton className="h-8 w-38" />
+        </div>
+      </div>
+
+      <Skeleton className="h-12 w-full" />
     </div>
   )
 }
