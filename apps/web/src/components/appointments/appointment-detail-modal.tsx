@@ -68,10 +68,9 @@ function HistoryItem({ entry }: { entry: AppointmentStatusHistory }) {
           </span>
           <StatusBadge status={entry.toStatus} />
         </div>
-        <p className="text-xs text-muted-foreground">
-          {entry.changedBy}
-          {entry.changedByRole ? ` · ${entry.changedByRole}` : ""}
-        </p>
+        {entry.changedBy ? (
+          <p className="text-xs text-muted-foreground">{entry.changedBy}</p>
+        ) : null}
         {entry.reason ? (
           <p className="text-xs text-foreground/70 italic">"{entry.reason}"</p>
         ) : null}
