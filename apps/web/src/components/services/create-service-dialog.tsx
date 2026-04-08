@@ -1,6 +1,11 @@
 "use client"
 
 import { arktypeResolver } from "@hookform/resolvers/arktype"
+import {
+  MoreHorizontalCircle01Icon,
+  ServiceIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import { type } from "arktype"
@@ -93,7 +98,14 @@ export function CreateServiceDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button />}>Crear servicio</DialogTrigger>
+      <DialogTrigger render={<Button />}>
+        <HugeiconsIcon
+          icon={ServiceIcon}
+          strokeWidth={2}
+          data-icon="inline-start"
+        />
+        Agregar servicio
+      </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
@@ -247,7 +259,7 @@ export function CreateServiceDialog() {
 
         <DialogFooter showCloseButton>
           <Button type="submit" form="create-service-form" disabled={isPending}>
-            {isPending ? "Creando..." : "Crear servicio"}
+            {isPending ? "Creando..." : "Agregar servicio"}
           </Button>
         </DialogFooter>
       </DialogContent>
