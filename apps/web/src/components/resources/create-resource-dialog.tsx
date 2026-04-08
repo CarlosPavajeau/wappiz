@@ -1,4 +1,6 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
+import { ResourcesAddIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
@@ -78,7 +80,14 @@ export function CreateResourceDialog() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button />}>Crear recurso</DialogTrigger>
+      <DialogTrigger render={<Button />}>
+        <HugeiconsIcon
+          icon={ResourcesAddIcon}
+          strokeWidth={2}
+          data-icon="inline-start"
+        />
+        Agregar recurso
+      </DialogTrigger>
 
       <DialogContent>
         <DialogHeader>
@@ -132,7 +141,7 @@ export function CreateResourceDialog() {
             form="create-resource-form"
             disabled={isPending}
           >
-            {isPending ? "Creando..." : "Crear recurso"}
+            {isPending ? "Creando..." : "Agregar recurso"}
           </Button>
         </DialogFooter>
       </DialogContent>
