@@ -1,10 +1,14 @@
 import { createFileRoute, useRouteContext } from "@tanstack/react-router"
 
 import { AdminDashboard } from "@/components/appointments/admin-dashboard"
+import { AppointmentSkeleton } from "@/components/appointments/appointment-card"
 import { PendingActivations } from "@/components/appointments/pending-activations"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export const Route = createFileRoute("/_authed/dashboard/")({
   component: RouteComponent,
+  pendingComponent: PendingComponent,
 })
 
 function RouteComponent() {
@@ -13,4 +17,30 @@ function RouteComponent() {
   })
 
   return <div>{isSuperAdmin ? <PendingActivations /> : <AdminDashboard />}</div>
+}
+
+function PendingComponent() {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <Skeleton className="h-7 w-25" />
+        <Skeleton className="h-7 w-25" />
+        <Skeleton className="h-7 w-25" />
+        <Skeleton className="h-7 w-25" />
+
+        <Skeleton className="h-7 w-7" />
+        <Skeleton className="h-7 w-45" />
+        <Skeleton className="h-7 w-7" />
+      </div>
+
+      <Separator />
+
+      <div className="flex flex-col divide-y divide-border">
+        {Array.from({ length: 4 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: is an array generated
+          <AppointmentSkeleton key={i} />
+        ))}
+      </div>
+    </div>
+  )
 }
