@@ -37,7 +37,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
 import {
   Table,
@@ -157,24 +156,10 @@ function CustomerRowActions({ customer }: { customer: Customer }) {
 
 function RouteComponent() {
   const { customers } = Route.useLoaderData()
-
   const customerCount = customers.length
-  const customerLabel =
-    customerCount === 0
-      ? "Sin clientes registrados"
-      : `${customerCount} ${customerCount === 1 ? "cliente" : "clientes"}`
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <div className="flex items-start justify-between gap-4 sm:items-center">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-            Clientes
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">{customerLabel}</p>
-        </div>
-      </div>
-
       {customerCount === 0 ? (
         <Empty className="border py-20">
           <EmptyHeader>
