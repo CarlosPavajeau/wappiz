@@ -40,10 +40,10 @@ function RouteComponent() {
 
           <div className="mt-10 flex flex-col gap-2.5 pl-6">
             <a
-              href="mailto:soporte@wappiz.co"
+              href="mailto:contact@cantte.com"
               className="w-fit text-sm text-foreground/35 underline-offset-4 transition-colors duration-150 hover:text-foreground hover:underline"
             >
-              soporte@wappiz.co
+              contact@cantte.com
             </a>
             <button
               type="button"
