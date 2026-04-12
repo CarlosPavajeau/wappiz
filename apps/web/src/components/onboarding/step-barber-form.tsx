@@ -1,9 +1,10 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
+import { BubbleChatIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
-import { ChevronLeft, Info, Loader2 } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -47,6 +48,11 @@ const TIME_OPTIONS = Array.from({ length: 35 }, (_, i) => {
   return { label, value }
 })
 
+const TIME_LABELS_BY_VALUE = new Map(
+  TIME_OPTIONS.map(({ label, value }) => [value, label])
+)
+const sortByDay = (left: number, right: number) => left - right
+
 const DAYS = [
   { label: "Dom", value: 0 },
   { label: "Lun", value: 1 },
@@ -58,10 +64,18 @@ const DAYS = [
 ]
 
 const barberSchema = type({
-  endTime: "string",
-  name: "string >= 2",
-  startTime: "string",
-  workingDays: "number[]",
+  endTime: type("string").configure({
+    message: "Selecciona una hora de cierre.",
+  }),
+  name: type("string >= 2").configure({
+    message: "El nombre debe tener al menos 2 caracteres.",
+  }),
+  startTime: type("string").configure({
+    message: "Selecciona una hora de apertura.",
+  }),
+  workingDays: type("number[]").configure({
+    message: "Selecciona al menos un día de trabajo.",
+  }),
 })
 
 type BarberFormData = typeof barberSchema.infer
@@ -70,7 +84,6 @@ export function StepBarberForm() {
   const navigate = useNavigate()
 
   const {
-    register,
     control,
     handleSubmit,
     setError,
@@ -133,13 +146,19 @@ export function StepBarberForm() {
             <FieldGroup>
               <Field data-invalid={!!errors.name}>
                 <FieldLabel htmlFor="name">Nombre</FieldLabel>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Ej. Carlos"
-                  autoComplete="off"
-                  aria-invalid={!!errors.name}
-                  {...register("name")}
+                <Controller
+                  control={control}
+                  name="name"
+                  render={({ field }) => (
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Ej. Carlos"
+                      autoComplete="off"
+                      aria-invalid={!!errors.name}
+                      {...field}
+                    />
+                  )}
                 />
                 <FieldError errors={[errors.name]} />
               </Field>
@@ -160,9 +179,7 @@ export function StepBarberForm() {
                             checked={field.value.includes(day.value)}
                             onCheckedChange={(checked) => {
                               const next = checked
-                                ? [...field.value, day.value].toSorted(
-                                    (a, b) => a - b
-                                  )
+                                ? [...field.value, day.value].sort(sortByDay)
                                 : field.value.filter((d) => d !== day.value)
                               field.onChange(next)
                             }}
@@ -174,9 +191,7 @@ export function StepBarberForm() {
                       ))}
                     </div>
                     <FieldError
-                      errors={[
-                        errors.workingDays as { message?: string } | undefined,
-                      ]}
+                      errors={[{ message: errors.workingDays?.message }]}
                     />
                   </Field>
                 )}
@@ -193,14 +208,17 @@ export function StepBarberForm() {
                         <FieldLabel htmlFor="startTime">Apertura</FieldLabel>
                         <Select
                           value={field.value}
-                          onValueChange={(val) => field.onChange(val)}
+                          onValueChange={field.onChange}
                         >
                           <SelectTrigger
                             id="startTime"
                             className="w-full"
                             aria-invalid={!!errors.startTime}
                           >
-                            <SelectValue />
+                            <SelectValue>
+                              {TIME_LABELS_BY_VALUE.get(field.value) ??
+                                field.value}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {TIME_OPTIONS.map((opt) => (
@@ -223,14 +241,17 @@ export function StepBarberForm() {
                         <FieldLabel htmlFor="endTime">Cierre</FieldLabel>
                         <Select
                           value={field.value}
-                          onValueChange={(val) => field.onChange(val)}
+                          onValueChange={field.onChange}
                         >
                           <SelectTrigger
                             id="endTime"
                             className="w-full"
                             aria-invalid={!!errors.endTime}
                           >
-                            <SelectValue />
+                            <SelectValue>
+                              {TIME_LABELS_BY_VALUE.get(field.value) ??
+                                field.value}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {TIME_OPTIONS.map((opt) => (
@@ -249,7 +270,11 @@ export function StepBarberForm() {
             </FieldGroup>
 
             <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
-              <Info className="mt-px size-4 shrink-0 text-primary/70" />
+              <HugeiconsIcon
+                icon={BubbleChatIcon}
+                className="mt-px size-4 shrink-0 text-primary/70"
+                strokeWidth={1.8}
+              />
               <p>
                 Podrás agregar más recursos y personalizar horarios individuales
                 desde el panel.
