@@ -102,9 +102,12 @@ export function PendingActivationCard({ request }: Props) {
         <p>
           <strong>Email:</strong> {request.contactEmail}
         </p>
-        <p>
-          <strong>Notas:</strong> {request.notes}
-        </p>
+
+        {request.notes && (
+          <p>
+            <strong>Notas:</strong> {request.notes}
+          </p>
+        )}
       </CardContent>
 
       <CardFooter className="flex gap-2">
@@ -211,7 +214,7 @@ export function PendingActivationCard({ request }: Props) {
           </DialogContent>
         </Dialog>
 
-        <Button variant="ghost">Rechazar</Button>
+        <Button variant="destructive">Rechazar</Button>
       </CardFooter>
     </Card>
   )
