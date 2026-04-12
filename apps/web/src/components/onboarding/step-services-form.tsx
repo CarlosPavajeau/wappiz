@@ -1,11 +1,14 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import { useMutation, useQuery } from "@tanstack/react-query"
+import {
+  InformationCircleIcon,
+  PlusSignIcon,
+  Trash,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
-import type { ServiceTemplate } from "@wappiz/api-client/types/onboarding"
 import { type } from "arktype"
-import { Info, Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
@@ -17,12 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field"
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
   Select,
@@ -31,13 +29,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
 
 import { StepIndicator } from "./step-indicator"
 
-const MAX_SERVICES = 10
+const MAX_SERVICES = 5
 
 const DURATION_OPTIONS = [
   { label: "15 min", value: 15 },
@@ -48,17 +50,19 @@ const DURATION_OPTIONS = [
   { label: "90 min", value: 90 },
 ]
 
-const TEMPLATE_LABELS: Record<"basic" | "complete" | "manual", string> = {
-  basic: "Básica",
-  complete: "Completa",
-  manual: "Manual",
-}
-
 const serviceItemSchema = type({
-  bufferMinutes: "number >= 0",
-  durationMinutes: "number > 0",
-  name: "string >= 2",
-  price: "number >= 0",
+  bufferMinutes: type("number>=0").configure({
+    message: "El buffer debe ser mayor o igual a 0.",
+  }),
+  durationMinutes: type("number>0").configure({
+    message: "La duración debe ser mayor a 0.",
+  }),
+  name: type("string>=2").configure({
+    message: "El nombre debe tener al menos 2 caracteres.",
+  }),
+  price: type("number>=0").configure({
+    message: "El precio debe ser mayor o igual a 0.",
+  }),
 })
 
 const servicesSchema = type({
@@ -67,8 +71,6 @@ const servicesSchema = type({
 
 type ServicesFormData = typeof servicesSchema.infer
 
-type Screen = "template" | "edit"
-
 const DEFAULT_SERVICE = {
   bufferMinutes: 0,
   durationMinutes: 30,
@@ -76,54 +78,21 @@ const DEFAULT_SERVICE = {
   price: 0,
 }
 
-const getNumberProperty = (source: object, key: string) => {
-  const value = Reflect.get(source, key)
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined
-}
-
-const normalizeTemplateService = (
-  service: ServiceTemplate
-): ServicesFormData["services"][number] => {
-  const durationFromLegacyKey = getNumberProperty(service, "duration")
-  const durationMinutes =
-    service.durationMinutes > 0
-      ? service.durationMinutes
-      : (durationFromLegacyKey ?? 0) > 0
-        ? (durationFromLegacyKey ?? 0)
-        : DEFAULT_SERVICE.durationMinutes
-
-  return {
-    bufferMinutes:
-      service.bufferMinutes >= 0
-        ? service.bufferMinutes
-        : DEFAULT_SERVICE.bufferMinutes,
-    durationMinutes,
-    name: service.name.trim(),
-    price: service.price >= 0 ? service.price : DEFAULT_SERVICE.price,
-  }
-}
-
 export function StepServicesForm() {
   const navigate = useNavigate()
-  const [screen, setScreen] = useState<Screen>("template")
-
-  const { data: templatesData, isPending: isLoadingTemplates } = useQuery({
-    queryFn: () => api.onboarding.templates(),
-    queryKey: ["onboarding", "templates"],
-    staleTime: Number.POSITIVE_INFINITY,
-  })
 
   const {
-    register,
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<ServicesFormData>({
-    defaultValues: { services: [] },
+    defaultValues: {
+      services: [DEFAULT_SERVICE],
+    },
     resolver: arktypeResolver(servicesSchema),
   })
 
-  const { fields, append, remove, replace } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: "services",
   })
@@ -144,73 +113,12 @@ export function StepServicesForm() {
       }),
   })
 
-  const handleTemplateSelect = (services: ServiceTemplate[]) => {
-    const initial =
-      services.length > 0
-        ? services.map(normalizeTemplateService)
-        : [DEFAULT_SERVICE]
-    replace(initial)
-    setScreen("edit")
-  }
-
   const onSubmit = handleSubmit(async (data) => {
     await mutateAsync(data)
   })
 
-  if (screen === "template") {
-    return (
-      <div className="flex flex-col gap-6">
-        <StepIndicator currentStep={3} />
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Servicios</CardTitle>
-            <CardDescription>
-              Elige una plantilla para empezar rápido o configura los tuyos
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="flex flex-col gap-3">
-            {isLoadingTemplates ? (
-              <>
-                <Skeleton className="h-24 w-full rounded-xl" />
-                <Skeleton className="h-24 w-full rounded-xl" />
-                <Skeleton className="h-24 w-full rounded-xl" />
-              </>
-            ) : (
-              (["basic", "complete", "manual"] as const).map((key) => {
-                const services = templatesData?.templates[key] ?? []
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => handleTemplateSelect(services)}
-                    className="group flex flex-col gap-1.5 rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <span className="text-sm font-semibold">
-                      {TEMPLATE_LABELS[key]}
-                    </span>
-                    {services.length > 0 ? (
-                      <span className="text-xs text-muted-foreground">
-                        {services.map((s) => s.name).join(" · ")}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">
-                        Agrega tus servicios manualmente
-                      </span>
-                    )}
-                  </button>
-                )
-              })
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full max-w-prose">
       <StepIndicator currentStep={3} />
 
       <Card>
@@ -222,113 +130,100 @@ export function StepServicesForm() {
         </CardHeader>
 
         <CardContent>
-          <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
+          <form onSubmit={onSubmit} className="flex flex-col gap-5">
             <FieldGroup>
-              {fields.map((field, index) => (
+              {fields.map((f, index) => (
                 <div
-                  key={field.id}
-                  className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-2"
+                  className="flex flex-col md:flex-row gap-2 md:items-end"
+                  key={`${f.id}-${index}`}
                 >
-                  <Field
-                    data-invalid={!!errors.services?.[index]?.name}
-                    className="col-span-4"
-                  >
-                    <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2">
-                      <Field className="gap-1">
-                        <FieldLabel htmlFor={`service-name-${index}`}>
-                          Servicio
-                        </FieldLabel>
+                  <Controller
+                    control={control}
+                    name={`services.${index}.name`}
+                    render={({ field, fieldState }) => (
+                      <Field className="flex-1">
+                        <FieldLabel htmlFor={field.name}>Servicio</FieldLabel>
                         <Input
-                          id={`service-name-${index}`}
+                          {...field}
+                          id={field.name}
                           type="text"
                           placeholder="Nombre del servicio"
-                          aria-invalid={!!errors.services?.[index]?.name}
-                          {...register(`services.${index}.name`)}
+                          aria-invalid={fieldState.invalid}
                         />
                       </Field>
+                    )}
+                  />
 
-                      <Controller
-                        control={control}
-                        name={`services.${index}.durationMinutes`}
-                        render={({ field: dField }) => (
-                          <Field
-                            data-invalid={
-                              !!errors.services?.[index]?.durationMinutes
-                            }
-                            className="w-28 gap-1"
+                  <div className="flex gap-2">
+                    <Controller
+                      control={control}
+                      name={`services.${index}.durationMinutes`}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor={field.name}>Duración</FieldLabel>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(val) => field.onChange(Number(val))}
                           >
-                            <FieldLabel htmlFor={`service-duration-${index}`}>
-                              Duración
-                            </FieldLabel>
-                            <Select
-                              value={String(dField.value)}
-                              onValueChange={(val) =>
-                                dField.onChange(Number(val))
-                              }
-                            >
-                              <SelectTrigger
-                                id={`service-duration-${index}`}
-                                className="w-28"
-                              >
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {DURATION_OPTIONS.map((opt) => (
-                                  <SelectItem
-                                    key={opt.value}
-                                    value={String(opt.value)}
-                                  >
-                                    {opt.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </Field>
-                        )}
-                      />
+                            <SelectTrigger id={field.name} className="w-28">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {DURATION_OPTIONS.map((opt) => (
+                                <SelectItem
+                                  key={opt.value}
+                                  value={String(opt.value)}
+                                >
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    />
 
-                      <Field
-                        data-invalid={!!errors.services?.[index]?.price}
-                        className="w-28 gap-1"
-                      >
-                        <FieldLabel htmlFor={`service-price-${index}`}>
-                          Costo
-                        </FieldLabel>
-                        <Input
-                          id={`service-price-${index}`}
-                          type="number"
-                          min="0"
-                          step="100"
-                          placeholder="Precio"
-                          aria-invalid={!!errors.services?.[index]?.price}
-                          {...register(`services.${index}.price`, {
-                            valueAsNumber: true,
-                          })}
-                        />
-                      </Field>
+                    <Controller
+                      control={control}
+                      name={`services.${index}.price`}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor={field.name}>Precio</FieldLabel>
+                          <Input
+                            {...field}
+                            id={field.name}
+                            type="number"
+                            min="0"
+                            step="100"
+                            aria-invalid={fieldState.invalid}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              field.onChange(val === "" ? "" : Number(val))
+                            }}
+                          />
+                        </Field>
+                      )}
+                    />
+                  </div>
 
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="shrink-0 text-muted-foreground hover:text-destructive"
-                        disabled={fields.length <= 1}
-                        onClick={() => remove(index)}
-                        aria-label="Eliminar servicio"
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2">
-                      <FieldError errors={[errors.services?.[index]?.name]} />
-                      <FieldError
-                        errors={[errors.services?.[index]?.durationMinutes]}
-                      />
-                      <FieldError errors={[errors.services?.[index]?.price]} />
-                      <div />
-                    </div>
-                  </Field>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-destructive self-end"
+                          disabled={fields.length <= 1}
+                          onClick={() => remove(index)}
+                          aria-label="Eliminar servicio"
+                        >
+                          <HugeiconsIcon icon={Trash} strokeWidth={2} />
+                        </Button>
+                      }
+                    />
+                    <TooltipContent>Descartar servicio</TooltipContent>
+                  </Tooltip>
                 </div>
               ))}
 
@@ -344,27 +239,34 @@ export function StepServicesForm() {
                   })
                 }
               >
-                <Plus />
+                <HugeiconsIcon
+                  icon={PlusSignIcon}
+                  strokeWidth={2}
+                  data-icon="inline-start"
+                />
                 Agregar servicio
               </Button>
             </FieldGroup>
 
             <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
-              <Info className="mt-px size-4 shrink-0 text-primary/70" />
+              <HugeiconsIcon
+                icon={InformationCircleIcon}
+                className="mt-px size-4 shrink-0 text-primary/70"
+                strokeWidth={2}
+              />
               <p>
-                El buffer entre citas lo configuras después en cada servicio.
+                Puedes agregar hasta {MAX_SERVICES} servicios. Si necesitas más,
+                puedes agregar más servicios en el panel.
               </p>
             </div>
 
             <div className="flex items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() => setScreen("template")}
-                className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              <Button
+                type="submit"
+                className="ml-auto"
+                disabled={isSubmitting}
+                size="lg"
               >
-                ← Cambiar plantilla
-              </button>
-              <Button type="submit" className="ml-auto" disabled={isSubmitting}>
                 {isSubmitting && <Spinner />}
                 Continuar
               </Button>
