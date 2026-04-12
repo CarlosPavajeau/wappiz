@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
-import { Info, Loader2 } from "lucide-react"
+import { Info } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 
