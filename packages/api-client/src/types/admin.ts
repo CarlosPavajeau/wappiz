@@ -13,3 +13,7 @@ export type ActivateRequest = {
   wabaId: string
   accessToken: string
 }
+
+export type RejectRequest = {
+  reason: string
+}
