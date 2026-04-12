@@ -40,8 +40,6 @@ export function PendingActivations() {
     )
   }
 
-  console.log(requests)
-
   return (
     <div>
       <h1 className="text-2xl mb-4">Activaciones pendientes</h1>
