@@ -81,7 +81,7 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
         <CardHeader>
           <CardTitle className="text-xl">Activación de WhatsApp</CardTitle>
           <CardDescription>
-            Asignamos un número exclusivo para tu barbería
+            Asignamos un número exclusivo para tu negocio
           </CardDescription>
         </CardHeader>
 
@@ -95,8 +95,10 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
                 </span>
                 <p className="text-sm text-muted-foreground">
                   El equipo de wappiz te asignará un número de WhatsApp dedicado
-                  para gestionar las reservas de tu barbería. Nos comunicaremos
-                  por el correo que indiques a continuación.
+                  para gestionar las reservas de tu negocio. Nos comunicaremos
+                  por el correo que indiques a continuación. Si ya posees un
+                  número de WhatsApp, puedes indicarlo en las notas y nos
+                  comunicaremos contigo para el proceso de asignación.
                 </p>
               </div>
             </div>
