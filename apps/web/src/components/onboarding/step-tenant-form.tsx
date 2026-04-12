@@ -65,7 +65,7 @@ export function StepTenantForm() {
   })
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full max-w-prose">
       <StepIndicator currentStep={1} />
 
       <Card>
