@@ -13,6 +13,12 @@ export const Route = createFileRoute("/_authed")({
       })
     }
 
+    if (user.user.banned) {
+      throw redirect({
+        to: "/banned",
+      })
+    }
+
     // Pass user to child routes
     return { isSuperAdmin: user.user.role === "admin", user }
   },
