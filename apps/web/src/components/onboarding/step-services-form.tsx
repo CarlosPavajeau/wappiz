@@ -69,6 +69,40 @@ type ServicesFormData = typeof servicesSchema.infer
 
 type Screen = "template" | "edit"
 
+const DEFAULT_SERVICE = {
+  bufferMinutes: 0,
+  durationMinutes: 30,
+  name: "",
+  price: 0,
+}
+
+const getNumberProperty = (source: object, key: string) => {
+  const value = Reflect.get(source, key)
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined
+}
+
+const normalizeTemplateService = (
+  service: ServiceTemplate
+): ServicesFormData["services"][number] => {
+  const durationFromLegacyKey = getNumberProperty(service, "duration")
+  const durationMinutes =
+    service.durationMinutes > 0
+      ? service.durationMinutes
+      : (durationFromLegacyKey ?? 0) > 0
+        ? (durationFromLegacyKey ?? 0)
+        : DEFAULT_SERVICE.durationMinutes
+
+  return {
+    bufferMinutes:
+      service.bufferMinutes >= 0
+        ? service.bufferMinutes
+        : DEFAULT_SERVICE.bufferMinutes,
+    durationMinutes,
+    name: service.name.trim(),
+    price: service.price >= 0 ? service.price : DEFAULT_SERVICE.price,
+  }
+}
+
 export function StepServicesForm() {
   const navigate = useNavigate()
   const [screen, setScreen] = useState<Screen>("template")
@@ -113,8 +147,8 @@ export function StepServicesForm() {
   const handleTemplateSelect = (services: ServiceTemplate[]) => {
     const initial =
       services.length > 0
-        ? services
-        : [{ bufferMinutes: 0, durationMinutes: 30, name: "", price: 0 }]
+        ? services.map(normalizeTemplateService)
+        : [DEFAULT_SERVICE]
     replace(initial)
     setScreen("edit")
   }
@@ -199,50 +233,69 @@ export function StepServicesForm() {
                     data-invalid={!!errors.services?.[index]?.name}
                     className="col-span-4"
                   >
-                    <FieldLabel htmlFor={`service-name-${index}`}>
-                      {index === 0 && "Servicio"}
-                    </FieldLabel>
                     <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2">
-                      <Input
-                        id={`service-name-${index}`}
-                        type="text"
-                        placeholder="Nombre del servicio"
-                        aria-invalid={!!errors.services?.[index]?.name}
-                        {...register(`services.${index}.name`)}
-                      />
+                      <Field className="gap-1">
+                        <FieldLabel htmlFor={`service-name-${index}`}>
+                          Servicio
+                        </FieldLabel>
+                        <Input
+                          id={`service-name-${index}`}
+                          type="text"
+                          placeholder="Nombre del servicio"
+                          aria-invalid={!!errors.services?.[index]?.name}
+                          {...register(`services.${index}.name`)}
+                        />
+                      </Field>
 
                       <Controller
                         control={control}
                         name={`services.${index}.durationMinutes`}
                         render={({ field: dField }) => (
-                          <Select
-                            value={String(dField.value)}
-                            onValueChange={(val) =>
-                              dField.onChange(Number(val))
+                          <Field
+                            data-invalid={
+                              !!errors.services?.[index]?.durationMinutes
                             }
+                            className="w-28 gap-1"
                           >
-                            <SelectTrigger className="w-28">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DURATION_OPTIONS.map((opt) => (
-                                <SelectItem
-                                  key={opt.value}
-                                  value={String(opt.value)}
-                                >
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            <FieldLabel htmlFor={`service-duration-${index}`}>
+                              Duración
+                            </FieldLabel>
+                            <Select
+                              value={String(dField.value)}
+                              onValueChange={(val) =>
+                                dField.onChange(Number(val))
+                              }
+                            >
+                              <SelectTrigger
+                                id={`service-duration-${index}`}
+                                className="w-28"
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {DURATION_OPTIONS.map((opt) => (
+                                  <SelectItem
+                                    key={opt.value}
+                                    value={String(opt.value)}
+                                  >
+                                    {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </Field>
                         )}
                       />
 
                       <Field
                         data-invalid={!!errors.services?.[index]?.price}
-                        className="w-28"
+                        className="w-28 gap-1"
                       >
+                        <FieldLabel htmlFor={`service-price-${index}`}>
+                          Costo
+                        </FieldLabel>
                         <Input
+                          id={`service-price-${index}`}
                           type="number"
                           min="0"
                           step="100"
@@ -269,7 +322,11 @@ export function StepServicesForm() {
 
                     <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2">
                       <FieldError errors={[errors.services?.[index]?.name]} />
-                      <div className="col-span-3" />
+                      <FieldError
+                        errors={[errors.services?.[index]?.durationMinutes]}
+                      />
+                      <FieldError errors={[errors.services?.[index]?.price]} />
+                      <div />
                     </div>
                   </Field>
                 </div>
@@ -283,10 +340,7 @@ export function StepServicesForm() {
                 disabled={fields.length >= MAX_SERVICES}
                 onClick={() =>
                   append({
-                    bufferMinutes: 0,
-                    durationMinutes: 30,
-                    name: "",
-                    price: 0,
+                    ...DEFAULT_SERVICE,
                   })
                 }
               >
