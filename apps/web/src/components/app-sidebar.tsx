@@ -8,7 +8,7 @@ import {
   UserGroupIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { Link, useLocation } from "@tanstack/react-router"
+import { Link, useLocation, useRouteContext } from "@tanstack/react-router"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
 import { use } from "react"
 
@@ -21,10 +21,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSkeleton,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { authClient } from "@/lib/auth-client"
 
 import { tenantContext } from "./tenant-provider"
 import { Skeleton } from "./ui/skeleton"
@@ -74,6 +72,7 @@ function TenantHeaderContent({ tenant, isLoading }: TenantHeaderContentProps) {
   if (isLoading) {
     return <Skeleton className="h-10 w-full" />
   }
+
   if (!tenant) {
     return null
   }
@@ -96,32 +95,12 @@ function TenantHeaderContent({ tenant, isLoading }: TenantHeaderContentProps) {
 }
 
 type NavMenuProps = {
-  isPending: boolean
-  isLoading: boolean
   role?: string
   pathname: string
   onNavigate: () => void
 }
 
-function NavMenu({
-  isPending,
-  isLoading,
-  role,
-  pathname,
-  onNavigate,
-}: NavMenuProps) {
-  if (isPending || isLoading) {
-    return (
-      <>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <SidebarMenuItem key={index}>
-            <SidebarMenuSkeleton />
-          </SidebarMenuItem>
-        ))}
-      </>
-    )
-  }
-
+function NavMenu({ role, pathname, onNavigate }: NavMenuProps) {
   const navItems = role === "admin" ? ADMIN_NAV_ITEMS : USER_NAV_ITEMS
 
   return (
@@ -153,7 +132,9 @@ export function AppSidebar() {
   const pathname = useLocation({
     select: (location) => location.pathname,
   })
-  const { data, isPending } = authClient.useSession()
+  const { user } = useRouteContext({
+    from: "/_authed",
+  })
   const { tenant, isLoading } = use(tenantContext)
   const { isMobile, openMobile, setOpenMobile } = useSidebar()
 
@@ -177,9 +158,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">
               <NavMenu
-                isPending={isPending}
-                isLoading={isLoading}
-                role={data?.user.role ?? undefined}
+                role={user.user.role ?? undefined}
                 pathname={pathname}
                 onNavigate={toggleSidebar}
               />
