@@ -1,5 +1,5 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import { BubbleChatIcon } from "@hugeicons/core-free-icons"
+import { InformationCircleIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
@@ -119,6 +119,7 @@ export function StepBarberForm() {
       setError("workingDays", { message: "Selecciona al menos un día." })
       return
     }
+
     if (data.endTime <= data.startTime) {
       setError("endTime", {
         message: "La hora de cierre debe ser después de la apertura.",
@@ -144,30 +145,30 @@ export function StepBarberForm() {
         <CardContent>
           <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
             <FieldGroup>
-              <Field data-invalid={!!errors.name}>
-                <FieldLabel htmlFor="name">Nombre</FieldLabel>
-                <Controller
-                  control={control}
-                  name="name"
-                  render={({ field }) => (
+              <Controller
+                control={control}
+                name="name"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
                     <Input
-                      id="name"
+                      id={field.name}
                       type="text"
                       placeholder="Ej. Carlos"
                       autoComplete="off"
-                      aria-invalid={!!errors.name}
+                      aria-invalid={fieldState.invalid}
                       {...field}
                     />
-                  )}
-                />
-                <FieldError errors={[errors.name]} />
-              </Field>
+                    <FieldError errors={[errors.name]} />
+                  </Field>
+                )}
+              />
 
               <Controller
                 control={control}
                 name="workingDays"
-                render={({ field }) => (
-                  <Field data-invalid={!!errors.workingDays}>
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
                     <FieldTitle>Días de trabajo</FieldTitle>
                     <div className="grid grid-cols-7 gap-1">
                       {DAYS.map((day) => (
@@ -190,9 +191,7 @@ export function StepBarberForm() {
                         </label>
                       ))}
                     </div>
-                    <FieldError
-                      errors={[{ message: errors.workingDays?.message }]}
-                    />
+                    <FieldError errors={[fieldState.error]} />
                   </Field>
                 )}
               />
@@ -203,17 +202,17 @@ export function StepBarberForm() {
                   <Controller
                     control={control}
                     name="startTime"
-                    render={({ field }) => (
-                      <Field data-invalid={!!errors.startTime}>
-                        <FieldLabel htmlFor="startTime">Apertura</FieldLabel>
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Apertura</FieldLabel>
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
                         >
                           <SelectTrigger
-                            id="startTime"
+                            id={field.name}
                             className="w-full"
-                            aria-invalid={!!errors.startTime}
+                            aria-invalid={fieldState.invalid}
                           >
                             <SelectValue>
                               {TIME_LABELS_BY_VALUE.get(field.value) ??
@@ -228,7 +227,7 @@ export function StepBarberForm() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <FieldError errors={[errors.startTime]} />
+                        <FieldError errors={[fieldState.error]} />
                       </Field>
                     )}
                   />
@@ -236,17 +235,17 @@ export function StepBarberForm() {
                   <Controller
                     control={control}
                     name="endTime"
-                    render={({ field }) => (
-                      <Field data-invalid={!!errors.endTime}>
-                        <FieldLabel htmlFor="endTime">Cierre</FieldLabel>
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor={field.name}>Cierre</FieldLabel>
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
                         >
                           <SelectTrigger
-                            id="endTime"
+                            id={field.name}
                             className="w-full"
-                            aria-invalid={!!errors.endTime}
+                            aria-invalid={fieldState.invalid}
                           >
                             <SelectValue>
                               {TIME_LABELS_BY_VALUE.get(field.value) ??
@@ -261,7 +260,7 @@ export function StepBarberForm() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <FieldError errors={[errors.endTime]} />
+                        <FieldError errors={[fieldState.error]} />
                       </Field>
                     )}
                   />
@@ -271,9 +270,9 @@ export function StepBarberForm() {
 
             <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
               <HugeiconsIcon
-                icon={BubbleChatIcon}
+                icon={InformationCircleIcon}
                 className="mt-px size-4 shrink-0 text-primary/70"
-                strokeWidth={1.8}
+                strokeWidth={2}
               />
               <p>
                 Podrás agregar más recursos y personalizar horarios individuales
@@ -282,7 +281,12 @@ export function StepBarberForm() {
             </div>
 
             <div className="flex items-center gap-3 pt-1">
-              <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="ml-auto"
+                disabled={isSubmitting}
+                size="lg"
+              >
                 {isSubmitting && <Spinner />}
                 Continuar
               </Button>
