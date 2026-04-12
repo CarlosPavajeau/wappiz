@@ -20,8 +20,15 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { authClient } from "@/lib/auth-client"
 
+const searchSchema = type({
+  "redirect?": type("string").configure({
+    message: "Invalid redirect URL",
+  }),
+})
+
 export const Route = createFileRoute("/_auth/sign-in")({
   component: RouteComponent,
+  validateSearch: searchSchema,
 })
 
 const signInSchema = type({
@@ -36,6 +43,7 @@ const signInSchema = type({
 type SignInFormData = typeof signInSchema.infer
 
 function RouteComponent() {
+  const { redirect } = Route.useSearch()
   const navigate = useNavigate({
     from: "/",
   })
@@ -61,9 +69,15 @@ function RouteComponent() {
     },
     onSuccess: (result) => {
       if (result.data) {
-        navigate({
-          to: "/dashboard",
-        })
+        if (redirect) {
+          navigate({
+            to: redirect,
+          })
+        } else {
+          navigate({
+            to: "/dashboard",
+          })
+        }
       } else if (result.error) {
         const message =
           result.error.message ??
@@ -80,6 +94,7 @@ function RouteComponent() {
       authClient.signIn.social({
         callbackURL: "/dashboard",
         provider: "google",
+        redirectTo: redirect,
       }),
     onError: () => {
       toast.error("No se pudo iniciar sesión con Google. Inténtalo de nuevo.")
