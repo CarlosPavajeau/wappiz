@@ -1,10 +1,11 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
+import { InformationCircleIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
-import { Info } from "lucide-react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -28,7 +29,9 @@ import { api } from "@/lib/client-api"
 import { StepIndicator } from "./step-indicator"
 
 const tenantSchema = type({
-  name: "string >= 2",
+  name: type("string >= 2").configure({
+    message: "El nombre debe tener al menos 2 caracteres",
+  }),
 })
 
 type TenantFormData = typeof tenantSchema.infer
@@ -37,9 +40,9 @@ export function StepTenantForm() {
   const navigate = useNavigate()
 
   const {
-    register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    control,
+    formState: { isSubmitting },
   } = useForm<TenantFormData>({
     defaultValues: { name: "" },
     resolver: arktypeResolver(tenantSchema),
@@ -76,23 +79,37 @@ export function StepTenantForm() {
         <CardContent>
           <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
             <FieldGroup>
-              <Field data-invalid={!!errors.name}>
-                <FieldLabel htmlFor="name">Nombre del negocio</FieldLabel>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Ej. Barbería Don Carlos"
-                  autoComplete="organization"
-                  autoFocus
-                  aria-invalid={!!errors.name}
-                  {...register("name")}
-                />
-                <FieldError errors={[errors.name]} />
-              </Field>
+              <Controller
+                control={control}
+                name="name"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>
+                      Nombre del negocio
+                    </FieldLabel>
+
+                    <Input
+                      id={field.name}
+                      type="text"
+                      placeholder="Ej. Barbería Don Carlos"
+                      autoComplete="off"
+                      autoFocus
+                      aria-invalid={fieldState.invalid}
+                      {...field}
+                    />
+
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
             </FieldGroup>
 
             <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
-              <Info className="mt-px size-4 shrink-0 text-primary/70" />
+              <HugeiconsIcon
+                icon={InformationCircleIcon}
+                className="mt-px size-4 shrink-0 text-primary/70"
+                strokeWidth={2}
+              />
               <p>
                 Este nombre será visible para tus clientes al momento de agendar
                 una cita.
@@ -100,7 +117,12 @@ export function StepTenantForm() {
             </div>
 
             <div className="flex items-center pt-1">
-              <Button type="submit" className="ml-auto" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="ml-auto"
+                disabled={isSubmitting}
+                size="lg"
+              >
                 {isSubmitting && <Spinner />}
                 Continuar
               </Button>
