@@ -35,8 +35,10 @@
     "fix": "ultracite fix"
   },
   "dependencies": {
+    "@posthog/react": "^1.9.0",
     "@wappiz/env": "workspace:*",
     "dotenv": "catalog:",
+    "posthog-node": "^5.29.2",
     "zod": "catalog:"
   },
   "devDependencies": {

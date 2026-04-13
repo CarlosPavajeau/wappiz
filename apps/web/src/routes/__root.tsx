@@ -1,3 +1,4 @@
+import { PostHogProvider } from "@posthog/react"
 import type { QueryClient } from "@tanstack/react-query"
 import {
   createRootRouteWithContext,
@@ -67,18 +68,26 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider>
-          <TooltipProvider>
-            <NuqsAdapter>
-              <div className="grid h-svh grid-rows-[auto_1fr]">
-                <Outlet />
-              </div>
-              <Toaster richColors />
-              <TanStackRouterDevtools position="bottom-right" />
-              <Scripts />
-            </NuqsAdapter>
-          </TooltipProvider>
-        </ThemeProvider>
+        <PostHogProvider
+          apiKey={import.meta.env["VITE_PUBLIC_POSTHOG_KEY"]}
+          options={{
+            api_host: import.meta.env["VITE_PUBLIC_POSTHOG_HOST"],
+            defaults: "2025-11-30",
+          }}
+        >
+          <ThemeProvider>
+            <TooltipProvider>
+              <NuqsAdapter>
+                <div className="grid h-svh grid-rows-[auto_1fr]">
+                  <Outlet />
+                </div>
+                <Toaster richColors />
+                <TanStackRouterDevtools position="bottom-right" />
+                <Scripts />
+              </NuqsAdapter>
+            </TooltipProvider>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   )
