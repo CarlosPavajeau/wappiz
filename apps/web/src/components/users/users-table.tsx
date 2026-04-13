@@ -1,4 +1,11 @@
-import { useNavigate } from "@tanstack/react-router"
+import {
+  CircleLock01Icon,
+  CircleUnlock01Icon,
+  MoreHorizontalIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { useMutation } from "@tanstack/react-query"
+import { useNavigate, useRouter } from "@tanstack/react-router"
 import {
   createColumnHelper,
   flexRender,
@@ -7,9 +14,27 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import type { SortingState } from "@tanstack/react-table"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import { toast } from "sonner"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Pagination,
   PaginationContent,
@@ -19,6 +44,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { Spinner } from "@/components/ui/spinner"
 import {
   Table,
   TableBody,
@@ -28,8 +54,103 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { AdminUser } from "@/functions/list-users"
+import { banUser, unbanUser } from "@/functions/user-actions"
 
 const columnHelper = createColumnHelper<AdminUser>()
+
+function UserRowActions({ user }: { user: AdminUser }) {
+  const router = useRouter()
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const openConfirm = useCallback(() => setConfirmOpen(true), [])
+
+  const isBanned = user.banned === true
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: () =>
+      isBanned
+        ? unbanUser({ data: { userId: user.id } })
+        : banUser({ data: { userId: user.id } }),
+    onError: () => {
+      toast.error("Ocurrió un error. Intenta de nuevo.")
+    },
+    onSuccess: () => {
+      setConfirmOpen(false)
+      toast.success(
+        isBanned ? `${user.name} fue desbaneado` : `${user.name} fue baneado`
+      )
+      router.invalidate()
+    },
+  })
+
+  const handleConfirm = useCallback(() => {
+    mutate()
+  }, [mutate])
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label="Abrir acciones"
+              size="sm"
+              variant="ghost"
+              className="size-8 p-0"
+            >
+              <HugeiconsIcon
+                icon={MoreHorizontalIcon}
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            variant={isBanned ? "default" : "destructive"}
+            onClick={openConfirm}
+          >
+            <HugeiconsIcon
+              icon={isBanned ? CircleUnlock01Icon : CircleLock01Icon}
+              size={14}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            {isBanned ? "Desbanear" : "Banear"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isBanned
+                ? `¿Desbanear a ${user.name}?`
+                : `¿Banear a ${user.name}?`}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isBanned
+                ? "El usuario podrá volver a iniciar sesión."
+                : "El usuario no podrá iniciar sesión mientras esté baneado."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={isPending}
+              variant={isBanned ? "default" : "destructive"}
+              onClick={handleConfirm}
+            >
+              {isPending ? <Spinner /> : isBanned ? "Desbanear" : "Banear"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
 
 function getPageRange(current: number, total: number): (number | "ellipsis")[] {
   if (total <= 7) {
@@ -162,6 +283,10 @@ export function UsersTable({
             {formatShortDate(getValue())}
           </span>
         ),
+      }),
+      columnHelper.display({
+        id: "actions",
+        cell: ({ row }) => <UserRowActions user={row.original} />,
       }),
     ],
     []
