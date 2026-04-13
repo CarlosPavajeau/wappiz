@@ -121,14 +121,17 @@ function NavMenu({ role, pathname, onNavigate }: NavMenuProps) {
 
         return (
           <SidebarMenuItem key={href}>
-            <SidebarMenuButton
-              isActive={isActive}
-              render={<Link to={href} />}
-              onClick={onNavigate}
-            >
-              <Icon />
-              <span>{label}</span>
-            </SidebarMenuButton>
+            <Link to={href}>
+              <SidebarMenuButton
+                isActive={isActive}
+                onClick={onNavigate}
+                tooltip={label}
+                className="cursor-pointer"
+              >
+                <Icon />
+                <span>{label}</span>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         )
       })}
