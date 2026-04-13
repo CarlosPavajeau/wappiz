@@ -10,17 +10,30 @@
         "AUTH_GOOGLE_ID",
         "AUTH_GOOGLE_SECRET",
         "CORS_ORIGIN",
-        "VITE_API_URL"
+        "VITE_API_URL",
+        "VITE_PUBLIC_POSTHOG_KEY",
+        "VITE_PUBLIC_POSTHOG_HOST"
       ],
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": [
+        "^check-types"
+      ]
     },
     "dev": {
       "cache": false,
