@@ -51,6 +51,9 @@ function getRouteLabel(routeId: string, loaderData: unknown): string {
     case "/_authed/dashboard/customers": {
       return "Clientes"
     }
+    case "/_authed/dashboard/users": {
+      return "Usuarios"
+    }
     case "/_authed/dashboard/settings": {
       return "Configuración"
     }

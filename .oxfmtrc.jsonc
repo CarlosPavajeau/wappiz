@@ -22,10 +22,7 @@
   "useTabs": false,
   "sortTailwindcss": {
     "stylesheet": "./packages/ui/src/styles/globals.css",
-    "functions": [
-      "clsx",
-      "cn"
-    ],
+    "functions": ["clsx", "cn"],
     "preserveWhitespace": true,
   },
 }

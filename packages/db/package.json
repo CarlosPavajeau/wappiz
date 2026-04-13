@@ -23,8 +23,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@wappiz/config": "workspace:*",
     "@types/pg": "^8.16.0",
+    "@wappiz/config": "workspace:*",
     "drizzle-kit": "^0.31.8",
     "typescript": "^5"
   }

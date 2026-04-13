@@ -54,7 +54,7 @@ Class-based toggle via `.dark` on the root element. In Next.js, use `next-themes
 ```tsx
 import { ThemeProvider } from "next-themes"
 
-<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+;<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
   {children}
 </ThemeProvider>
 ```
@@ -142,7 +142,9 @@ Prefer these approaches in order:
 ### 1. Built-in variants
 
 ```tsx
-<Button variant="outline" size="sm">Click</Button>
+<Button variant="outline" size="sm">
+  Click
+</Button>
 ```
 
 ### 2. Tailwind classes via `className`

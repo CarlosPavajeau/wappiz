@@ -61,6 +61,11 @@ const ADMIN_NAV_ITEMS = [
     icon: () => <HugeiconsIcon icon={Appointment01Icon} strokeWidth={2} />,
     label: "Solicitudes",
   },
+  {
+    href: "/dashboard/users",
+    icon: () => <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />,
+    label: "Usuarios",
+  },
 ] as const
 
 type TenantHeaderContentProps = {
