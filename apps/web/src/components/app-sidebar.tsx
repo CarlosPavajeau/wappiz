@@ -15,15 +15,18 @@ import { use } from "react"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import { UserMenu } from "./dashboard/user-menu"
 import { tenantContext } from "./tenant-provider"
 import { Skeleton } from "./ui/skeleton"
 
@@ -171,6 +174,12 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter>
+        <UserMenu />
+      </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   )
 }
