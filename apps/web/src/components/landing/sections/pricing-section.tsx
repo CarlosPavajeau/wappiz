@@ -4,6 +4,7 @@ import {
   CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { usePostHog } from "@posthog/react"
 import { Link } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
@@ -12,6 +13,7 @@ import { Section, SectionContent } from "../layout/section"
 
 const plans = [
   {
+    id: "free",
     badge: null,
     cta: "Comenzar gratis",
     description: "Para dar tus primeros pasos",
@@ -29,6 +31,7 @@ const plans = [
     price: null,
   },
   {
+    id: "pro",
     badge: "Recomendado",
     cta: "Empezar con Pro",
     description: "Para negocios que quieren crecer",
@@ -50,6 +53,7 @@ const plans = [
     price: "$49.900",
   },
   {
+    id: "business",
     badge: null,
     cta: "Empezar con Negocio",
     description: "Para cadenas y múltiples sucursales",
@@ -72,6 +76,8 @@ const plans = [
 ] as const
 
 export function PricingSection() {
+  const posthog = usePostHog()
+
   return (
     <Section>
       <SectionContent>
@@ -160,6 +166,12 @@ export function PricingSection() {
                 className="px-4 h-9.5"
                 variant={plan.highlighted ? "default" : "outline"}
                 data-icon="inline-end"
+                onClick={() =>
+                  posthog.capture("cta_button_clicked", {
+                    button: `pricing_${plan.id}_sign_up`,
+                    plan: plan.id,
+                  })
+                }
               >
                 {plan.cta}
                 <HugeiconsIcon

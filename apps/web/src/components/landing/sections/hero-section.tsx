@@ -1,5 +1,6 @@
 import { ArrowRight01Icon, Calendar01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { usePostHog } from "@posthog/react"
 import { Link } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
@@ -8,6 +9,8 @@ import { Section, SectionContent } from "../layout/section"
 import { ChatMockup } from "./chat-mockup"
 
 export function HeroSection() {
+  const posthog = usePostHog()
+
   return (
     <Section>
       <SectionContent>
@@ -48,6 +51,11 @@ export function HeroSection() {
                     size="lg"
                     className="px-4 h-9.5"
                     variant="default"
+                    onClick={() =>
+                      posthog.capture("cta_button_clicked", {
+                        button: "hero_sign_up",
+                      })
+                    }
                   >
                     Empezar gratis
                     <HugeiconsIcon
@@ -56,16 +64,6 @@ export function HeroSection() {
                       aria-hidden="true"
                       data-icon="inline-end"
                     />
-                  </Button>
-
-                  <Button
-                    render={<Link to="/sign-in" />}
-                    nativeButton={false}
-                    size="lg"
-                    className="px-4 h-9.5"
-                    variant="outline"
-                  >
-                    Iniciar sesión
                   </Button>
                 </div>
               </div>

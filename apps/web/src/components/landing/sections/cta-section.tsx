@@ -1,5 +1,6 @@
 import { ArrowRight01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { usePostHog } from "@posthog/react"
 import { Link } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
@@ -7,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Section, SectionContent } from "../layout/section"
 
 export function CtaSection() {
+  const posthog = usePostHog()
+
   return (
     <Section>
       <SectionContent>
@@ -26,6 +29,11 @@ export function CtaSection() {
               size="lg"
               className="px-4 h-9.5"
               variant="default"
+              onClick={() =>
+                posthog.capture("cta_button_clicked", {
+                  button: "cta_sign_up",
+                })
+              }
             >
               Empezar gratis
               <HugeiconsIcon
