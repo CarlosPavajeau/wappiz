@@ -32,6 +32,11 @@ export const auth = betterAuth({
               contactId: response.data.id,
               segmentId: env.RESEND_SEGMENT_ID,
             })
+          } else if (response.error) {
+            console.error(
+              "Error occurred while creating contact",
+              response.error
+            )
           }
 
           await resend.sendWelcomeEmail(user.email)
