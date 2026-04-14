@@ -16,6 +16,14 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    sendResetPassword: async ({ user, url }, _) => {
+      const resend = new Resend({ apiKey: env.RESEND_API_KEY })
+      await resend.sendResetPasswordEmail(user.email, url)
+    },
+    onPasswordReset: async ({ user }) => {
+      const resend = new Resend({ apiKey: env.RESEND_API_KEY })
+      await resend.sendPasswordResetEmail(user.email)
+    },
   },
   databaseHooks: {
     user: {
