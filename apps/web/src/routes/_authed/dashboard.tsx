@@ -1,7 +1,9 @@
 import {
   createFileRoute,
   Link,
+  notFound,
   Outlet,
+  redirect,
   useMatches,
 } from "@tanstack/react-router"
 import { Fragment } from "react"
@@ -22,8 +24,25 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { api } from "@/lib/client-api"
 
 export const Route = createFileRoute("/_authed/dashboard")({
+  beforeLoad: async () => {
+    const progress = await api.onboarding.progress()
+
+    if (!progress) {
+      throw notFound()
+    }
+
+    if (progress.isCompleted) {
+      return
+    }
+
+    throw redirect({
+      params: { step: String(progress.currentStep) },
+      to: "/onboarding/step/$step",
+    })
+  },
   component: RouteComponent,
 })
 
