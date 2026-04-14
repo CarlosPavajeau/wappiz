@@ -94,7 +94,6 @@ function RouteComponent() {
       authClient.signIn.social({
         callbackURL: "/dashboard",
         provider: "google",
-        redirectTo: redirect,
       }),
     onError: () => {
       toast.error("No se pudo iniciar sesión con Google. Inténtalo de nuevo.")
