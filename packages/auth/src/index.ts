@@ -1,6 +1,7 @@
 import { db } from "@wappiz/db"
 import * as schema from "@wappiz/db/schema/auth"
 import { env } from "@wappiz/env/server"
+import { Resend } from "@wappiz/resend"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { jwt, admin } from "better-auth/plugins"
@@ -15,6 +16,28 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          const resend = new Resend({ apiKey: env.RESEND_API_KEY })
+
+          const response = await resend.client.contacts.create({
+            email: user.email,
+          })
+
+          if (response.data) {
+            await resend.client.contacts.segments.add({
+              contactId: response.data.id,
+              segmentId: env.RESEND_SEGMENT_ID,
+            })
+          }
+
+          await resend.sendWelcomeEmail(user.email)
+        },
+      },
+    },
   },
   plugins: [
     admin(),

@@ -1,0 +1,34 @@
+{
+  "name": "@wappiz/resend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "dev": "email dev"
+  },
+  "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "@wappiz/env": "workspace:*",
+    "dotenv": "catalog:",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-email": "^5.2.10",
+    "resend": "^6.11.0"
+  },
+  "devDependencies": {
+    "@react-email/preview-server": "5.2.10",
+    "@types/node": "^22.13.14",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@wappiz/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

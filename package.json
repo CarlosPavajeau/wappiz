@@ -9,7 +9,6 @@
     "catalog": {
       "@types/react": "^19.2.10",
       "@types/react-dom": "^19.2.3",
-      "axios": "^1.13.6",
       "better-auth": "1.5.2",
       "dotenv": "^17.2.2",
       "react": "^19.2.3",
@@ -25,7 +24,7 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
-    "dev:native": "turbo -F native dev",
+    "dev:mail": "turbo -F @wappiz/resend dev",
     "dev:web": "turbo -F web dev",
     "db:push": "turbo -F @wappiz/db db:push",
     "db:studio": "turbo -F @wappiz/db db:studio",

@@ -12,6 +12,8 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.url(),
     CORS_ORIGIN: z.url(),
     DATABASE_URL: z.string(),
+    RESEND_API_KEY: z.string(),
+    RESEND_SEGMENT_ID: z.string(),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),

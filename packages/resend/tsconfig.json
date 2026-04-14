@@ -1,0 +1,12 @@
+{
+  "extends": "@wappiz/config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "jsx": "react-jsx",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "es6"
+    ]
+  }
+}
