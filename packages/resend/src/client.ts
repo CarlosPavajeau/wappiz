@@ -26,7 +26,7 @@ export class Resend {
     try {
       const result = await this.client.emails.send({
         to: email,
-        from: "no-reply@mail.cantte.com",
+        from: "Carlos de Wappiz <carlos@mail.cantte.com>",
         replyTo: this.replyTo,
         subject: "Bienvenido a Wappiz — esto es solo el comienzo",
         html,
