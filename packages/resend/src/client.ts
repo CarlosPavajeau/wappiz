@@ -4,7 +4,7 @@ import { Resend as Client } from "resend"
 
 import WelcomeEmail from "../emails/welcome-email"
 
-type Ops = {
+type Options = {
   apiKey: string
 }
 
@@ -12,7 +12,7 @@ export class Resend {
   public readonly client: Client
   private readonly replyTo = "contact@cantte.com"
 
-  constructor(ops: Ops) {
+  constructor(ops: Options) {
     this.client = new Client(ops.apiKey)
   }
 
