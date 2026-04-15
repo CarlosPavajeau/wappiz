@@ -71,13 +71,13 @@ export function AppointmentCard({
         {/* Row 2: accent bar + customer name + service */}
         <button
           aria-label={`Ver detalles de ${appointment.customerName}`}
-          className="flex cursor-pointer gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex cursor-pointer gap-3 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           onClick={onClick}
           type="button"
         >
           {accentBar}
           <div className="flex flex-col gap-0.5">
-            <span className="text-base font-bold leading-snug">
+            <span className="text-base leading-snug font-bold">
               {appointment.customerName}
             </span>
             <span className="text-sm text-muted-foreground">
@@ -113,7 +113,7 @@ export function AppointmentCard({
         {/* Customer + service — clickable */}
         <button
           aria-label={`Ver detalles de ${appointment.customerName}`}
-          className="flex flex-1 cursor-pointer flex-col justify-center gap-0.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="flex flex-1 cursor-pointer flex-col justify-center gap-0.5 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           onClick={onClick}
           type="button"
         >

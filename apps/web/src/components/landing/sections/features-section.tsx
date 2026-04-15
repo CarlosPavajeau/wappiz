@@ -41,10 +41,10 @@ export function FeaturesSection() {
       <SectionContent>
         <div className="flex flex-col gap-8 lg:flex-row lg:gap-16">
           <div className="shrink-0 space-y-2 lg:w-56">
-            <h2 className="text-foreground/90 text-xl font-semibold tracking-tight sm:text-2xl">
+            <h2 className="text-xl font-semibold tracking-tight text-foreground/90 sm:text-2xl">
               Todo bajo tu control
             </h2>
-            <p className="text-foreground/45 text-sm leading-relaxed sm:text-base">
+            <p className="text-sm leading-relaxed text-foreground/45 sm:text-base">
               Servicios, horarios y personal. Todo en un solo lugar.
             </p>
           </div>
@@ -61,13 +61,13 @@ export function FeaturesSection() {
                     size={14}
                     strokeWidth={1.5}
                     aria-hidden="true"
-                    className="text-foreground/35 shrink-0"
+                    className="shrink-0 text-foreground/35"
                   />
-                  <h3 className="text-foreground/90 text-sm font-semibold">
+                  <h3 className="text-sm font-semibold text-foreground/90">
                     {feature.title}
                   </h3>
                 </div>
-                <p className="text-foreground/50 text-sm leading-relaxed">
+                <p className="text-sm leading-relaxed text-foreground/50">
                   {feature.description}
                 </p>
               </div>

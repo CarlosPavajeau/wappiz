@@ -160,7 +160,7 @@ function AppointmentDetailContent({
       <section aria-labelledby="history-heading">
         <h3
           id="history-heading"
-          className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
         >
           Historial de estados
         </h3>

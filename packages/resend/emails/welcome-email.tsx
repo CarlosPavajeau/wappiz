@@ -6,7 +6,7 @@ import { Signature } from "../src/components/signature"
 export default function WelcomeEmail() {
   return (
     <Layout>
-      <Heading className="font-sans text-3xl font-semibold text-center">
+      <Heading className="text-center font-sans text-3xl font-semibold">
         Bienvenido a Wappiz!
       </Heading>
       <Text>¡Hola!</Text>
@@ -27,10 +27,10 @@ export default function WelcomeEmail() {
         </ul>
       </Section>
 
-      <Section className="text-center py-3">
+      <Section className="py-3 text-center">
         <Button
           href="https://wappiz.cantte.com/dashboard"
-          className="bg-[#3aca60] text-[#001806] rounded-lg p-3 w-2/3 font-medium"
+          className="w-2/3 rounded-lg bg-[#3aca60] p-3 font-medium text-[#001806]"
         >
           Ir al panel de control
         </Button>

@@ -45,7 +45,7 @@ export function DeleteOverrideButton({ resourceId, overrideId }: Props) {
       <AlertDialogTrigger
         disabled={isPending}
         aria-label="Eliminar excepción"
-        className="text-muted-foreground hover:text-destructive shrink-0 transition-colors disabled:opacity-50"
+        className="shrink-0 text-muted-foreground transition-colors hover:text-destructive disabled:opacity-50"
       >
         <HugeiconsIcon icon={Delete02Icon} size={14} />
       </AlertDialogTrigger>

@@ -22,7 +22,7 @@ function RouteComponent() {
 function PendingComponent() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="flex flex-wrap items-center gap-1.5">
         <Skeleton className="h-7 w-25" />
         <Skeleton className="h-7 w-25" />
         <Skeleton className="h-7 w-25" />

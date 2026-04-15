@@ -58,7 +58,7 @@ function AnimatedWord() {
 
   return (
     <span
-      className="text-primary inline-block transition-all duration-300"
+      className="inline-block text-primary transition-all duration-300"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(-6px)",

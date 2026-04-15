@@ -131,7 +131,7 @@ export function StepBarberForm() {
   })
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-prose">
+    <div className="flex w-full max-w-prose flex-col gap-6">
       <StepIndicator currentStep={2} />
 
       <Card>

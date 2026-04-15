@@ -91,10 +91,10 @@ function TenantHeaderContent({ tenant, isLoading }: TenantHeaderContentProps) {
         {tenant.name[0].toUpperCase()}
       </div>
       <div className="flex min-w-0 flex-col overflow-hidden group-data-[collapsible=icon]:hidden">
-        <span className="truncate text-sm font-semibold leading-tight">
+        <span className="truncate text-sm leading-tight font-semibold">
           {tenant.name}
         </span>
-        <span className="truncate text-xs capitalize text-muted-foreground">
+        <span className="truncate text-xs text-muted-foreground capitalize">
           {tenant.plan}
         </span>
       </div>

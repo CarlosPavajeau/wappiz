@@ -37,7 +37,7 @@ export function StepIndicator({
               {!isLast && (
                 <div
                   className={cn(
-                    "absolute top-1/2 left-1/2 right-0 h-px -translate-y-1/2 transition-colors",
+                    "absolute top-1/2 right-0 left-1/2 h-px -translate-y-1/2 transition-colors",
                     stepNum < currentStep ? "bg-primary" : "bg-border"
                   )}
                 />

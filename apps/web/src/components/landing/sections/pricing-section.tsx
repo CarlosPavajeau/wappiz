@@ -82,10 +82,10 @@ export function PricingSection() {
     <Section>
       <SectionContent>
         <div className="mb-6 max-w-lg space-y-2 md:mb-10">
-          <h2 className="text-foreground/90 text-xl font-semibold tracking-tight sm:text-2xl">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground/90 sm:text-2xl">
             Un plan para cada etapa de tu negocio
           </h2>
-          <p className="text-foreground/45 text-sm leading-relaxed sm:text-base">
+          <p className="text-sm leading-relaxed text-foreground/45 sm:text-base">
             Empieza gratis y escala cuando tu negocio lo necesite. Sin
             contratos, cancela cuando quieras.
           </p>
@@ -166,7 +166,7 @@ export function PricingSection() {
                 render={<Link to={plan.href} search={plan.search} />}
                 nativeButton={false}
                 size="lg"
-                className="px-4 h-9.5"
+                className="h-9.5 px-4"
                 variant={plan.highlighted ? "default" : "outline"}
                 data-icon="inline-end"
                 onClick={() =>

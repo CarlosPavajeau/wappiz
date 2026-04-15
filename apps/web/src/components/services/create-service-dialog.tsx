@@ -137,7 +137,7 @@ export function CreateServiceDialog() {
             <Field>
               <FieldLabel htmlFor="description">
                 Descripción{" "}
-                <span className="text-muted-foreground font-normal">
+                <span className="font-normal text-muted-foreground">
                   (opcional)
                 </span>
               </FieldLabel>
@@ -190,7 +190,7 @@ export function CreateServiceDialog() {
                     <Tooltip>
                       <TooltipTrigger
                         aria-label="¿Qué es el buffer?"
-                        className="text-muted-foreground hover:text-foreground ml-1 inline-flex cursor-default items-center"
+                        className="ml-1 inline-flex cursor-default items-center text-muted-foreground hover:text-foreground"
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"

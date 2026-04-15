@@ -80,7 +80,7 @@ function ServicesTableView({ services }: { services: Service[] }) {
               <div className="flex flex-col">
                 <span className="font-medium">{service.name}</span>
                 {service.description && (
-                  <span className="text-muted-foreground max-w-xs truncate text-xs">
+                  <span className="max-w-xs truncate text-xs text-muted-foreground">
                     {service.description}
                   </span>
                 )}

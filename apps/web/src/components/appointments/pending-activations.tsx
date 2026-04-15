@@ -42,7 +42,7 @@ export function PendingActivations() {
 
   return (
     <div>
-      <h1 className="text-2xl mb-4">Activaciones pendientes</h1>
+      <h1 className="mb-4 text-2xl">Activaciones pendientes</h1>
       <ul className="space-y-4">
         {requests.map((request) => (
           <li key={request.tenantId}>

@@ -50,7 +50,7 @@ export function WorkingHoursCard({
       </CardHeader>
       <CardContent>
         {sorted.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Sin horario configurado
           </p>
         ) : (

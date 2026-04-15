@@ -78,7 +78,7 @@ function RouteComponent() {
       <nav aria-label="Navegación de breadcrumb">
         <Link
           to="/dashboard/resources"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors duration-200"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors duration-200 hover:text-foreground"
         >
           <HugeiconsIcon
             icon={ArrowLeft01Icon}
@@ -94,7 +94,7 @@ function RouteComponent() {
         <div
           role="img"
           aria-label={`Avatar de ${resource.name}`}
-          className="bg-primary/10 text-primary ring-primary/20 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-lg font-semibold ring-1 sm:h-16 sm:w-16 sm:text-xl"
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-lg font-semibold text-primary ring-1 ring-primary/20 sm:h-16 sm:w-16 sm:text-xl"
         >
           {initials}
         </div>
@@ -140,11 +140,11 @@ function RouteComponent() {
             <div className="min-w-0">
               <h2
                 id="services-heading"
-                className="text-base font-semibold leading-snug"
+                className="text-base leading-snug font-semibold"
               >
                 Servicios asignados
               </h2>
-              <p className="text-muted-foreground mt-0.5 text-sm">
+              <p className="mt-0.5 text-sm text-muted-foreground">
                 {serviceLabel}
               </p>
             </div>

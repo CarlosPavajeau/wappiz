@@ -24,7 +24,7 @@ export function ModeToggle() {
             variant="outline"
             size="sm"
             aria-label="Cambiar tema"
-            className="gap-1.5 touch-manipulation"
+            className="touch-manipulation gap-1.5"
           />
         }
       >
@@ -34,8 +34,8 @@ export function ModeToggle() {
             className={cn(
               "absolute inset-0 size-4 transition-[transform,opacity] duration-200 motion-reduce:transition-none",
               isDark
-                ? "-rotate-90 scale-0 opacity-0"
-                : "rotate-0 scale-100 opacity-100"
+                ? "scale-0 -rotate-90 opacity-0"
+                : "scale-100 rotate-0 opacity-100"
             )}
           />
           <HugeiconsIcon
@@ -43,8 +43,8 @@ export function ModeToggle() {
             className={cn(
               "absolute inset-0 size-4 transition-[transform,opacity] duration-200 motion-reduce:transition-none",
               isDark
-                ? "rotate-0 scale-100 opacity-100"
-                : "rotate-90 scale-0 opacity-0"
+                ? "scale-100 rotate-0 opacity-100"
+                : "scale-0 rotate-90 opacity-0"
             )}
           />
         </span>

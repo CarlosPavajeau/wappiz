@@ -36,7 +36,7 @@ function ResourceAvatar({ name }: { name: string }) {
     <div
       role="img"
       aria-label={name}
-      className="bg-primary/10 text-primary ring-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold ring-1"
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-semibold text-primary ring-1 ring-primary/20"
     >
       {initials}
     </div>
@@ -48,7 +48,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
   const sortedHours = [...resource.workingHours]
 
   return (
-    <Card className="ring-border hover:ring-foreground/30 relative ring-1 transition-shadow duration-200">
+    <Card className="relative ring-1 ring-border transition-shadow duration-200 hover:ring-foreground/30">
       <CardHeader>
         <div className="flex items-center gap-3">
           <ResourceAvatar name={resource.name} />
@@ -57,7 +57,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
               <Link
                 to="/dashboard/resources/$id"
                 params={{ id: resource.id }}
-                className="hover:underline after:absolute after:inset-0 after:content-['']"
+                className="after:absolute after:inset-0 after:content-[''] hover:underline"
               >
                 {resource.name}
               </Link>
@@ -76,7 +76,7 @@ export function ResourceCard({ resource }: { resource: Resource }) {
 
       <CardContent>
         {sortedHours.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Sin horario configurado
           </p>
         ) : (

@@ -16,7 +16,7 @@ type Props = {
 export default function ResetPasswordEmail({ resetUrl }: Props) {
   return (
     <Layout>
-      <Heading className="font-sans text-3xl text-semibold text-center">
+      <Heading className="text-semibold text-center font-sans text-3xl">
         Restablecimiento de contraseña
       </Heading>
       <Text>¡Hola!</Text>
@@ -24,10 +24,10 @@ export default function ResetPasswordEmail({ resetUrl }: Props) {
         Hemos recibido una solicitud para restablecer tu contraseña de Wappiz.
       </Text>
 
-      <Section className="text-center py-3">
+      <Section className="py-3 text-center">
         <Button
           href={resetUrl}
-          className="bg-[#3aca60] text-[#001806] rounded-lg p-3 w-2/3 font-medium"
+          className="w-2/3 rounded-lg bg-[#3aca60] p-3 font-medium text-[#001806]"
         >
           Restablecer contraseña
         </Button>

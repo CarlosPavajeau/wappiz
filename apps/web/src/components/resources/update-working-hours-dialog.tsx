@@ -158,7 +158,7 @@ export function UpdateWorkingHoursDialog({
                 <div className="space-y-1">
                   <Label
                     htmlFor={`start-${hour.id}`}
-                    className="text-muted-foreground text-xs"
+                    className="text-xs text-muted-foreground"
                   >
                     Apertura
                   </Label>
@@ -175,7 +175,7 @@ export function UpdateWorkingHoursDialog({
                 <div className="space-y-1">
                   <Label
                     htmlFor={`end-${hour.id}`}
-                    className="text-muted-foreground text-xs"
+                    className="text-xs text-muted-foreground"
                   >
                     Cierre
                   </Label>

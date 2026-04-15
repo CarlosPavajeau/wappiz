@@ -14,10 +14,10 @@ export function CtaSection() {
     <Section>
       <SectionContent>
         <div className="flex flex-col items-center gap-5 text-center">
-          <h2 className="text-foreground/90 text-xl font-semibold tracking-tight sm:text-2xl">
+          <h2 className="text-xl font-semibold tracking-tight text-foreground/90 sm:text-2xl">
             Empieza hoy. Es gratis.
           </h2>
-          <p className="text-foreground/45 max-w-md text-sm leading-relaxed sm:text-base">
+          <p className="max-w-md text-sm leading-relaxed text-foreground/45 sm:text-base">
             Sin tarjeta de crédito. Sin contratos. Cancela cuando quieras.
           </p>
 
@@ -26,7 +26,7 @@ export function CtaSection() {
               render={<Link to="/sign-up" />}
               nativeButton={false}
               size="lg"
-              className="px-4 h-9.5"
+              className="h-9.5 px-4"
               variant="default"
               onClick={() =>
                 posthog.capture("cta_button_clicked", {

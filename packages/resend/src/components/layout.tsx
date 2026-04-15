@@ -21,7 +21,7 @@ export function Layout({ children }: Props) {
         <Head />
         <Body className="bg-white font-sans text-zinc-800">
           <Container className="container mx-auto p-6">
-            <Section className="mx-auto p-6 bg-gray-50">{children}</Section>
+            <Section className="mx-auto bg-gray-50 p-6">{children}</Section>
             <Section className="container mx-auto p-6 text-center font-semibold">
               <Text>
                 Conecta con nosotros en redes sociales!

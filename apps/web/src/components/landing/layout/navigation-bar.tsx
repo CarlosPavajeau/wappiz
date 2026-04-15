@@ -19,7 +19,7 @@ export function NavigationBar() {
           <HugeiconsIcon
             icon={BubbleChatIcon}
             strokeWidth={1.5}
-            className="text-primary h-5 w-5"
+            className="h-5 w-5 text-primary"
             aria-hidden="true"
           />
           <span className="text-lg font-semibold tracking-tight">wappiz</span>

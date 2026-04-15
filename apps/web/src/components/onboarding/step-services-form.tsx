@@ -118,7 +118,7 @@ export function StepServicesForm() {
   })
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-prose">
+    <div className="flex w-full max-w-prose flex-col gap-6">
       <StepIndicator currentStep={3} />
 
       <Card>
@@ -134,7 +134,7 @@ export function StepServicesForm() {
             <FieldGroup>
               {fields.map((f, index) => (
                 <div
-                  className="flex flex-col md:flex-row gap-2 md:items-end"
+                  className="flex flex-col gap-2 md:flex-row md:items-end"
                   key={`${f.id}-${index}`}
                 >
                   <Controller
@@ -213,7 +213,7 @@ export function StepServicesForm() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="text-muted-foreground hover:text-destructive self-end"
+                          className="self-end text-muted-foreground hover:text-destructive"
                           disabled={fields.length <= 1}
                           onClick={() => remove(index)}
                           aria-label="Eliminar servicio"

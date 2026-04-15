@@ -21,8 +21,15 @@
   "trailingComma": "es5",
   "useTabs": false,
   "sortTailwindcss": {
-    "stylesheet": "./packages/ui/src/styles/globals.css",
-    "functions": ["clsx", "cn"],
+    "stylesheet": "./apps/web/src/index.css",
+    "functions": [
+      "clsx",
+      "cn"
+    ],
     "preserveWhitespace": true,
   },
+  "ignorePatterns": [
+    "*.gen.ts",
+    "*.md"
+  ],
 }

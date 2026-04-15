@@ -198,7 +198,7 @@ function RouteComponent() {
                   <div className="flex flex-col">
                     <span className="font-medium">{customer.displayName}</span>
                     {customer.name !== customer.displayName && (
-                      <span className="text-muted-foreground text-xs">
+                      <span className="text-xs text-muted-foreground">
                         {customer.name}
                       </span>
                     )}

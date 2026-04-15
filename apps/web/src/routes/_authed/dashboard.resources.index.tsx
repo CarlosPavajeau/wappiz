@@ -71,7 +71,7 @@ function ResourceAvatar({ name }: { name: string }) {
     <div
       role="img"
       aria-label={name}
-      className="bg-primary/10 text-primary ring-primary/20 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-semibold ring-1"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary ring-1 ring-primary/20"
     >
       {initials}
     </div>

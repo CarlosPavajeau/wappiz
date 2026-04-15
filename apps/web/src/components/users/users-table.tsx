@@ -227,10 +227,10 @@ export function UsersTable({
           <div className="flex items-center gap-3">
             <UserAvatar name={row.original.name} />
             <div className="min-w-0">
-              <p className="truncate font-medium leading-none">
+              <p className="truncate leading-none font-medium">
                 {row.original.name}
               </p>
-              <p className="text-muted-foreground mt-0.5 truncate text-xs">
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {row.original.email}
               </p>
             </div>
@@ -350,7 +350,7 @@ export function UsersTable({
 
       {pageCount > 1 && (
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Mostrando {firstItem}–{lastItem} de {total}{" "}
             {total === 1 ? "usuario" : "usuarios"}
           </p>

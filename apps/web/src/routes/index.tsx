@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
 
 function HomeComponent() {
   return (
-    <main className="bg-background text-foreground relative h-dvh overflow-x-hidden">
+    <main className="relative h-dvh overflow-x-hidden bg-background text-foreground">
       <NavigationBar />
 
       <HeroSection />

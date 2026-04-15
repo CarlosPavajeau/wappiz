@@ -18,12 +18,12 @@ export function FooterSection() {
                   to={link.href}
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener noreferrer" : undefined}
-                  className="text-foreground/45 hover:text-foreground/70 font-mono text-xs transition-colors"
+                  className="font-mono text-xs text-foreground/45 transition-colors hover:text-foreground/70"
                 >
                   {link.label}
                 </Link>
                 {i < navLinks.length - 1 && (
-                  <span className="text-foreground/15 mx-2 text-xs select-none">
+                  <span className="mx-2 text-xs text-foreground/15 select-none">
                     /
                   </span>
                 )}
@@ -31,7 +31,7 @@ export function FooterSection() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-foreground/45 dark:text-foreground/30 font-mono text-xs">
+            <span className="font-mono text-xs text-foreground/45 dark:text-foreground/30">
               © {new Date().getFullYear()} Wappiz
             </span>
           </div>

@@ -118,7 +118,7 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="flex flex-wrap items-center gap-1.5">
         <FilterSelect
           label="Recursos"
           items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
@@ -215,7 +215,7 @@ export function AdminDashboard() {
       ) : (
         <ol
           aria-label="Appointments"
-          className="flex flex-col divide-y divide-border gap-2"
+          className="flex flex-col gap-2 divide-y divide-border"
         >
           {filtered.map((appointment) => (
             <li key={appointment.id}>

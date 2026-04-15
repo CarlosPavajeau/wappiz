@@ -43,7 +43,7 @@ export function ScheduleOverridesCard({ resourceId, overrides }: Props) {
       </CardHeader>
       <CardContent>
         {sorted.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Sin excepciones configuradas
           </p>
         ) : (
@@ -60,7 +60,7 @@ export function ScheduleOverridesCard({ resourceId, overrides }: Props) {
                     })}
                   </p>
                   {override.reason && (
-                    <p className="text-muted-foreground truncate text-xs">
+                    <p className="truncate text-xs text-muted-foreground">
                       {override.reason}
                     </p>
                   )}

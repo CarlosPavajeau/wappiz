@@ -3,10 +3,6 @@
   "compilerOptions": {
     "outDir": "dist",
     "jsx": "react-jsx",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es6"
-    ]
+    "lib": ["dom", "dom.iterable", "es6"]
   }
 }

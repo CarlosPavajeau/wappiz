@@ -87,7 +87,7 @@ export function LinkServicesDialog({
         </DialogHeader>
 
         {allServices.length === 0 ? (
-          <p className="text-muted-foreground py-6 text-center text-sm">
+          <p className="py-6 text-center text-sm text-muted-foreground">
             No hay servicios disponibles.
           </p>
         ) : (
@@ -99,7 +99,7 @@ export function LinkServicesDialog({
               const checked = selectedIds.has(service.id)
               return (
                 <li key={service.id}>
-                  <label className="hover:bg-muted/50 flex cursor-pointer items-start gap-3 px-1 py-3 transition-colors">
+                  <label className="flex cursor-pointer items-start gap-3 px-1 py-3 transition-colors hover:bg-muted/50">
                     <Checkbox
                       checked={checked}
                       onCheckedChange={() => toggleService(service.id)}
@@ -107,15 +107,15 @@ export function LinkServicesDialog({
                       className="mt-0.5 shrink-0"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-snug">
+                      <p className="text-sm leading-snug font-medium">
                         {service.name}
                       </p>
                       {service.description && (
-                        <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
+                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                           {service.description}
                         </p>
                       )}
-                      <p className="text-muted-foreground mt-1 text-xs tabular-nums">
+                      <p className="mt-1 text-xs text-muted-foreground tabular-nums">
                         {service.totalMinutes} min
                       </p>
                     </div>

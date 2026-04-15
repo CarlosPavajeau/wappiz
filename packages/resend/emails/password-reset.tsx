@@ -5,7 +5,7 @@ import { Layout } from "../src/components/layout"
 export default function PasswordResetEmail() {
   return (
     <Layout>
-      <Heading className="font-sans text-3xl text-semibold text-center">
+      <Heading className="text-semibold text-center font-sans text-3xl">
         Tu contraseña ha sido restablecida
       </Heading>
 

@@ -59,7 +59,7 @@ function RouteComponent() {
     <div className="space-y-6 sm:space-y-8">
       <div>
         <h1 className="text-xl font-semibold">Usuarios</h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           {total} {total === 1 ? "usuario" : "usuarios"} en total
         </p>
       </div>

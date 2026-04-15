@@ -52,7 +52,7 @@ export function FilterSelect({
             {label}
             {count > 0 && (
               <Badge
-                className="ml-0.5 rounded-sm px-1 py-px text-[0.625rem] leading-none h-4.5 min-w-4.5"
+                className="ml-0.5 h-4.5 min-w-4.5 rounded-sm px-1 py-px text-[0.625rem] leading-none"
                 variant="secondary"
               >
                 {count}
