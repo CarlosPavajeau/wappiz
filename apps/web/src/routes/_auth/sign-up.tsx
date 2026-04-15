@@ -111,11 +111,11 @@ function RouteComponent() {
 
   return (
     <div className="w-full max-w-sm">
-      <div className="mb-8">
+      <div className="mb-6">
         <h2 className="text-2xl font-semibold tracking-tight">
           Crea una cuenta
         </h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           Empieza a usar wappiz hoy. Es gratis.
         </p>
       </div>
@@ -241,17 +241,9 @@ function RouteComponent() {
           )}
           Continuar con Google
         </Button>
-
-        <p className="text-center text-xs text-muted-foreground">
-          Al crear una cuenta aceptás nuestra{" "}
-          <Link to="/privacy" className="underline-offset-4 underline">
-            política de privacidad
-          </Link>
-          .
-        </p>
       </form>
 
-      <div className="mt-6 text-center">
+      <div className="mt-6 flex flex-col items-center gap-3 text-center">
         <p className="text-sm text-muted-foreground">
           ¿Ya tienes una cuenta?{" "}
           <Link
@@ -260,6 +252,13 @@ function RouteComponent() {
           >
             Iniciar sesión
           </Link>
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Al crear una cuenta aceptás nuestra{" "}
+          <Link to="/privacy" className="underline-offset-4 hover:underline">
+            política de privacidad
+          </Link>
+          .
         </p>
       </div>
     </div>

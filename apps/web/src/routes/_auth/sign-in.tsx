@@ -105,11 +105,11 @@ function RouteComponent() {
 
   return (
     <div className="w-full max-w-sm">
-      <div className="mb-8">
+      <div className="mb-6">
         <h2 className="text-2xl font-semibold tracking-tight">
           Bienvenido de nuevo
         </h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           Inicia sesión en tu cuenta de wappiz
         </p>
       </div>
