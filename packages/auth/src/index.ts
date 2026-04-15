@@ -25,6 +25,12 @@ export const auth = betterAuth({
       await resend.sendPasswordResetEmail(user.email)
     },
   },
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // Cache duration in seconds
+    },
+  },
   databaseHooks: {
     user: {
       create: {
