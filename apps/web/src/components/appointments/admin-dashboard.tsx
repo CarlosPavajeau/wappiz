@@ -39,6 +39,11 @@ function toDateKey(date: Date) {
   return format(date, "yyyy-MM-dd")
 }
 
+const statusItems = Object.entries(STATUS_LABEL).map(([id, label]) => ({
+  id,
+  label,
+}))
+
 export function AdminDashboard() {
   const [dateParam, setDateParam] = useQueryState(
     "date",
@@ -94,11 +99,6 @@ export function AdminDashboard() {
     queryFn: () => api.services.list(),
     queryKey: ["services"],
   })
-
-  const statusItems = Object.entries(STATUS_LABEL).map(([id, label]) => ({
-    id,
-    label,
-  }))
 
   const filtered = useMemo(
     () =>
