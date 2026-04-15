@@ -1,7 +1,7 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { Clock01Icon, SmartPhone01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/client-api"
+import { onboardingProgressQuery } from "@/queries/onboarding"
 
 import { StepIndicator } from "./step-indicator"
 
@@ -38,6 +39,7 @@ type WhatsAppFormData = typeof whatsappSchema.infer
 
 export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const {
     handleSubmit,
@@ -64,10 +66,14 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
           : "Algo salió mal. Intenta de nuevo."
       )
     },
-    onSuccess: () =>
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: onboardingProgressQuery.queryKey,
+      })
       navigate({
         to: "/dashboard",
-      }),
+      })
+    },
   })
 
   const onSubmit = handleSubmit(async (data) => {

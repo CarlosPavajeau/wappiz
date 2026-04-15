@@ -5,7 +5,7 @@ import {
   Trash,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
@@ -36,6 +36,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
+import { onboardingProgressQuery } from "@/queries/onboarding"
 
 import { StepIndicator } from "./step-indicator"
 
@@ -80,6 +81,7 @@ const DEFAULT_SERVICE = {
 
 export function StepServicesForm() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const {
     control,
@@ -106,11 +108,15 @@ export function StepServicesForm() {
           : "Algo salió mal. Intenta de nuevo."
       )
     },
-    onSuccess: () =>
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: onboardingProgressQuery.queryKey,
+      })
       navigate({
         params: { step: "4" },
         to: "/onboarding/step/$step",
-      }),
+      })
+    },
   })
 
   const onSubmit = handleSubmit(async (data) => {

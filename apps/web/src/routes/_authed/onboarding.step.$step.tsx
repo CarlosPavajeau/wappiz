@@ -4,14 +4,14 @@ import { StepBarberForm } from "@/components/onboarding/step-barber-form"
 import { StepServicesForm } from "@/components/onboarding/step-services-form"
 import { StepTenantForm } from "@/components/onboarding/step-tenant-form"
 import { StepWhatsAppForm } from "@/components/onboarding/step-whatsapp-form"
-import { api } from "@/lib/client-api"
+import { onboardingProgressQuery } from "@/queries/onboarding"
 
 const MIN_STEP = 1
 const MAX_STEP = 4
 
 export const Route = createFileRoute("/_authed/onboarding/step/$step")({
   component: RouteComponent,
-  loader: async ({ params }) => {
+  loader: async ({ context, params }) => {
     const { step: stepStr } = params
     const step = Number(stepStr)
 
@@ -19,7 +19,9 @@ export const Route = createFileRoute("/_authed/onboarding/step/$step")({
       throw notFound()
     }
 
-    const progress = await api.onboarding.progress()
+    const progress = await context.queryClient.ensureQueryData(
+      onboardingProgressQuery
+    )
 
     if (!progress) {
       throw notFound()

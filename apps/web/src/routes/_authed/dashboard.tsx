@@ -24,11 +24,13 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { api } from "@/lib/client-api"
+import { onboardingProgressQuery } from "@/queries/onboarding"
 
 export const Route = createFileRoute("/_authed/dashboard")({
-  beforeLoad: async () => {
-    const progress = await api.onboarding.progress()
+  beforeLoad: async ({ context }) => {
+    const progress = await context.queryClient.ensureQueryData(
+      onboardingProgressQuery
+    )
 
     if (!progress) {
       throw notFound()
