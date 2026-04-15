@@ -122,75 +122,81 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center gap-1.5">
-        <FilterSelect
-          label="Recursos"
-          items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
-          selectedIds={resourceIds}
-          onSelectedIdsChange={setResourceIds}
-          isLoading={isLoadingResources}
-        />
-        <FilterSelect
-          label="Servicios"
-          items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
-          selectedIds={serviceIds}
-          onSelectedIdsChange={setServiceIds}
-          isLoading={isLoadingServices}
-        />
-        <FilterSelect
-          label="Estado"
-          items={statusItems}
-          selectedIds={statuses}
-          onSelectedIdsChange={setStatuses}
-        />
-
-        <div className="flex items-center gap-1">
-          <Button
-            aria-label="Previous day"
-            size="icon-sm"
-            variant="outline"
-            onClick={goToPrev}
-          >
-            <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-          </Button>
-
-          <DatePicker
-            value={selectedDate}
-            onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-1.5">
+        {/* Filters — wrap as a row on mobile, dissolve into parent on desktop */}
+        <div className="flex flex-wrap items-center gap-1.5 sm:contents">
+          <FilterSelect
+            label="Recursos"
+            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
+            selectedIds={resourceIds}
+            onSelectedIdsChange={setResourceIds}
+            isLoading={isLoadingResources}
           />
-
-          <Button
-            aria-label="Next day"
-            size="icon-sm"
-            variant="outline"
-            onClick={goToNext}
-          >
-            <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-          </Button>
-
-          {!isViewingToday && (
-            <Button size="sm" variant="ghost" onClick={goToToday}>
-              Hoy
-            </Button>
-          )}
+          <FilterSelect
+            label="Servicios"
+            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
+            selectedIds={serviceIds}
+            onSelectedIdsChange={setServiceIds}
+            isLoading={isLoadingServices}
+          />
+          <FilterSelect
+            label="Estado"
+            items={statusItems}
+            selectedIds={statuses}
+            onSelectedIdsChange={setStatuses}
+          />
         </div>
 
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button
-                variant="ghost"
-                onClick={() => refetch()}
-                aria-label="Recargar citas"
-              >
-                <HugeiconsIcon icon={Refresh03Icon} strokeWidth={2} />
+        {/* Date nav + refresh — full-width row on mobile (refresh anchored end), dissolve on desktop */}
+        <div className="flex items-center justify-between sm:contents">
+          <div className="flex items-center gap-1">
+            <Button
+              aria-label="Previous day"
+              size="icon-sm"
+              variant="outline"
+              onClick={goToPrev}
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+            </Button>
+
+            <DatePicker
+              value={selectedDate}
+              onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
+            />
+
+            <Button
+              aria-label="Next day"
+              size="icon-sm"
+              variant="outline"
+              onClick={goToNext}
+            >
+              <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
+            </Button>
+
+            {!isViewingToday && (
+              <Button size="sm" variant="ghost" onClick={goToToday}>
+                Hoy
               </Button>
-            }
-          />
-          <TooltipContent>
-            <p>Recargar citas</p>
-          </TooltipContent>
-        </Tooltip>
+            )}
+          </div>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  onClick={() => refetch()}
+                  aria-label="Recargar citas"
+                >
+                  <HugeiconsIcon icon={Refresh03Icon} strokeWidth={2} />
+                </Button>
+              }
+            />
+            <TooltipContent>
+              <p>Recargar citas</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
 
       <Separator />

@@ -10,7 +10,7 @@ const COLOR_CLASSES: Record<string, string> = {
   blue: "bg-blue-500/10 text-blue-700 dark:text-blue-400",
   gray: "bg-muted text-muted-foreground",
   green: "bg-green-500/10 text-green-700 dark:text-green-400",
-  red: "bg-destructive/10 text-destructive dark:bg-destructive/20",
+  red: "bg-red-500/10 text-red-700 dark:text-red-400",
   teal: "bg-teal-500/10 text-teal-700 dark:text-teal-400",
   yellow: "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400",
 }

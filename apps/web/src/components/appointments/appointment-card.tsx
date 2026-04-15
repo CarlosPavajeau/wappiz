@@ -42,16 +42,6 @@ export function AppointmentCard({
   const isTerminal = TERMINAL_STATUSES.has(appointment.status)
   const duration = formatDuration(appointment.startsAt, appointment.endsAt)
 
-  const accentBar = (
-    <div
-      className={cn(
-        "w-[3px] shrink-0 self-stretch rounded-full",
-        isTerminal ? "bg-transparent" : "bg-primary"
-      )}
-      aria-hidden="true"
-    />
-  )
-
   return (
     <>
       {/* ── Mobile layout ── */}
@@ -69,14 +59,13 @@ export function AppointmentCard({
           <StatusBadge status={appointment.status} />
         </div>
 
-        {/* Row 2: accent bar + customer name + service */}
+        {/* Row 2: customer name + service */}
         <button
           aria-label={`Ver detalles de ${appointment.customerName}`}
-          className="flex cursor-pointer gap-3 text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           onClick={onClick}
           type="button"
         >
-          {accentBar}
           <div className="flex flex-col gap-0.5">
             <span className="text-base leading-snug font-bold">
               {appointment.customerName}
@@ -100,9 +89,6 @@ export function AppointmentCard({
           isTerminal && "opacity-60"
         )}
       >
-        {/* Accent bar */}
-        {accentBar}
-
         {/* Time + duration */}
         <div className="flex w-20 shrink-0 flex-col justify-center gap-0.5">
           <span className="text-sm font-semibold">
