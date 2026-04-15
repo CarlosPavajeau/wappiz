@@ -33,7 +33,7 @@ const ChatBubble = ({
 
 export function ChatMockup() {
   return (
-    <div className="relative flex items-center justify-center">
+    <div aria-hidden="true" className="relative flex items-center justify-center">
       <div className="relative w-75 overflow-hidden rounded-xl border-4 border-foreground/10 bg-background shadow-2xl">
         <div className="flex items-center gap-3 bg-[#075E54] px-4 py-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366]">
@@ -84,10 +84,6 @@ export function ChatMockup() {
         </section>
       </div>
 
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 rounded-full bg-[#25D366]/10 blur-3xl"
-      />
     </div>
   )
 }

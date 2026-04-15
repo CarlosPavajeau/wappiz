@@ -44,7 +44,7 @@ export function FeaturesSection() {
             <h2 className="text-xl font-semibold tracking-tight text-foreground/90 sm:text-2xl">
               Todo bajo tu control
             </h2>
-            <p className="text-sm leading-relaxed text-foreground/45 sm:text-base">
+            <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
               Servicios, horarios y personal. Todo en un solo lugar.
             </p>
           </div>
@@ -67,7 +67,7 @@ export function FeaturesSection() {
                     {feature.title}
                   </h3>
                 </div>
-                <p className="text-sm leading-relaxed text-foreground/50">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {feature.description}
                 </p>
               </div>

@@ -18,7 +18,7 @@ export function FooterSection() {
                   to={link.href}
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener noreferrer" : undefined}
-                  className="font-mono text-xs text-foreground/45 transition-colors hover:text-foreground/70"
+                  className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {link.label}
                 </Link>
@@ -31,7 +31,7 @@ export function FooterSection() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs text-foreground/45 dark:text-foreground/30">
+            <span className="font-mono text-xs text-muted-foreground">
               © {new Date().getFullYear()} Wappiz
             </span>
           </div>

@@ -85,7 +85,7 @@ export function PricingSection() {
           <h2 className="text-xl font-semibold tracking-tight text-foreground/90 sm:text-2xl">
             Un plan para cada etapa de tu negocio
           </h2>
-          <p className="text-sm leading-relaxed text-foreground/45 sm:text-base">
+          <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
             Empieza gratis y escala cuando tu negocio lo necesite. Sin
             contratos, cancela cuando quieras.
           </p>
@@ -110,7 +110,12 @@ export function PricingSection() {
               ) : null}
 
               <div className="space-y-1">
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
+                <h3 className="text-lg font-semibold">
+                  {plan.name}
+                  {plan.badge ? (
+                    <span className="sr-only"> ({plan.badge})</span>
+                  ) : null}
+                </h3>
                 <p className="text-sm text-muted-foreground">
                   {plan.description}
                 </p>
@@ -166,7 +171,7 @@ export function PricingSection() {
                 render={<Link to={plan.href} search={plan.search} />}
                 nativeButton={false}
                 size="lg"
-                className="h-9.5 px-4"
+                className="h-11 px-4"
                 variant={plan.highlighted ? "default" : "outline"}
                 data-icon="inline-end"
                 onClick={() =>

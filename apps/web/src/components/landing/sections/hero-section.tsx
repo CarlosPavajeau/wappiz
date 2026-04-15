@@ -29,7 +29,7 @@ export function HeroSection() {
                 </span>
               </div>
 
-              <h1 className="text-3xl leading-tight tracking-tight text-foreground lg:text-[2.5rem]">
+              <h1 className="text-[clamp(1.875rem,4vw,2.5rem)] leading-tight tracking-tight text-foreground">
                 Agendamiento automático
                 <br />
                 por{" "}
@@ -38,7 +38,7 @@ export function HeroSection() {
                 </span>
               </h1>
 
-              <p className="max-w-md text-sm leading-relaxed text-foreground/50 sm:text-base">
+              <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
                 Tus clientes reservan por el WhatsApp que ya usan. Tú controlas
                 servicios, horarios y disponibilidad desde un panel y nunca más
                 pierdes una cita.
@@ -49,7 +49,7 @@ export function HeroSection() {
                   render={<Link to="/sign-up" />}
                   nativeButton={false}
                   size="lg"
-                  className="h-9.5 px-4"
+                  className="h-11 px-4"
                   variant="default"
                   onClick={() =>
                     posthog.capture("cta_button_clicked", {
