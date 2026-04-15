@@ -33,8 +33,11 @@ const ChatBubble = ({
 
 export function ChatMockup() {
   return (
-    <div aria-hidden="true" className="relative flex items-center justify-center">
-      <div className="relative w-75 overflow-hidden rounded-xl border-4 border-foreground/10 bg-background shadow-2xl">
+    <div
+      aria-hidden="true"
+      className="relative flex items-center justify-center"
+    >
+      <div className="relative w-full max-w-75 overflow-hidden rounded-xl border-4 border-foreground/10 bg-background shadow-2xl">
         <div className="flex items-center gap-3 bg-[#075E54] px-4 py-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366]">
             <HugeiconsIcon
@@ -51,10 +54,7 @@ export function ChatMockup() {
           </div>
         </div>
 
-        <section
-          aria-label="Ejemplo de conversación de WhatsApp para agendar una cita"
-          className="min-h-80 space-y-2 bg-[#ECE5DD] p-3 dark:bg-[#0D1418]"
-        >
+        <section className="min-h-80 space-y-2 bg-[#ECE5DD] p-3 dark:bg-[#0D1418]">
           <ChatBubble
             side="left"
             text="¡Hola! Quiero sacar cita para un corte 💇"
@@ -83,7 +83,6 @@ export function ChatMockup() {
           />
         </section>
       </div>
-
     </div>
   )
 }

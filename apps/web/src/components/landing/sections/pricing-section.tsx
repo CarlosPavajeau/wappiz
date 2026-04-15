@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { usePostHog } from "@posthog/react"
 import { Link } from "@tanstack/react-router"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 import { Section, SectionContent } from "../layout/section"
@@ -16,7 +17,7 @@ const plans = [
     id: "free",
     badge: null,
     cta: "Comenzar gratis",
-    description: "Para dar tus primeros pasos",
+    description: "Para probar sin compromisos",
     features: [
       { included: true, text: "Hasta 50 citas/mes" },
       { included: true, text: "1 recurso" },
@@ -103,9 +104,7 @@ export function PricingSection() {
             >
               {plan.badge ? (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold">
-                    {plan.badge}
-                  </span>
+                  <Badge className="rounded-md">{plan.badge}</Badge>
                 </div>
               ) : null}
 

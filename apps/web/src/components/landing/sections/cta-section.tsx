@@ -15,11 +15,11 @@ export function CtaSection() {
       <SectionContent>
         <div className="flex flex-col items-center gap-5 text-center">
           <h2 className="text-xl font-semibold tracking-tight text-foreground/90 sm:text-2xl">
-            Empieza hoy. Es gratis.
+            Empieza en 10 minutos.
           </h2>
           <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Sin tarjeta de crédito. Configura en minutos y recibe tu primera
-            cita hoy mismo.
+            Sin contratos ni tarjeta de crédito. Si no funciona para tu
+            negocio, no perdiste nada.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">

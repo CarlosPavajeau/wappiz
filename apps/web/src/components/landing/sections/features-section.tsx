@@ -25,7 +25,7 @@ const features = [
     description:
       "Configura horarios de atención, tiempo entre citas y disponibilidad por persona.",
     icon: Calendar01Icon,
-    title: "Agenda inteligente",
+    title: "Horarios y disponibilidad",
   },
   {
     description:
@@ -45,13 +45,13 @@ export function FeaturesSection() {
               Todo bajo tu control
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-              Servicios, horarios y personal. Todo en un solo lugar.
+              Define qué ofreces, cuándo atiendes y quién lo hace.
             </p>
           </div>
 
-          <div className="flex-1 divide-y divide-foreground/6">
+          <ul className="flex-1 divide-y divide-foreground/6">
             {features.map((feature) => (
-              <div
+              <li
                 key={feature.title}
                 className="flex flex-col gap-1.5 py-5 first:pt-0 last:pb-0"
               >
@@ -70,9 +70,9 @@ export function FeaturesSection() {
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {feature.description}
                 </p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </SectionContent>
     </Section>

@@ -18,7 +18,7 @@ export function FooterSection() {
                   to={link.href}
                   target={link.external ? "_blank" : undefined}
                   rel={link.external ? "noopener noreferrer" : undefined}
-                  className="font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
+                  className="inline-block py-2 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {link.label}
                 </Link>

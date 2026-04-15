@@ -18,12 +18,6 @@ export function HeroSection() {
           <div className="flex flex-col items-center text-center lg:max-w-lg lg:items-start lg:text-left">
             <div className="space-y-2.5 sm:space-y-4">
               <div className="flex items-center justify-center gap-1.5 lg:justify-start">
-                <HugeiconsIcon
-                  icon={Calendar01Icon}
-                  strokeWidth={2}
-                  aria-hidden="true"
-                  className="size-[0.9em] text-foreground"
-                />
                 <span className="text-sm text-muted-foreground sm:text-base">
                   Sin mensajes de ida y vuelta. Solo citas confirmadas.
                 </span>
