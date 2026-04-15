@@ -15,11 +15,10 @@ export function CtaSection() {
       <SectionContent>
         <div className="flex flex-col items-center gap-5 text-center">
           <h2 className="text-foreground/90 text-xl font-semibold tracking-tight sm:text-2xl">
-            ¿Listo para simplificar tu agenda?
+            Empieza hoy. Es gratis.
           </h2>
           <p className="text-foreground/45 max-w-md text-sm leading-relaxed sm:text-base">
-            Súmate a los negocios que ya usan wappiz para gestionar citas sin
-            esfuerzo por WhatsApp.
+            Sin tarjeta de crédito. Sin contratos. Cancela cuando quieras.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">

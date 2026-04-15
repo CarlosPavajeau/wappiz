@@ -13,25 +13,25 @@ const features = [
     description:
       "Agrega personal, salas o equipos y define horarios y disponibilidad individuales.",
     icon: UserMultipleIcon,
-    title: "Gestión de recursos",
+    title: "Tu personal y tus espacios",
   },
   {
     description:
-      "Define servicios con duración y precio, y asignalos a recursos específicos.",
+      "Define servicios con duración y precio, y asígnalos a tu personal o espacios.",
     icon: Settings01Icon,
     title: "Catálogo de servicios",
   },
   {
     description:
-      "Configura horarios de atención, tiempos de buffer y ventanas de disponibilidad por recurso.",
+      "Configura horarios de atención, tiempo entre citas y disponibilidad por persona.",
     icon: Calendar01Icon,
     title: "Agenda inteligente",
   },
   {
     description:
-      "Agrega excepciones por feriados, vacaciones o cambios puntuales de disponibilidad en segundos.",
+      "Agrega festivos, vacaciones o cambios de horario puntuales en segundos.",
     icon: Clock01Icon,
-    title: "Excepciones de horario",
+    title: "Festivos y vacaciones",
   },
 ]
 
@@ -39,36 +39,40 @@ export function FeaturesSection() {
   return (
     <Section>
       <SectionContent>
-        <div className="mb-6 max-w-lg space-y-2 lg:mb-10">
-          <h2 className="text-foreground/90 text-xl font-semibold tracking-tight sm:text-2xl">
-            Características
-          </h2>
-          <p className="text-foreground/45 text-sm leading-relaxed sm:text-base">
-            Todo lo que necesitas para gestionar citas
-          </p>
-        </div>
+        <div className="flex flex-col gap-8 lg:flex-row lg:gap-16">
+          <div className="shrink-0 space-y-2 lg:w-56">
+            <h2 className="text-foreground/90 text-xl font-semibold tracking-tight sm:text-2xl">
+              Todo bajo tu control
+            </h2>
+            <p className="text-foreground/45 text-sm leading-relaxed sm:text-base">
+              Servicios, horarios y personal. Todo en un solo lugar.
+            </p>
+          </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {features.map((feature) => (
-            <div
-              key={feature.title}
-              className="group border-foreground/8 rounded-[10px] border p-1 transition-colors hover:border-foreground/10"
-            >
-              <div className="flex h-full flex-col gap-3 rounded-md border border-foreground/6 p-5 transition-colors group-hover:border-foreground/8 group-hover:bg-foreground/1">
-                <span className="text-foreground/40 transition-colors group-hover:text-foreground/50">
-                  <HugeiconsIcon icon={feature.icon} />
-                </span>
-                <div className="space-y-1">
+          <div className="flex-1 divide-y divide-foreground/6">
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className="flex flex-col gap-1.5 py-5 first:pt-0 last:pb-0"
+              >
+                <div className="flex items-center gap-2">
+                  <HugeiconsIcon
+                    icon={feature.icon}
+                    size={14}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                    className="text-foreground/35 shrink-0"
+                  />
                   <h3 className="text-foreground/90 text-sm font-semibold">
                     {feature.title}
                   </h3>
-                  <p className="text-foreground/45 text-sm leading-relaxed">
-                    {feature.description}
-                  </p>
                 </div>
+                <p className="text-foreground/50 text-sm leading-relaxed">
+                  {feature.description}
+                </p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </SectionContent>
     </Section>

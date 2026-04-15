@@ -81,9 +81,9 @@ export function PricingSection() {
   return (
     <Section>
       <SectionContent>
-        <div className="mb-6 max-w-lg space-y-2 lg:mb-10">
+        <div className="mb-6 max-w-lg space-y-2 md:mb-10">
           <h2 className="text-foreground/90 text-xl font-semibold tracking-tight sm:text-2xl">
-            Elige el plan que mejor se adapta
+            Un plan para cada etapa de tu negocio
           </h2>
           <p className="text-foreground/45 text-sm leading-relaxed sm:text-base">
             Empieza gratis y escala cuando tu negocio lo necesite. Sin
@@ -91,7 +91,7 @@ export function PricingSection() {
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.name}
@@ -99,7 +99,7 @@ export function PricingSection() {
                 plan.highlighted
                   ? "border-primary/60 bg-primary/5"
                   : "border-border/60 hover:border-primary/40"
-              }`}
+              } ${plan.id === "business" ? "sm:col-span-2 md:col-span-1" : ""}`}
             >
               {plan.badge ? (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
@@ -154,6 +154,9 @@ export function PricingSection() {
                       }
                     >
                       {feature.text}
+                      <span className="sr-only">
+                        {feature.included ? " (incluido)" : " (no incluido)"}
+                      </span>
                     </span>
                   </li>
                 ))}
