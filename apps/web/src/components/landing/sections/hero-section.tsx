@@ -39,9 +39,9 @@ export function HeroSection() {
               </h1>
 
               <p className="max-w-md text-sm leading-relaxed text-foreground/50 sm:text-base">
-                Tus clientes reservan por el WhatsApp que ya usan. Tú
-                controlas servicios, horarios y disponibilidad desde un panel
-                y nunca más pierdes una cita.
+                Tus clientes reservan por el WhatsApp que ya usan. Tú controlas
+                servicios, horarios y disponibilidad desde un panel y nunca más
+                pierdes una cita.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-8 sm:gap-4 lg:mt-12 lg:justify-start">

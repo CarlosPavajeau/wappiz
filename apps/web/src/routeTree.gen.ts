@@ -11,6 +11,7 @@
 import { Route as SplatRouteImport } from "./routes/$"
 import { Route as rootRouteImport } from "./routes/__root"
 import { Route as AuthRouteImport } from "./routes/_auth"
+import { Route as AuthResetPasswordRouteImport } from "./routes/_auth/reset-password"
 import { Route as AuthSignInRouteImport } from "./routes/_auth/sign-in"
 import { Route as AuthSignUpRouteImport } from "./routes/_auth/sign-up"
 import { Route as AuthedRouteImport } from "./routes/_authed"
@@ -78,6 +79,11 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: "/sign-in",
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: "/reset-password",
+  path: "/reset-password",
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthedOnboardingIndexRoute = AuthedOnboardingIndexRouteImport.update({
   id: "/",
   path: "/",
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   "/": typeof IndexRoute
   "/$": typeof SplatRoute
   "/privacy": typeof PrivacyRoute
+  "/reset-password": typeof AuthResetPasswordRoute
   "/sign-in": typeof AuthSignInRoute
   "/sign-up": typeof AuthSignUpRoute
   "/banned": typeof AuthedBannedRoute
@@ -157,6 +164,7 @@ export interface FileRoutesByTo {
   "/": typeof IndexRoute
   "/$": typeof SplatRoute
   "/privacy": typeof PrivacyRoute
+  "/reset-password": typeof AuthResetPasswordRoute
   "/sign-in": typeof AuthSignInRoute
   "/sign-up": typeof AuthSignUpRoute
   "/banned": typeof AuthedBannedRoute
@@ -178,6 +186,7 @@ export interface FileRoutesById {
   "/_auth": typeof AuthRouteWithChildren
   "/_authed": typeof AuthedRouteWithChildren
   "/privacy": typeof PrivacyRoute
+  "/_auth/reset-password": typeof AuthResetPasswordRoute
   "/_auth/sign-in": typeof AuthSignInRoute
   "/_auth/sign-up": typeof AuthSignUpRoute
   "/_authed/banned": typeof AuthedBannedRoute
@@ -200,6 +209,7 @@ export interface FileRouteTypes {
     | "/"
     | "/$"
     | "/privacy"
+    | "/reset-password"
     | "/sign-in"
     | "/sign-up"
     | "/banned"
@@ -220,6 +230,7 @@ export interface FileRouteTypes {
     | "/"
     | "/$"
     | "/privacy"
+    | "/reset-password"
     | "/sign-in"
     | "/sign-up"
     | "/banned"
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | "/_auth"
     | "/_authed"
     | "/privacy"
+    | "/_auth/reset-password"
     | "/_auth/sign-in"
     | "/_auth/sign-up"
     | "/_authed/banned"
@@ -338,6 +350,13 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof AuthRoute
     }
+    "/_auth/reset-password": {
+      id: "/_auth/reset-password"
+      path: "/reset-password"
+      fullPath: "/reset-password"
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof AuthRoute
+    }
     "/_authed/onboarding/": {
       id: "/_authed/onboarding/"
       path: "/"
@@ -412,11 +431,13 @@ declare module "@tanstack/react-router" {
 }
 
 interface AuthRouteChildren {
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
 }
