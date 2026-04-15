@@ -48,6 +48,7 @@ export function AppointmentCard({
         "w-[3px] shrink-0 self-stretch rounded-full",
         isTerminal ? "bg-transparent" : "bg-primary"
       )}
+      aria-hidden="true"
     />
   )
 
