@@ -134,7 +134,18 @@ function RouteComponent() {
           </Field>
 
           <Field data-invalid={!!errors.password}>
-            <FieldLabel htmlFor="password">Contraseña</FieldLabel>
+            <FieldLabel htmlFor="password">
+              Contraseña
+              <Button
+                variant="link"
+                className="ml-auto p-0"
+                size="sm"
+                render={<Link to="/reset-password" />}
+                nativeButton={false}
+              >
+                ¿Olvidaste tu contraseña?
+              </Button>
+            </FieldLabel>
             <div className="relative">
               <Input
                 id="password"
