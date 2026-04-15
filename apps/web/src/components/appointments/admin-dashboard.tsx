@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query"
 import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { addDays, format, isToday, parseISO, subDays } from "date-fns"
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
@@ -100,12 +100,16 @@ export function AdminDashboard() {
     label,
   }))
 
-  const filtered = appointments
-    ? [...appointments].toSorted(
-        (a, b) =>
-          new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
-      )
-    : []
+  const filtered = useMemo(
+    () =>
+      appointments
+        ? [...appointments].toSorted(
+            (a, b) =>
+              new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+          )
+        : [],
+    [appointments]
+  )
 
   const goToPrev = () => setDateParam(toDateKey(subDays(selectedDate, 1)))
   const goToNext = () => setDateParam(toDateKey(addDays(selectedDate, 1)))
