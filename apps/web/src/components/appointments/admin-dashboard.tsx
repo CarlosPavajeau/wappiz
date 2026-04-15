@@ -93,11 +93,13 @@ export function AdminDashboard() {
   const { data: resources, isLoading: isLoadingResources } = useQuery({
     queryFn: () => api.resources.list(),
     queryKey: ["resources"],
+    staleTime: 5 * 60 * 1000,
   })
 
   const { data: services, isLoading: isLoadingServices } = useQuery({
     queryFn: () => api.services.list(),
     queryKey: ["services"],
+    staleTime: 5 * 60 * 1000,
   })
 
   const filtered = useMemo(
