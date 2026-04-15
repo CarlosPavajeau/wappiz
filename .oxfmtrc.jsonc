@@ -22,14 +22,8 @@
   "useTabs": false,
   "sortTailwindcss": {
     "stylesheet": "./apps/web/src/index.css",
-    "functions": [
-      "clsx",
-      "cn"
-    ],
+    "functions": ["clsx", "cn"],
     "preserveWhitespace": true,
   },
-  "ignorePatterns": [
-    "*.gen.ts",
-    "*.md"
-  ],
+  "ignorePatterns": ["*.gen.ts", "*.md"],
 }

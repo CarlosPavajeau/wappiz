@@ -18,8 +18,8 @@ export function CtaSection() {
             Empieza en 10 minutos.
           </h2>
           <p className="max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Sin contratos ni tarjeta de crédito. Si no funciona para tu
-            negocio, no perdiste nada.
+            Sin contratos ni tarjeta de crédito. Si no funciona para tu negocio,
+            no perdiste nada.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3">
