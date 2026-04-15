@@ -174,7 +174,11 @@ export function AdminDashboard() {
         <Tooltip>
           <TooltipTrigger
             render={
-              <Button variant="ghost" onClick={() => refetch()}>
+              <Button
+                variant="ghost"
+                onClick={() => refetch()}
+                aria-label="Recargar citas"
+              >
                 <HugeiconsIcon icon={Refresh03Icon} strokeWidth={2} />
               </Button>
             }
