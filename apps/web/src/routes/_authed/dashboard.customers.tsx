@@ -97,7 +97,7 @@ function CustomerRowActions({ customer }: { customer: Customer }) {
               aria-label="Abrir acciones"
               size="sm"
               variant="ghost"
-              className="size-8 p-0"
+              className="size-10 p-0"
             >
               <HugeiconsIcon
                 icon={MoreHorizontalIcon}
@@ -159,15 +159,14 @@ function RouteComponent() {
   const customerCount = customers.length
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="grid space-y-6 sm:space-y-8">
       {customerCount === 0 ? (
         <Empty className="border py-20">
           <EmptyHeader>
             <EmptyMedia variant="icon">
               <HugeiconsIcon
                 icon={UserGroupIcon}
-                size={16}
-                strokeWidth={1.5}
+                strokeWidth={2}
                 aria-hidden="true"
               />
             </EmptyMedia>
@@ -184,10 +183,12 @@ function RouteComponent() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Teléfono</TableHead>
+              <TableHead className="hidden sm:table-cell">Teléfono</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead>No shows</TableHead>
-              <TableHead>Cancelaciones tardías</TableHead>
+              <TableHead className="hidden md:table-cell">No shows</TableHead>
+              <TableHead className="hidden md:table-cell">
+                Cancelaciones tardías
+              </TableHead>
               <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
@@ -204,7 +205,7 @@ function RouteComponent() {
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground sm:table-cell">
                   {customer.phoneNumber}
                 </TableCell>
                 <TableCell>
@@ -214,10 +215,10 @@ function RouteComponent() {
                     <Badge variant="outline">Activo</Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground md:table-cell">
                   {customer.noShowCount}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground md:table-cell">
                   {customer.lateCancelCount}
                 </TableCell>
                 <TableCell>
