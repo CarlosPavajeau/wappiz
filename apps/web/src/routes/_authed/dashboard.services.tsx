@@ -78,7 +78,7 @@ function ServicesTableView({ services }: { services: Service[] }) {
                   {service.description}
                 </p>
               )}
-              <p className="mt-1 tabular-nums text-xs text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground tabular-nums">
                 {service.durationMinutes} min
                 {service.bufferMinutes > 0 &&
                   ` · ${service.bufferMinutes} min buffer`}

@@ -41,7 +41,7 @@ export function ResourceServiceCard({ service }: Props) {
       </CardHeader>
 
       <CardContent>
-        <dl className="grid grid-cols-3 gap-x-4 text-sm">
+        <dl className="grid grid-cols-3 gap-x-2 text-sm sm:gap-x-4">
           <div>
             <dt className="text-muted-foreground">Duración</dt>
             <dd className="font-medium tabular-nums">

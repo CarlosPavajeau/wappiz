@@ -15,7 +15,11 @@ import { UpdateServiceDialog } from "./update-service-dialog"
 
 export function ServiceCard({ service }: { service: Service }) {
   return (
-    <Card role="article" aria-label={service.name} className="ring-1 ring-border transition-shadow duration-200 hover:ring-foreground/30">
+    <Card
+      role="article"
+      aria-label={service.name}
+      className="ring-1 ring-border transition-shadow duration-200 hover:ring-foreground/30"
+    >
       <CardHeader>
         <div className="min-w-0">
           <CardTitle className="truncate">{service.name}</CardTitle>

@@ -8,6 +8,7 @@ import { ResourceServiceCard } from "@/components/resources/resource-service-car
 import { ScheduleOverridesCard } from "@/components/resources/schedule-overrides-card"
 import { UpdateResourceDialog } from "@/components/resources/update-resource-dialog"
 import { WorkingHoursCard } from "@/components/resources/working-hours-card"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import {
   Empty,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
 import { api } from "@/lib/client-api"
+import { cn } from "@/lib/utils"
 
 const searchSchema = type({
   "setup?": "string",
@@ -67,6 +69,8 @@ function RouteComponent() {
     .join("")
     .toUpperCase()
 
+  const todayDayOfWeek = new Date().getDay()
+
   const serviceCount = services.length
   const serviceLabel =
     serviceCount === 0
@@ -91,20 +95,30 @@ function RouteComponent() {
       </nav>
 
       <header className="flex items-start gap-4 sm:items-center">
-        <div
-          role="img"
-          aria-label={`Avatar de ${resource.name}`}
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-lg font-semibold text-primary ring-1 ring-primary/20 sm:h-16 sm:w-16 sm:text-xl"
-        >
-          {initials}
-        </div>
+        <Avatar size="lg" aria-label={`Avatar de ${resource.name}`}>
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
+          <h1
+            className="line-clamp-2 text-xl font-semibold tracking-tight sm:text-2xl"
+            title={resource.name}
+          >
             {resource.name}
           </h1>
-          <div className="mt-1.5">
+          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
             <Badge variant="secondary" className="text-xs capitalize">
               {resource.type}
+            </Badge>
+            <Badge
+              variant="outline"
+              className={cn(
+                "text-xs",
+                resource.isActive
+                  ? "border-primary/30 text-primary"
+                  : "text-muted-foreground"
+              )}
+            >
+              {resource.isActive ? "Activo" : "Inactivo"}
             </Badge>
           </div>
         </div>
@@ -122,12 +136,13 @@ function RouteComponent() {
 
       <Separator />
 
-      <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
+      <div className="grid gap-8 md:grid-cols-[220px_1fr] lg:grid-cols-[300px_1fr]">
         <aside aria-label="Configuración de horario" className="space-y-5">
           <WorkingHoursCard
             resourceId={resource.id}
             workingHours={resource.workingHours}
             defaultOpen={setup === "working-hours"}
+            todayDayOfWeek={todayDayOfWeek}
           />
           <ScheduleOverridesCard
             resourceId={resource.id}
@@ -178,7 +193,7 @@ function RouteComponent() {
               </EmptyContent>
             </Empty>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {services.map((service) => (
                 <ResourceServiceCard key={service.id} service={service} />
               ))}

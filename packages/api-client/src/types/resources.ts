@@ -12,6 +12,7 @@ export type Resource = {
   name: string
   type: string
   avatarUrl: string
+  isActive: boolean
   sortOrder: number
   workingHours: WorkingHour[]
 }

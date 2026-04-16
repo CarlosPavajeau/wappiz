@@ -47,7 +47,7 @@ export function ScheduleOverridesCard({ resourceId, overrides }: Props) {
             Sin excepciones configuradas
           </p>
         ) : (
-          <ul aria-label="Excepciones de horario" className="divide-y">
+          <ul className="divide-y">
             {sorted.map((override) => (
               <li
                 key={override.id}

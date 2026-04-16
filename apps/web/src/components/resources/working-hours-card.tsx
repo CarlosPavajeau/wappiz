@@ -27,12 +27,14 @@ type Props = {
   resourceId: string
   workingHours: WorkingHour[]
   defaultOpen?: boolean
+  todayDayOfWeek?: number
 }
 
 export function WorkingHoursCard({
   resourceId,
   workingHours,
   defaultOpen,
+  todayDayOfWeek,
 }: Props) {
   const sorted = workingHours.toSorted((a, b) => a.dayOfWeek - b.dayOfWeek)
 
@@ -51,28 +53,37 @@ export function WorkingHoursCard({
       <CardContent>
         {sorted.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Sin horario configurado
+            Sin horario configurado — este recurso no recibirá reservas
           </p>
         ) : (
-          <ul aria-label="Horario semanal" className="divide-y">
-            {sorted.map((hour) => (
-              <li
-                key={hour.id}
-                className={cn(
-                  "flex items-center justify-between py-2.5 text-sm",
-                  !hour.isActive && "text-muted-foreground"
-                )}
-              >
-                <span className="capitalize">{hour.dayName.toLowerCase()}</span>
-                {hour.isActive ? (
-                  <span className="tabular-nums">
-                    {formatTime(hour.startTime)} – {formatTime(hour.endTime)}
+          <ul>
+            {sorted.map((hour) => {
+              const isToday =
+                todayDayOfWeek !== undefined &&
+                hour.dayOfWeek === todayDayOfWeek
+
+              return (
+                <li
+                  key={hour.id}
+                  className={cn(
+                    "-mx-2 flex items-center justify-between rounded px-2 py-2 text-sm",
+                    !hour.isActive && "text-muted-foreground",
+                    isToday && hour.isActive && "bg-primary/5 font-medium"
+                  )}
+                >
+                  <span className="capitalize">
+                    {hour.dayName.toLowerCase()}
                   </span>
-                ) : (
-                  <span>Cerrado</span>
-                )}
-              </li>
-            ))}
+                  {hour.isActive ? (
+                    <span className="tabular-nums">
+                      {formatTime(hour.startTime)} – {formatTime(hour.endTime)}
+                    </span>
+                  ) : (
+                    <span>Cerrado</span>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
       </CardContent>
