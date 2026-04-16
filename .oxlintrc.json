@@ -22,5 +22,5 @@
       }
     ]
   },
-  "ignorePatterns": ["*.gen.ts", "*.md"]
+  "ignorePatterns": ["*.gen.ts", "*.md", "**/migrations/**"]
 }
