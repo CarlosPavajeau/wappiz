@@ -96,7 +96,7 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
-          <Button variant="ghost" size="sm" aria-label="Editar servicio" />
+          <Button variant="ghost" size="sm" aria-label={`Editar servicio ${service.name}`} />
         }
       >
         <svg

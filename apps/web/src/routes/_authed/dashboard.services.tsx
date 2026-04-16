@@ -25,6 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
+  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -63,47 +64,83 @@ function getInitialView(): ViewMode {
 
 function ServicesTableView({ services }: { services: Service[] }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Nombre</TableHead>
-          <TableHead>Precio</TableHead>
-          <TableHead>Duración</TableHead>
-          <TableHead>Buffer</TableHead>
-          <TableHead className="w-10" />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      <ul className="divide-y sm:hidden" aria-label="Lista de servicios">
         {services.map((service) => (
-          <TableRow key={service.id}>
-            <TableCell>
-              <div className="flex flex-col">
-                <span className="font-medium">{service.name}</span>
-                {service.description && (
-                  <span className="max-w-xs truncate text-xs text-muted-foreground">
-                    {service.description}
-                  </span>
-                )}
-              </div>
-            </TableCell>
-            <TableCell>
+          <li
+            key={service.id}
+            className="flex items-start justify-between gap-4 py-3"
+          >
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{service.name}</p>
+              {service.description && (
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  {service.description}
+                </p>
+              )}
+              <p className="mt-1 tabular-nums text-xs text-muted-foreground">
+                {service.durationMinutes} min
+                {service.bufferMinutes > 0 &&
+                  ` · ${service.bufferMinutes} min buffer`}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
               <Badge variant="secondary">
                 {priceFormatter.format(service.price)}
               </Badge>
-            </TableCell>
-            <TableCell className="text-muted-foreground tabular-nums">
-              {service.durationMinutes} min
-            </TableCell>
-            <TableCell className="text-muted-foreground tabular-nums">
-              {service.bufferMinutes > 0 ? `${service.bufferMinutes} min` : "—"}
-            </TableCell>
-            <TableCell>
               <UpdateServiceDialog service={service} />
-            </TableCell>
-          </TableRow>
+            </div>
+          </li>
         ))}
-      </TableBody>
-    </Table>
+      </ul>
+
+      <div className="hidden sm:block">
+        <Table>
+          <TableCaption className="sr-only">Lista de servicios</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Precio</TableHead>
+              <TableHead>Duración</TableHead>
+              <TableHead>Buffer</TableHead>
+              <TableHead className="w-10" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {services.map((service) => (
+              <TableRow key={service.id}>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{service.name}</span>
+                    {service.description && (
+                      <span className="max-w-xs truncate text-xs text-muted-foreground">
+                        {service.description}
+                      </span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">
+                    {priceFormatter.format(service.price)}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground tabular-nums">
+                  {service.durationMinutes} min
+                </TableCell>
+                <TableCell className="text-muted-foreground tabular-nums">
+                  {service.bufferMinutes > 0
+                    ? `${service.bufferMinutes} min`
+                    : "—"}
+                </TableCell>
+                <TableCell>
+                  <UpdateServiceDialog service={service} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   )
 }
 
@@ -199,8 +236,8 @@ function PendingComponent() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-start justify-between gap-4 sm:items-center">
         <div className="flex shrink-0 items-center gap-2">
-          <Skeleton className="h-8 w-17" />
-          <Skeleton className="h-8 w-38" />
+          <Skeleton className="h-8 w-14" />
+          <Skeleton className="h-8 w-40" />
         </div>
       </div>
 
