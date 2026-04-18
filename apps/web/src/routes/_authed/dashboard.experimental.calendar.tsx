@@ -187,7 +187,10 @@ function CalendarPage() {
   }, [calView, selectedDate])
 
   const selectedApt = useMemo(
-    () => (selectedAptId ? ((data ?? []).find((a) => a.id === selectedAptId) ?? null) : null),
+    () =>
+      selectedAptId
+        ? ((data ?? []).find((a) => a.id === selectedAptId) ?? null)
+        : null,
     [selectedAptId, data]
   )
 
@@ -259,7 +262,6 @@ function CalendarPage() {
         </div>
 
         <div className="flex items-center justify-between gap-1">
-          {/* Mobile filters sheet — hidden on desktop */}
           <Sheet>
             <SheetTrigger
               render={
