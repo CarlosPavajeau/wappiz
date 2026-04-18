@@ -20,6 +20,7 @@ type DatePickerProps = {
   value: Date | undefined
   disabled?: boolean
   placeholder?: string
+  className?: string
 }
 
 export function DatePicker({
@@ -27,6 +28,7 @@ export function DatePicker({
   value,
   disabled = false,
   placeholder = "Seleccionar fecha",
+  className,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
 
@@ -44,7 +46,8 @@ export function DatePicker({
         render={<Button variant="outline" size="sm" />}
         className={cn(
           "w-44 justify-start gap-2 font-normal",
-          !value && "text-muted-foreground"
+          !value && "text-muted-foreground",
+          className
         )}
       >
         <HugeiconsIcon

@@ -197,7 +197,7 @@ function CalendarPage() {
   }
 
   return (
-    <div className="flex h-[calc(100dvh-6rem)] flex-col gap-0">
+    <div className="-mb-16 flex h-[calc(100dvh-6rem)] flex-col gap-0 overflow-hidden">
       <div className="flex items-center gap-2 pb-3">
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <div className="min-w-0">
@@ -214,7 +214,7 @@ function CalendarPage() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-1.5 pb-3">
+      <div className="flex flex-col gap-2 pb-3 md:flex-row md:items-center md:justify-between md:gap-1.5">
         <div className="flex items-center gap-1.5">
           <Tabs value={calView} onValueChange={(v) => setView(v)}>
             <TabsList>
@@ -433,8 +433,8 @@ function CalendarPage() {
 
       <Separator />
 
-      <div className="flex min-h-0 flex-1">
-        <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           {isLoading ? (
             <CalendarSkeleton view={calView} />
           ) : isError ? (
