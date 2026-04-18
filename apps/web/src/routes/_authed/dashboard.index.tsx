@@ -1,4 +1,4 @@
-import { usePostHog } from "@posthog/react"
+import { useFeatureFlagEnabled } from "@posthog/react"
 import { createFileRoute, useRouteContext } from "@tanstack/react-router"
 
 import { AdminDashboard } from "@/components/appointments/admin-dashboard"
@@ -18,8 +18,7 @@ function RouteComponent() {
     from: "/_authed",
   })
 
-  const posthog = usePostHog()
-  const enableCalendarView = posthog.isFeatureEnabled("calendar_view")
+  const enableCalendarView = useFeatureFlagEnabled("calendar_view")
 
   const AdminComponent = enableCalendarView ? (
     <AdminDashboard />
