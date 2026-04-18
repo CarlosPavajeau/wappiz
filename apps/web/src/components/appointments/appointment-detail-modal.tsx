@@ -261,10 +261,10 @@ export function AppointmentDetailModal({
         </div>
 
         <DialogFooter>
-          {!isTerminal && <StatusActionMenu appointment={appointment} />}
           <DialogClose render={<Button variant="outline" />}>
             Cerrar
           </DialogClose>
+          {!isTerminal && <StatusActionMenu appointment={appointment} />}
         </DialogFooter>
       </DialogContent>
     </Dialog>

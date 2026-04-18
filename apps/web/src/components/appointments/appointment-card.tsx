@@ -77,9 +77,7 @@ export function AppointmentCard({
         </button>
 
         {/* Row 3: action link */}
-        {!isTerminal && (
-          <StatusActionMenu appointment={appointment} asTextLink />
-        )}
+        {!isTerminal && <StatusActionMenu appointment={appointment} />}
       </div>
 
       {/* ── Desktop layout ── */}

@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { ButtonGroup } from "@/components/ui/button-group"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +31,6 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/client-api"
-import { cn } from "@/lib/utils"
 
 import {
   getAvailableTransitions,
@@ -56,12 +56,8 @@ const DIALOG_DESCRIPTIONS: Partial<Record<AppointmentStatus, string>> = {
 
 export function StatusActionMenu({
   appointment,
-  fullWidth,
-  asTextLink,
 }: {
   appointment: Appointment
-  fullWidth?: boolean
-  asTextLink?: boolean
 }) {
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -93,7 +89,14 @@ export function StatusActionMenu({
     return null
   }
 
-  const handleMenuAction = (status: AppointmentStatus) => {
+  const [primaryStatus, ...overflowStatuses] = transitions
+  const primaryConfig = getStatusConfig(primaryStatus)
+  const hasOverflow = overflowStatuses.length > 0
+
+  const isDestructive = (status: AppointmentStatus) =>
+    status === "cancelled" || status === "no_show"
+
+  const triggerAction = (status: AppointmentStatus) => {
     if (requiresConfirmation(status)) {
       setPendingStatus(status)
       setReason("")
@@ -105,9 +108,7 @@ export function StatusActionMenu({
   }
 
   const handleConfirm = () => {
-    if (pendingStatus) {
-      mutate(pendingStatus)
-    }
+    if (pendingStatus) mutate(pendingStatus)
   }
 
   const handleDialogOpenChange = (open: boolean) => {
@@ -119,73 +120,72 @@ export function StatusActionMenu({
     }
   }
 
-  const isDestructive = (status: AppointmentStatus) =>
-    status === "cancelled" || status === "no_show"
-
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            asTextLink ? (
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={isPending}
-                type="button"
-              >
-                {isPending ? (
-                  <>
-                    <Spinner className="size-3" />
-                    Actualizando…
-                  </>
-                ) : (
-                  <>
-                    Cambiar estado
-                    <span aria-hidden>›</span>
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button
-                className={cn(fullWidth && "w-full justify-between")}
-                disabled={isPending}
-                size="sm"
-                variant="outline"
-              >
-                {isPending ? (
-                  <>
-                    <Spinner />
-                    Actualizando…
-                  </>
-                ) : (
-                  <>
-                    Cambiar estado
-                    <HugeiconsIcon icon={ArrowDown01Icon} strokeWidth={2} />
-                  </>
-                )}
-              </Button>
-            )
-          }
-        />
-        <DropdownMenuContent align="end" className="w-40">
-          {transitions.map((status) => {
-            const config = getStatusConfig(status)
-            return (
-              <DropdownMenuItem
-                key={status}
-                variant={isDestructive(status) ? "destructive" : "default"}
-                onClick={() => handleMenuAction(status)}
-              >
-                <HugeiconsIcon icon={config.icon} strokeWidth={2} />
-                {config.label}
-              </DropdownMenuItem>
-            )
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <ButtonGroup>
+        <Button
+          disabled={isPending}
+          onClick={() => triggerAction(primaryStatus)}
+          type="button"
+          variant="outline"
+        >
+          {isPending ? (
+            <>
+              <Spinner className="shrink-0" />
+              Actualizando…
+            </>
+          ) : (
+            <>Cambiar a {primaryConfig.label}</>
+          )}
+        </Button>
 
-      <AlertDialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+        {hasOverflow && (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    aria-label="Más opciones de estado"
+                    disabled={isPending}
+                    type="button"
+                    className="pl-2!"
+                    variant="outline"
+                  >
+                    <HugeiconsIcon
+                      icon={ArrowDown01Icon}
+                      size={14}
+                      strokeWidth={2}
+                    />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end" className="w-44">
+                {overflowStatuses.map((status) => {
+                  const config = getStatusConfig(status)
+                  return (
+                    <DropdownMenuItem
+                      key={status}
+                      onClick={() => triggerAction(status)}
+                      variant={
+                        isDestructive(status) ? "destructive" : "default"
+                      }
+                    >
+                      <HugeiconsIcon
+                        icon={config.icon}
+                        size={16}
+                        strokeWidth={2}
+                      />
+                      {config.label}
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        )}
+      </ButtonGroup>
+
+      <AlertDialog onOpenChange={handleDialogOpenChange} open={dialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
