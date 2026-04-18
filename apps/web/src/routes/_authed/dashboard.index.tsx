@@ -1,7 +1,9 @@
+import { usePostHog } from "@posthog/react"
 import { createFileRoute, useRouteContext } from "@tanstack/react-router"
 
 import { AdminDashboard } from "@/components/appointments/admin-dashboard"
 import { AppointmentSkeleton } from "@/components/appointments/appointment-card"
+import { AppointmentsCalendar } from "@/components/appointments/calendar"
 import { PendingActivations } from "@/components/appointments/pending-activations"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,7 +18,16 @@ function RouteComponent() {
     from: "/_authed",
   })
 
-  return <div>{isSuperAdmin ? <PendingActivations /> : <AdminDashboard />}</div>
+  const posthog = usePostHog()
+  const enableCalendarView = posthog.isFeatureEnabled("calendar_view")
+
+  const AdminComponent = enableCalendarView ? (
+    <AdminDashboard />
+  ) : (
+    <AppointmentsCalendar />
+  )
+
+  return <div>{isSuperAdmin ? <PendingActivations /> : AdminComponent}</div>
 }
 
 function PendingComponent() {
