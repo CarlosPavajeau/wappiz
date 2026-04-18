@@ -253,7 +253,7 @@ function CalendarPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-1">
           {/* Mobile filters sheet — hidden on desktop */}
           <Sheet>
             <SheetTrigger
@@ -261,7 +261,7 @@ function CalendarPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="min-h-11 md:hidden"
+                  className="md:hidden"
                   aria-label="Abrir filtros"
                 >
                   Filtros
