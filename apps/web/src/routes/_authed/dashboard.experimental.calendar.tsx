@@ -29,17 +29,17 @@ import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs"
 import { useMemo, useState } from "react"
 
 import { AppointmentDetailModal } from "@/components/appointments/appointment-detail-modal"
-import { FilterSelect } from "@/components/appointments/filter-select"
-import { CalendarDayView } from "@/components/appointments/calendar-day-view"
-import { CalendarMonthView } from "@/components/appointments/calendar-month-view"
-import { CalendarSkeleton } from "@/components/appointments/calendar-skeleton"
-import { CalendarWeekView } from "@/components/appointments/calendar-week-view"
 import {
   STATUS_ITEMS,
   WEEK_OPTS,
   type CalView,
   toDateKey,
 } from "@/components/appointments/calendar-config"
+import { CalendarDayView } from "@/components/appointments/calendar-day-view"
+import { CalendarMonthView } from "@/components/appointments/calendar-month-view"
+import { CalendarSkeleton } from "@/components/appointments/calendar-skeleton"
+import { CalendarWeekView } from "@/components/appointments/calendar-week-view"
+import { FilterSelect } from "@/components/appointments/filter-select"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"

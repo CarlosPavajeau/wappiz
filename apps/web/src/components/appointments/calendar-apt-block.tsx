@@ -2,12 +2,7 @@ import type { Appointment } from "@wappiz/api-client/types/appointments"
 
 import { cn } from "@/lib/utils"
 
-import {
-  aptColor,
-  aptHeight,
-  aptTop,
-  formatTimeRange,
-} from "./calendar-config"
+import { aptColor, aptHeight, aptTop, formatTimeRange } from "./calendar-config"
 
 export function CalendarAptBlock({
   apt,
@@ -25,7 +20,7 @@ export function CalendarAptBlock({
       type="button"
       aria-label={`${apt.customerName} — ${apt.serviceName}`}
       className={cn(
-        "absolute inset-x-0.5 rounded-md px-2 py-1 text-left text-xs transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "absolute inset-x-0.5 rounded-md px-2 py-1 text-left text-xs transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         aptColor(apt.status),
         terminal && "opacity-50"
       )}
@@ -35,7 +30,7 @@ export function CalendarAptBlock({
       <span className="block truncate text-[10px] leading-tight tabular-nums opacity-60">
         {formatTimeRange(apt.startsAt, apt.endsAt)}
       </span>
-      <span className="block truncate font-semibold leading-tight">
+      <span className="block truncate leading-tight font-semibold">
         {apt.customerName}
       </span>
       {height > 52 && (

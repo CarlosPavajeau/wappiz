@@ -9,10 +9,10 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
 import { CalendarAptBlock } from "./calendar-apt-block"
+import { WEEK_OPTS, groupByDate, toDateKey } from "./calendar-config"
 import { CalendarHourRows } from "./calendar-hour-rows"
 import { CalendarNowLine } from "./calendar-now-line"
 import { CalendarTimeGutter } from "./calendar-time-gutter"
-import { WEEK_OPTS, groupByDate, toDateKey } from "./calendar-config"
 
 export function CalendarWeekView({
   date,
@@ -38,10 +38,10 @@ export function CalendarWeekView({
           <button
             key={d.toISOString()}
             type="button"
-            className="flex flex-1 flex-col items-center rounded-sm py-2 transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex flex-1 flex-col items-center rounded-sm py-2 transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             onClick={() => onDayClick(d)}
           >
-            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
               {format(d, "EEE", { locale: es })}
             </span>
             <span

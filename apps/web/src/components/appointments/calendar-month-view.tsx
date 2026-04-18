@@ -50,7 +50,7 @@ export function CalendarMonthView({
         {WEEKDAY_LABELS.map((label) => (
           <div
             key={label}
-            className="py-2 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground"
+            className="py-2 text-center text-[11px] font-medium tracking-wider text-muted-foreground uppercase"
           >
             {label}
           </div>
@@ -76,7 +76,7 @@ export function CalendarMonthView({
               <button
                 type="button"
                 className={cn(
-                  "mb-1 flex size-6 items-center justify-center rounded-full text-sm font-medium leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "mb-1 flex size-6 items-center justify-center rounded-full text-sm leading-none font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
                   isToday(day)
                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
                     : "text-foreground hover:bg-muted"
@@ -92,7 +92,7 @@ export function CalendarMonthView({
                     key={a.id}
                     type="button"
                     className={cn(
-                      "flex w-full items-center gap-1 rounded px-1 py-0.5 text-left text-xs font-medium transition-opacity hover:opacity-75 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                      "flex w-full items-center gap-1 rounded px-1 py-0.5 text-left text-xs font-medium transition-opacity hover:opacity-75 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
                       aptColor(a.status)
                     )}
                     onClick={() => onAptClick(a)}

@@ -25,7 +25,11 @@ export function CalendarDayView({
           <CalendarHourRows />
           {isToday(date) && <CalendarNowLine />}
           {apts.map((a) => (
-            <CalendarAptBlock key={a.id} apt={a} onClick={() => onAptClick(a)} />
+            <CalendarAptBlock
+              key={a.id}
+              apt={a}
+              onClick={() => onAptClick(a)}
+            />
           ))}
         </div>
       </div>
