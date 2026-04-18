@@ -30,6 +30,7 @@ import { Route as AuthedDashboardCustomersRouteImport } from './routes/_authed/d
 import { Route as AuthedDashboardResourcesIndexRouteImport } from './routes/_authed/dashboard.resources.index'
 import { Route as AuthedOnboardingStepStepRouteImport } from './routes/_authed/onboarding.step.$step'
 import { Route as AuthedDashboardResourcesIdRouteImport } from './routes/_authed/dashboard.resources.$id'
+import { Route as AuthedDashboardExperimentalCalendarRouteImport } from './routes/_authed/dashboard.experimental.calendar'
 
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
@@ -138,6 +139,12 @@ const AuthedDashboardResourcesIdRoute =
     path: '/resources/$id',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
+const AuthedDashboardExperimentalCalendarRoute =
+  AuthedDashboardExperimentalCalendarRouteImport.update({
+    id: '/experimental/calendar',
+    path: '/experimental/calendar',
+    getParentRoute: () => AuthedDashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/': typeof AuthedDashboardIndexRoute
   '/onboarding/': typeof AuthedOnboardingIndexRoute
+  '/dashboard/experimental/calendar': typeof AuthedDashboardExperimentalCalendarRoute
   '/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
   '/dashboard/resources/': typeof AuthedDashboardResourcesIndexRoute
@@ -175,6 +183,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard': typeof AuthedDashboardIndexRoute
   '/onboarding': typeof AuthedOnboardingIndexRoute
+  '/dashboard/experimental/calendar': typeof AuthedDashboardExperimentalCalendarRoute
   '/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
   '/dashboard/resources': typeof AuthedDashboardResourcesIndexRoute
@@ -199,6 +208,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/dashboard/': typeof AuthedDashboardIndexRoute
   '/_authed/onboarding/': typeof AuthedOnboardingIndexRoute
+  '/_authed/dashboard/experimental/calendar': typeof AuthedDashboardExperimentalCalendarRoute
   '/_authed/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/_authed/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
   '/_authed/dashboard/resources/': typeof AuthedDashboardResourcesIndexRoute
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/dashboard/'
     | '/onboarding/'
+    | '/dashboard/experimental/calendar'
     | '/dashboard/resources/$id'
     | '/onboarding/step/$step'
     | '/dashboard/resources/'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/dashboard'
     | '/onboarding'
+    | '/dashboard/experimental/calendar'
     | '/dashboard/resources/$id'
     | '/onboarding/step/$step'
     | '/dashboard/resources'
@@ -264,6 +276,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/_authed/dashboard/'
     | '/_authed/onboarding/'
+    | '/_authed/dashboard/experimental/calendar'
     | '/_authed/dashboard/resources/$id'
     | '/_authed/onboarding/step/$step'
     | '/_authed/dashboard/resources/'
@@ -427,6 +440,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardResourcesIdRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
+    '/_authed/dashboard/experimental/calendar': {
+      id: '/_authed/dashboard/experimental/calendar'
+      path: '/experimental/calendar'
+      fullPath: '/dashboard/experimental/calendar'
+      preLoaderRoute: typeof AuthedDashboardExperimentalCalendarRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
   }
 }
 
@@ -450,6 +470,7 @@ interface AuthedDashboardRouteChildren {
   AuthedDashboardSettingsRoute: typeof AuthedDashboardSettingsRoute
   AuthedDashboardUsersRoute: typeof AuthedDashboardUsersRoute
   AuthedDashboardIndexRoute: typeof AuthedDashboardIndexRoute
+  AuthedDashboardExperimentalCalendarRoute: typeof AuthedDashboardExperimentalCalendarRoute
   AuthedDashboardResourcesIdRoute: typeof AuthedDashboardResourcesIdRoute
   AuthedDashboardResourcesIndexRoute: typeof AuthedDashboardResourcesIndexRoute
 }
@@ -460,6 +481,8 @@ const AuthedDashboardRouteChildren: AuthedDashboardRouteChildren = {
   AuthedDashboardSettingsRoute: AuthedDashboardSettingsRoute,
   AuthedDashboardUsersRoute: AuthedDashboardUsersRoute,
   AuthedDashboardIndexRoute: AuthedDashboardIndexRoute,
+  AuthedDashboardExperimentalCalendarRoute:
+    AuthedDashboardExperimentalCalendarRoute,
   AuthedDashboardResourcesIdRoute: AuthedDashboardResourcesIdRoute,
   AuthedDashboardResourcesIndexRoute: AuthedDashboardResourcesIndexRoute,
 }

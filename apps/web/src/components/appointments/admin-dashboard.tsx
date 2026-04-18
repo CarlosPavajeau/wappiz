@@ -3,11 +3,13 @@
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
+  Calendar01Icon,
   CalendarOffIcon,
   Refresh03Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useQuery } from "@tanstack/react-query"
+import { Link } from "@tanstack/react-router"
 import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { addDays, format, isToday, parseISO, subDays } from "date-fns"
 import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs"
@@ -81,7 +83,8 @@ export function AdminDashboard() {
     queryFn: () =>
       api.appointments.list({
         params: {
-          date: dateParam,
+          from: dateParam,
+          to: dateParam,
           ...(resourceIds.length > 0 && { resource: resourceIds }),
           ...(serviceIds.length > 0 && { service: serviceIds }),
           ...(statuses.length > 0 && { status: statuses }),
@@ -181,6 +184,32 @@ export function AdminDashboard() {
               </Button>
             )}
           </div>
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  render={<Link to="/dashboard/experimental/calendar" />}
+                  variant="ghost"
+                  aria-label="Ver calendario (experimental)"
+                  className="relative"
+                  nativeButton={false}
+                >
+                  <HugeiconsIcon icon={Calendar01Icon} strokeWidth={2} />
+                  <span
+                    aria-hidden
+                    className="absolute top-1 right-1 size-1.5 rounded-full bg-amber-400"
+                  />
+                </Button>
+              }
+            />
+            <TooltipContent>
+              <p>
+                Ver calendario{" "}
+                <span className="text-muted-foreground">· experimental</span>
+              </p>
+            </TooltipContent>
+          </Tooltip>
 
           <Tooltip>
             <TooltipTrigger
