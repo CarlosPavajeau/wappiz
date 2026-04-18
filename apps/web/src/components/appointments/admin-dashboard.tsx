@@ -67,8 +67,9 @@ export function AdminDashboard() {
       "check_in",
     ])
   )
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null)
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<
+    string | null
+  >(null)
   const [detailOpen, setDetailOpen] = useState(false)
 
   const selectedDate = parseISO(dateParam)
@@ -116,12 +117,20 @@ export function AdminDashboard() {
     [appointments]
   )
 
+  const selectedAppointment = useMemo(
+    () =>
+      selectedAppointmentId
+        ? (appointments?.find((a) => a.id === selectedAppointmentId) ?? null)
+        : null,
+    [selectedAppointmentId, appointments]
+  )
+
   const goToPrev = () => setDateParam(toDateKey(subDays(selectedDate, 1)))
   const goToNext = () => setDateParam(toDateKey(addDays(selectedDate, 1)))
   const goToToday = () => setDateParam(null)
 
   const openDetail = (appointment: Appointment) => {
-    setSelectedAppointment(appointment)
+    setSelectedAppointmentId(appointment.id)
     setDetailOpen(true)
   }
 

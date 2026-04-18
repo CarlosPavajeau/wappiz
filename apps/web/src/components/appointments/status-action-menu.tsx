@@ -77,7 +77,7 @@ export function StatusActionMenu({
         ...(status === "cancelled" ? { cancelled_by: cancelledBy } : {}),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["appointments"] })
+      queryClient.refetchQueries({ queryKey: ["appointments"] })
       setDialogOpen(false)
       setPendingStatus(null)
       setReason("")

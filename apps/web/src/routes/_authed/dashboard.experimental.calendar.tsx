@@ -88,7 +88,7 @@ function CalendarPage() {
       "check_in",
     ])
   )
-  const [selectedApt, setSelectedApt] = useState<Appointment | null>(null)
+  const [selectedAptId, setSelectedAptId] = useState<string | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile)
@@ -186,8 +186,13 @@ function CalendarPage() {
     return format(selectedDate, "MMMM yyyy", { locale: es })
   }, [calView, selectedDate])
 
+  const selectedApt = useMemo(
+    () => (selectedAptId ? ((data ?? []).find((a) => a.id === selectedAptId) ?? null) : null),
+    [selectedAptId, data]
+  )
+
   const openApt = (a: Appointment) => {
-    setSelectedApt(a)
+    setSelectedAptId(a.id)
     setDetailOpen(true)
   }
 
