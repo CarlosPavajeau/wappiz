@@ -28,12 +28,28 @@ export const STATUS_LABEL = {
   pending: "Pendiente",
 } as const
 
+export const STATUS_COLOR = {
+  cancelled: "bg-red-700",
+  check_in: "bg-teal-700",
+  completed: "bg-muted-foreground",
+  confirmed: "bg-green-700",
+  in_progress: "bg-blue-700",
+  no_show: "bg-amber-700",
+  pending: "bg-yellow-700",
+}
+
 export function statusVariant(status: string) {
   return STATUS_VARIANT[status as keyof typeof STATUS_VARIANT] ?? "outline"
 }
 
 export function statusLabel(status: string) {
   return STATUS_LABEL[status as keyof typeof STATUS_LABEL] ?? status
+}
+
+export function statusColor(status: string) {
+  return (
+    STATUS_COLOR[status as keyof typeof STATUS_COLOR] ?? STATUS_COLOR.pending
+  )
 }
 
 export function formatTime(iso: string) {

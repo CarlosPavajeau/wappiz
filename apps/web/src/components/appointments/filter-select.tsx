@@ -12,10 +12,12 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
 
 export type FilterSelectItem = {
   id: string
   label: string
+  color?: string
 }
 
 type FilterSelectProps = {
@@ -73,6 +75,9 @@ export function FilterSelect({
               checked={selectedIds.includes(item.id)}
               onCheckedChange={() => toggle(item.id)}
             >
+              {Boolean(item.color) && (
+                <div className={cn("size-2 rounded-full", item.color)} />
+              )}
               {item.label}
             </DropdownMenuCheckboxItem>
           ))}

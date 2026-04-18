@@ -1,7 +1,7 @@
 import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { format, getHours, getMinutes } from "date-fns"
 
-import { STATUS_LABEL } from "./appointment-utils"
+import { STATUS_COLOR, STATUS_LABEL, statusColor } from "./appointment-utils"
 
 // ── Grid constants ────────────────────────────────────────────────────────────
 
@@ -16,11 +16,6 @@ export const GRID_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT
 export const WEEK_OPTS = { weekStartsOn: 1 as const }
 
 export type CalView = "day" | "week" | "month"
-
-export const STATUS_ITEMS = Object.entries(STATUS_LABEL).map(([id, label]) => ({
-  id,
-  label,
-}))
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 
@@ -60,6 +55,12 @@ const APT_COLORS: Record<string, string> = {
   pending:
     "bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300",
 }
+
+export const STATUS_ITEMS = Object.entries(STATUS_LABEL).map(([id, label]) => ({
+  id,
+  label,
+  color: statusColor(id) ?? STATUS_COLOR.pending,
+}))
 
 export function aptColor(status: string) {
   return APT_COLORS[status] ?? APT_COLORS.pending
