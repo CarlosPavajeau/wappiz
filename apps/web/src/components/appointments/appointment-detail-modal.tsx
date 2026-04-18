@@ -8,6 +8,25 @@ import type {
 import { differenceInMinutes, format, formatDuration } from "date-fns"
 import { es } from "date-fns/locale"
 
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
 import {
   Empty,
   EmptyDescription,
@@ -15,18 +34,13 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
 import { priceFormatter } from "@/lib/intl"
 
-import { formatTime } from "./appointment-utils"
+import { formatTime, isTerminalStatus } from "./appointment-utils"
+import { StatusActionMenu } from "./status-action-menu"
 import { StatusBadge } from "./status-badge"
 
 function DetailRow({
@@ -188,37 +202,71 @@ function AppointmentDetailContent({
   )
 }
 
+type AppointmentDetailModalProps = {
+  appointment: Appointment | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
 export function AppointmentDetailModal({
   appointment,
   open,
   onOpenChange,
-}: {
-  appointment: Appointment | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
+}: AppointmentDetailModalProps) {
+  const isMobile = useIsMobile()
+
   if (!appointment) {
     return null
   }
 
   const title = appointment.customerName
   const description = `${appointment.serviceName} · ${formatTime(appointment.startsAt)}`
+  const isTerminal = isTerminalStatus(appointment.status)
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-left">{title}</DrawerTitle>
+            <DrawerDescription className="text-left">
+              {description}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex-1 overflow-y-auto px-5 pb-6">
+            <AppointmentDetailContent appointment={appointment} />
+          </div>
+
+          <DrawerFooter>
+            {!isTerminal && <StatusActionMenu appointment={appointment} />}
+            <DrawerClose asChild>
+              <Button variant="outline">Cerrar</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="flex flex-col gap-0 overflow-hidden p-0"
-      >
-        <SheetHeader className="px-5 pt-5 pb-4">
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-5 pb-6">
+        <div className="flex-1 overflow-y-auto">
           <AppointmentDetailContent appointment={appointment} />
         </div>
-      </SheetContent>
-    </Sheet>
+
+        <DialogFooter>
+          {!isTerminal && <StatusActionMenu appointment={appointment} />}
+          <DialogClose render={<Button variant="outline" />}>
+            Cerrar
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
