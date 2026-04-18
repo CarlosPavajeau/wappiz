@@ -16,7 +16,6 @@ import {
   endOfMonth,
   endOfWeek,
   format,
-  isToday,
   parseISO,
   startOfMonth,
   startOfWeek,
@@ -331,6 +330,7 @@ function CalendarPage() {
         {sidebarOpen && (
           <div className="hidden md:block">
             <CalendarSidebar
+              periodLabel={periodLabel}
               date={selectedDate}
               onDateChange={(d) => {
                 setDateParam(toDateKey(d))
