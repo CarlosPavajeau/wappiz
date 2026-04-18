@@ -26,7 +26,7 @@ export function CalendarAptBlock({
       type="button"
       aria-label={`${apt.customerName} — ${apt.serviceName}`}
       className={cn(
-        "absolute rounded-r border-l-[3px] border-current py-1 pr-2 pl-1.5 text-left text-xs transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        "absolute rounded px-2 py-1 text-left text-xs transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         aptColor(apt.status),
         terminal && "opacity-40"
       )}

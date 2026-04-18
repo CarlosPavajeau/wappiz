@@ -40,12 +40,22 @@ import { CalendarSidebar } from "@/components/appointments/calendar-sidebar"
 import { CalendarSkeleton } from "@/components/appointments/calendar-skeleton"
 import { CalendarWeekView } from "@/components/appointments/calendar-week-view"
 import { FilterSelect } from "@/components/appointments/filter-select"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Separator } from "@/components/ui/separator"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
+import { cn } from "@/lib/utils"
 
 export const Route = createFileRoute(
   "/_authed/dashboard/experimental/calendar"
@@ -146,12 +156,12 @@ function CalendarPage() {
     [data]
   )
 
-  const filteredApts = useMemo(() => apts, [apts])
-
   const dayStats = useMemo(() => {
     const count = apts.length
     return { count }
   }, [apts])
+
+  const mobileFilterCount = resourceIds.length + serviceIds.length
 
   const goBy = (dir: 1 | -1) => {
     const d = selectedDate
@@ -214,31 +224,165 @@ function CalendarPage() {
             </TabsList>
           </Tabs>
 
-          <Separator orientation="vertical" />
-
-          <FilterSelect
-            isLoading={isLoadingResources}
-            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
-            label="Recursos"
-            selectedIds={resourceIds}
-            onSelectedIdsChange={setResourceIds}
-          />
-          <FilterSelect
-            isLoading={isLoadingServices}
-            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
-            label="Servicios"
-            selectedIds={serviceIds}
-            onSelectedIdsChange={setServiceIds}
-          />
-          <FilterSelect
-            items={STATUS_ITEMS}
-            label="Estado"
-            selectedIds={statuses}
-            onSelectedIdsChange={setStatuses}
-          />
+          {/* Desktop filters — hidden on mobile */}
+          <div className="hidden items-center gap-1.5 md:flex">
+            <Separator orientation="vertical" className="h-5" />
+            <FilterSelect
+              isLoading={isLoadingResources}
+              items={(resources ?? []).map((r) => ({
+                id: r.id,
+                label: r.name,
+              }))}
+              label="Recursos"
+              selectedIds={resourceIds}
+              onSelectedIdsChange={setResourceIds}
+            />
+            <FilterSelect
+              isLoading={isLoadingServices}
+              items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
+              label="Servicios"
+              selectedIds={serviceIds}
+              onSelectedIdsChange={setServiceIds}
+            />
+            <FilterSelect
+              items={STATUS_ITEMS}
+              label="Estado"
+              selectedIds={statuses}
+              onSelectedIdsChange={setStatuses}
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Mobile filters sheet — hidden on desktop */}
+          <Sheet>
+            <SheetTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="md:hidden"
+                  aria-label="Abrir filtros"
+                >
+                  Filtros
+                  {mobileFilterCount > 0 && (
+                    <Badge
+                      className="ml-0.5 h-4.5 min-w-4.5 rounded-sm px-1 py-px text-[0.625rem] leading-none"
+                      variant="secondary"
+                    >
+                      {mobileFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+              }
+            />
+            <SheetContent side="bottom" className="max-h-[85dvh]">
+              <SheetHeader className="px-4 pt-4 pb-2">
+                <SheetTitle>Filtros</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-6 overflow-y-auto px-4 pb-8">
+                {!isLoadingResources && (resources ?? []).length > 0 && (
+                  <section className="flex flex-col gap-3">
+                    <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+                      Recursos
+                    </h3>
+                    <ul className="flex flex-col gap-3">
+                      {(resources ?? []).map((r) => (
+                        <li key={r.id} className="flex items-center gap-2.5">
+                          <Checkbox
+                            id={`mobile-resource-${r.id}`}
+                            checked={resourceIds.includes(r.id)}
+                            onCheckedChange={(checked) => {
+                              setResourceIds(
+                                checked
+                                  ? [...resourceIds, r.id]
+                                  : resourceIds.filter((id) => id !== r.id)
+                              )
+                            }}
+                          />
+                          <label
+                            htmlFor={`mobile-resource-${r.id}`}
+                            className="cursor-pointer text-sm"
+                          >
+                            {r.name}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                {!isLoadingServices && (services ?? []).length > 0 && (
+                  <section className="flex flex-col gap-3">
+                    <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+                      Servicios
+                    </h3>
+                    <ul className="flex flex-col gap-3">
+                      {(services ?? []).map((s) => (
+                        <li key={s.id} className="flex items-center gap-2.5">
+                          <Checkbox
+                            id={`mobile-service-${s.id}`}
+                            checked={serviceIds.includes(s.id)}
+                            onCheckedChange={(checked) => {
+                              setServiceIds(
+                                checked
+                                  ? [...serviceIds, s.id]
+                                  : serviceIds.filter((id) => id !== s.id)
+                              )
+                            }}
+                          />
+                          <label
+                            htmlFor={`mobile-service-${s.id}`}
+                            className="cursor-pointer text-sm"
+                          >
+                            {s.name}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+
+                <section className="flex flex-col gap-3">
+                  <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+                    Estado
+                  </h3>
+                  <ul className="flex flex-col gap-3">
+                    {STATUS_ITEMS.map((item) => (
+                      <li key={item.id} className="flex items-center gap-2.5">
+                        <Checkbox
+                          id={`mobile-status-${item.id}`}
+                          checked={statuses.includes(item.id)}
+                          onCheckedChange={(checked) => {
+                            setStatuses(
+                              checked
+                                ? [...statuses, item.id]
+                                : statuses.filter((id) => id !== item.id)
+                            )
+                          }}
+                        />
+                        {item.color && (
+                          <div
+                            className={cn(
+                              "size-2 shrink-0 rounded-full",
+                              item.color
+                            )}
+                          />
+                        )}
+                        <label
+                          htmlFor={`mobile-status-${item.id}`}
+                          className="cursor-pointer text-sm"
+                        >
+                          {item.label}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           <div className="flex items-center gap-1">
             <Button
               aria-label="Período anterior"
@@ -303,14 +447,14 @@ function CalendarPage() {
               {calView === "day" && (
                 <CalendarDayView
                   date={selectedDate}
-                  apts={filteredApts}
+                  apts={apts}
                   onAptClick={openApt}
                 />
               )}
               {calView === "week" && (
                 <CalendarWeekView
                   date={selectedDate}
-                  apts={filteredApts}
+                  apts={apts}
                   onAptClick={openApt}
                   onDayClick={switchToDay}
                 />
@@ -318,7 +462,7 @@ function CalendarPage() {
               {calView === "month" && (
                 <CalendarMonthView
                   date={selectedDate}
-                  apts={filteredApts}
+                  apts={apts}
                   onAptClick={openApt}
                   onDayClick={switchToDay}
                 />
@@ -336,7 +480,8 @@ function CalendarPage() {
                 setDateParam(toDateKey(d))
                 if (calView !== "day") setView("day")
               }}
-              apts={filteredApts}
+              onAptClick={openApt}
+              apts={apts}
             />
           </div>
         )}
