@@ -3,7 +3,7 @@
 import {
   ArrowLeft01Icon,
   ArrowRight01Icon,
-  Refresh03Icon,
+  LayoutRightIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useQuery } from "@tanstack/react-query"
@@ -37,14 +37,15 @@ import {
 } from "@/components/appointments/calendar-config"
 import { CalendarDayView } from "@/components/appointments/calendar-day-view"
 import { CalendarMonthView } from "@/components/appointments/calendar-month-view"
+import { CalendarSidebar } from "@/components/appointments/calendar-sidebar"
 import { CalendarSkeleton } from "@/components/appointments/calendar-skeleton"
 import { CalendarWeekView } from "@/components/appointments/calendar-week-view"
 import { FilterSelect } from "@/components/appointments/filter-select"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
 
 export const Route = createFileRoute(
@@ -55,7 +56,7 @@ export const Route = createFileRoute(
 
 function CalendarPage() {
   const [view, setView] = useQueryState(
-    "calView",
+    "view",
     parseAsString.withDefault("day")
   )
   const [dateParam, setDateParam] = useQueryState(
@@ -80,6 +81,8 @@ function CalendarPage() {
   )
   const [selectedApt, setSelectedApt] = useState<Appointment | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
+  const isMobile = useIsMobile()
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile)
 
   const calView = (view ?? "day") as CalView
   const selectedDate = useMemo(() => parseISO(dateParam), [dateParam])
@@ -112,7 +115,7 @@ function CalendarPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  const { data, isError, isLoading, refetch } = useQuery({
+  const { data, isError, isLoading } = useQuery({
     queryFn: () =>
       api.appointments.list({
         params: {
@@ -143,6 +146,13 @@ function CalendarPage() {
       ),
     [data]
   )
+
+  const filteredApts = useMemo(() => apts, [apts])
+
+  const dayStats = useMemo(() => {
+    const count = apts.length
+    return { count }
+  }, [apts])
 
   const goBy = (dir: 1 | -1) => {
     const d = selectedDate
@@ -178,50 +188,58 @@ function CalendarPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Page title */}
-      <div className="flex items-center gap-2">
-        <h1 className="text-sm font-semibold">Calendario</h1>
-        <Badge className="text-[10px] text-muted-foreground" variant="outline">
-          Experimental
-        </Badge>
+    <div className="flex flex-col gap-0">
+      <div className="flex items-center gap-2 pb-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[15px] leading-none font-semibold tracking-tight text-foreground first-letter:capitalize">
+                {periodLabel}
+              </span>
+            </div>
+            <div className="mt-1 text-[12px] text-muted-foreground">
+              {dayStats.count} {dayStats.count === 1 ? "cita" : "citas"}{" "}
+              agendadas
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <FilterSelect
-          isLoading={isLoadingResources}
-          items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
-          label="Recursos"
-          selectedIds={resourceIds}
-          onSelectedIdsChange={setResourceIds}
-        />
-        <FilterSelect
-          isLoading={isLoadingServices}
-          items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
-          label="Servicios"
-          selectedIds={serviceIds}
-          onSelectedIdsChange={setServiceIds}
-        />
-        <FilterSelect
-          items={STATUS_ITEMS}
-          label="Estado"
-          selectedIds={statuses}
-          onSelectedIdsChange={setStatuses}
-        />
-      </div>
+      <div className="flex items-center justify-between gap-1.5 pb-3">
+        <div className="flex items-center gap-1.5">
+          <Tabs value={calView} onValueChange={(v) => setView(v)}>
+            <TabsList>
+              <TabsTrigger value="day">Día</TabsTrigger>
+              <TabsTrigger value="week">Semana</TabsTrigger>
+              <TabsTrigger value="month">Mes</TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-      {/* Toolbar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Tabs value={calView} onValueChange={(v) => v && setView(v)}>
-          <TabsList variant="line">
-            <TabsTrigger value="day">Día</TabsTrigger>
-            <TabsTrigger value="week">Semana</TabsTrigger>
-            <TabsTrigger value="month">Mes</TabsTrigger>
-          </TabsList>
-        </Tabs>
+          <Separator orientation="vertical" />
 
-        <div className="flex items-center gap-2">
+          <FilterSelect
+            isLoading={isLoadingResources}
+            items={(resources ?? []).map((r) => ({ id: r.id, label: r.name }))}
+            label="Recursos"
+            selectedIds={resourceIds}
+            onSelectedIdsChange={setResourceIds}
+          />
+          <FilterSelect
+            isLoading={isLoadingServices}
+            items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
+            label="Servicios"
+            selectedIds={serviceIds}
+            onSelectedIdsChange={setServiceIds}
+          />
+          <FilterSelect
+            items={STATUS_ITEMS}
+            label="Estado"
+            selectedIds={statuses}
+            onSelectedIdsChange={setStatuses}
+          />
+        </div>
+
+        <div className="flex items-center gap-1">
           <div className="flex items-center gap-1">
             <Button
               aria-label="Período anterior"
@@ -238,15 +256,13 @@ function CalendarPage() {
                 onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
               />
             ) : (
-              !isToday(selectedDate) && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setDateParam(null)}
-                >
-                  Hoy
-                </Button>
-              )
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setDateParam(null)}
+              >
+                Hoy
+              </Button>
             )}
 
             <Button
@@ -259,65 +275,72 @@ function CalendarPage() {
             </Button>
           </div>
 
-          {calView !== "day" && (
-            <span className="hidden text-sm font-medium capitalize sm:inline">
-              {periodLabel}
-            </span>
-          )}
-
           <Button
-            aria-label="Recargar citas"
+            aria-label={sidebarOpen ? "Ocultar panel" : "Mostrar panel"}
+            aria-pressed={sidebarOpen}
             size="icon-sm"
-            variant="ghost"
-            onClick={() => refetch()}
+            variant={sidebarOpen ? "secondary" : "ghost"}
+            onClick={() => setSidebarOpen((o) => !o)}
+            className="hidden md:inline-flex"
           >
-            <HugeiconsIcon icon={Refresh03Icon} strokeWidth={2} />
+            <HugeiconsIcon icon={LayoutRightIcon} strokeWidth={2} />
           </Button>
         </div>
       </div>
 
-      {calView !== "day" && (
-        <p className="text-sm font-medium capitalize sm:hidden">
-          {periodLabel}
-        </p>
-      )}
-
       <Separator />
 
-      {isLoading ? (
-        <CalendarSkeleton view={calView} />
-      ) : isError ? (
-        <p className="text-sm text-destructive">
-          Ha ocurrido un error al cargar las citas. Por favor, inténtalo de
-          nuevo.
-        </p>
-      ) : (
-        <>
-          {calView === "day" && (
-            <CalendarDayView
-              date={selectedDate}
-              apts={apts}
-              onAptClick={openApt}
-            />
+      <div className="flex min-h-0">
+        <div className="min-w-0 flex-1">
+          {isLoading ? (
+            <CalendarSkeleton view={calView} />
+          ) : isError ? (
+            <p className="mt-6 text-sm text-destructive">
+              Ha ocurrido un error al cargar las citas. Por favor, inténtalo de
+              nuevo.
+            </p>
+          ) : (
+            <>
+              {calView === "day" && (
+                <CalendarDayView
+                  date={selectedDate}
+                  apts={filteredApts}
+                  onAptClick={openApt}
+                />
+              )}
+              {calView === "week" && (
+                <CalendarWeekView
+                  date={selectedDate}
+                  apts={filteredApts}
+                  onAptClick={openApt}
+                  onDayClick={switchToDay}
+                />
+              )}
+              {calView === "month" && (
+                <CalendarMonthView
+                  date={selectedDate}
+                  apts={filteredApts}
+                  onAptClick={openApt}
+                  onDayClick={switchToDay}
+                />
+              )}
+            </>
           )}
-          {calView === "week" && (
-            <CalendarWeekView
+        </div>
+
+        {sidebarOpen && (
+          <div className="hidden md:block">
+            <CalendarSidebar
               date={selectedDate}
-              apts={apts}
-              onAptClick={openApt}
-              onDayClick={switchToDay}
+              onDateChange={(d) => {
+                setDateParam(toDateKey(d))
+                if (calView !== "day") setView("day")
+              }}
+              apts={filteredApts}
             />
-          )}
-          {calView === "month" && (
-            <CalendarMonthView
-              date={selectedDate}
-              apts={apts}
-              onAptClick={openApt}
-              onDayClick={switchToDay}
-            />
-          )}
-        </>
-      )}
+          </div>
+        )}
+      </div>
 
       <AppointmentDetailModal
         appointment={selectedApt}

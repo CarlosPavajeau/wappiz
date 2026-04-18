@@ -31,36 +31,42 @@ export function CalendarWeekView({
 
   return (
     <div className="flex flex-col">
-      {/* Day headers */}
       <div className="flex border-b border-border/40">
         <div className="w-14 shrink-0" />
-        {days.map((d) => (
-          <button
-            key={d.toISOString()}
-            type="button"
-            className="flex flex-1 flex-col items-center rounded-sm py-2 transition-colors hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-            onClick={() => onDayClick(d)}
-          >
-            <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
-              {format(d, "EEE", { locale: es })}
-            </span>
-            <span
-              className={cn(
-                "mt-0.5 flex size-7 items-center justify-center rounded-full text-sm font-semibold",
-                isToday(d)
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground"
-              )}
+        {days.map((d) => {
+          const today = isToday(d)
+          return (
+            <button
+              key={d.toISOString()}
+              type="button"
+              className="group flex flex-1 flex-col items-center gap-0.5 py-2 transition-colors hover:bg-muted/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              onClick={() => onDayClick(d)}
             >
-              {format(d, "d")}
-            </span>
-          </button>
-        ))}
+              <span
+                className={cn(
+                  "text-[10px] font-medium tracking-widest uppercase",
+                  today ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                {format(d, "EEE", { locale: es })}
+              </span>
+              <span
+                className={cn(
+                  "flex size-6 items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-colors",
+                  today
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground group-hover:bg-muted"
+                )}
+              >
+                {format(d, "d")}
+              </span>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Scrollable time grid */}
-      <ScrollArea className="h-[calc(100vh-18rem)]">
-        <div className="flex">
+      <ScrollArea className="h-[calc(100vh-20rem)]">
+        <div className="flex pt-4">
           <CalendarTimeGutter />
           {days.map((d) => {
             const key = toDateKey(d)

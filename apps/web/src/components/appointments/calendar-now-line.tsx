@@ -12,8 +12,8 @@ export function CalendarNowLine() {
       className="pointer-events-none absolute inset-x-0 z-10 flex items-center"
       style={{ top }}
     >
-      <div className="size-2 shrink-0 rounded-full bg-primary" />
-      <div className="h-px flex-1 bg-primary" />
+      <div className="size-2.5 shrink-0 rounded-full bg-destructive shadow-[0_0_0_3px_oklch(0.577_0.245_27.325/0.18)]" />
+      <div className="h-[1.5px] flex-1 bg-destructive/80" />
     </div>
   )
 }

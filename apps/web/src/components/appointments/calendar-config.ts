@@ -88,3 +88,42 @@ export function groupByDate(
   }
   return map
 }
+
+// ── Overlap layout ────────────────────────────────────────────────────────────
+
+export type PlacedApt = {
+  apt: Appointment
+  col: number
+  colCount: number
+}
+
+export function layoutApts(apts: Appointment[]): PlacedApt[] {
+  const sorted = [...apts].sort(
+    (a, b) =>
+      new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime() ||
+      new Date(b.endsAt).getTime() - new Date(a.endsAt).getTime()
+  )
+  const colEnds: number[] = []
+  const placed: Array<{ apt: Appointment; col: number }> = []
+
+  for (const apt of sorted) {
+    const s = new Date(apt.startsAt).getTime()
+    const e = new Date(apt.endsAt).getTime()
+    let col = -1
+    for (let i = 0; i < colEnds.length; i++) {
+      if ((colEnds[i] ?? 0) <= s) {
+        colEnds[i] = e
+        col = i
+        break
+      }
+    }
+    if (col === -1) {
+      colEnds.push(e)
+      col = colEnds.length - 1
+    }
+    placed.push({ apt, col })
+  }
+
+  const colCount = Math.max(1, colEnds.length)
+  return placed.map((p) => ({ ...p, colCount }))
+}

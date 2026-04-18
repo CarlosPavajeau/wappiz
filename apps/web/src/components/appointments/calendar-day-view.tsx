@@ -1,9 +1,11 @@
 import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { isToday } from "date-fns"
+import { useMemo } from "react"
 
 import { ScrollArea } from "@/components/ui/scroll-area"
 
 import { CalendarAptBlock } from "./calendar-apt-block"
+import { layoutApts } from "./calendar-config"
 import { CalendarHourRows } from "./calendar-hour-rows"
 import { CalendarNowLine } from "./calendar-now-line"
 import { CalendarTimeGutter } from "./calendar-time-gutter"
@@ -17,18 +19,22 @@ export function CalendarDayView({
   apts: Appointment[]
   onAptClick: (a: Appointment) => void
 }) {
+  const placed = useMemo(() => layoutApts(apts), [apts])
+
   return (
-    <ScrollArea className="h-[calc(100vh-14rem)]">
-      <div className="flex">
+    <ScrollArea className="h-[calc(100vh-16rem)]">
+      <div className="flex pt-4">
         <CalendarTimeGutter />
-        <div className="relative min-w-0 flex-1">
+        <div className="relative min-w-0 flex-1 pr-2">
           <CalendarHourRows />
           {isToday(date) && <CalendarNowLine />}
-          {apts.map((a) => (
+          {placed.map(({ apt, col, colCount }) => (
             <CalendarAptBlock
-              key={a.id}
-              apt={a}
-              onClick={() => onAptClick(a)}
+              key={apt.id}
+              apt={apt}
+              col={col}
+              colCount={colCount}
+              onClick={() => onAptClick(apt)}
             />
           ))}
         </div>

@@ -6,36 +6,49 @@ import { aptColor, aptHeight, aptTop, formatTimeRange } from "./calendar-config"
 
 export function CalendarAptBlock({
   apt,
+  col = 0,
+  colCount = 1,
   onClick,
 }: {
   apt: Appointment
+  col?: number
+  colCount?: number
   onClick: () => void
 }) {
   const top = aptTop(apt.startsAt)
   const height = aptHeight(apt.startsAt, apt.endsAt)
   const terminal = ["completed", "cancelled", "no_show"].includes(apt.status)
+  const pct = 100 / colCount
+  const leftPct = col * pct
 
   return (
     <button
       type="button"
       aria-label={`${apt.customerName} — ${apt.serviceName}`}
       className={cn(
-        "absolute inset-x-0.5 rounded-md px-2 py-1 text-left text-xs transition-opacity hover:opacity-75 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        "absolute rounded-r border-l-[3px] border-current py-1 pr-2 pl-1.5 text-left text-xs transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         aptColor(apt.status),
-        terminal && "opacity-50"
+        terminal && "opacity-40"
       )}
-      style={{ height, overflow: "hidden", top }}
+      style={{
+        top,
+        height,
+        left: `calc(${leftPct}% + 1px)`,
+        width: `calc(${pct}% - 3px)`,
+        overflow: "hidden",
+      }}
       onClick={onClick}
     >
-      <span className="block truncate text-[10px] leading-tight tabular-nums opacity-60">
+      <span className="block truncate text-[10px] leading-none tabular-nums opacity-55">
         {formatTimeRange(apt.startsAt, apt.endsAt)}
       </span>
-      <span className="block truncate leading-tight font-semibold">
+      <span className="mt-0.5 block truncate text-[11px] leading-snug font-semibold">
         {apt.customerName}
       </span>
       {height > 52 && (
-        <span className="block truncate leading-tight opacity-70">
-          {apt.serviceName} · {apt.resourceName}
+        <span className="block truncate text-[10px] leading-snug opacity-60">
+          {apt.serviceName}
+          {apt.resourceName ? ` · ${apt.resourceName}` : ""}
         </span>
       )}
     </button>
