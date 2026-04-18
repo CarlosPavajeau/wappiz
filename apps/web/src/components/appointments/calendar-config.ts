@@ -45,15 +45,16 @@ export function formatStartTime(startsAt: string): string {
 const APT_COLORS: Record<string, string> = {
   cancelled:
     "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive",
-  check_in: "bg-teal-50 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300",
+  check_in:
+    "bg-teal-500/10 text-teal-800 dark:bg-teal-500/15 dark:text-teal-300",
   completed: "bg-muted text-muted-foreground",
   confirmed: "bg-primary/10 text-primary",
   in_progress:
-    "bg-blue-50 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300",
+    "bg-blue-500/10 text-blue-800 dark:bg-blue-500/15 dark:text-blue-300",
   no_show:
-    "bg-orange-50 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300",
+    "bg-orange-500/10 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300",
   pending:
-    "bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300",
+    "bg-amber-500/10 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
 }
 
 export const STATUS_ITEMS = Object.entries(STATUS_LABEL).map(([id, label]) => ({
@@ -104,6 +105,8 @@ export function layoutApts(apts: Appointment[]): PlacedApt[] {
       new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime() ||
       new Date(b.endsAt).getTime() - new Date(a.endsAt).getTime()
   )
+
+  // Greedy column assignment: find first column that is free at apt's start
   const colEnds: number[] = []
   const placed: Array<{ apt: Appointment; col: number }> = []
 
@@ -125,6 +128,41 @@ export function layoutApts(apts: Appointment[]): PlacedApt[] {
     placed.push({ apt, col })
   }
 
-  const colCount = Math.max(1, colEnds.length)
-  return placed.map((p) => ({ ...p, colCount }))
+  // Per-group colCount: sweep in start-time order.
+  // A group ends when an apt starts at or after the running group-end time.
+  // colCount for the group = maxCol + 1 (cols are 0-based and contiguous).
+  const colCounts = new Array<number>(placed.length)
+  let groupStart = 0
+  let groupEndMs = 0
+  let groupMaxCol = 0
+
+  const closeGroup = (exclusiveEnd: number) => {
+    const count = groupMaxCol + 1
+    for (let i = groupStart; i < exclusiveEnd; i++) {
+      colCounts[i] = count
+    }
+  }
+
+  for (let i = 0; i < placed.length; i++) {
+    const p = placed[i]
+    if (!p) continue
+    const s = new Date(p.apt.startsAt).getTime()
+    const e = new Date(p.apt.endsAt).getTime()
+
+    if (i === 0) {
+      groupEndMs = e
+      groupMaxCol = p.col
+    } else if (s < groupEndMs) {
+      groupEndMs = Math.max(groupEndMs, e)
+      groupMaxCol = Math.max(groupMaxCol, p.col)
+    } else {
+      closeGroup(i)
+      groupStart = i
+      groupEndMs = e
+      groupMaxCol = p.col
+    }
+  }
+  if (placed.length > 0) closeGroup(placed.length)
+
+  return placed.map((p, i) => ({ ...p, colCount: colCounts[i] ?? 1 }))
 }

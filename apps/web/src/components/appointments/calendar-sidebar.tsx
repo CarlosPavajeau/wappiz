@@ -34,18 +34,21 @@ export function CalendarSidebar({
   apts,
 }: CalendarSidebarProps) {
   return (
-    <aside className="flex w-72 shrink-0 flex-col overflow-y-auto border-l border-border/40 bg-background">
+    <aside
+      className="flex h-full w-72 shrink-0 flex-col overflow-hidden border-l border-border/40 bg-background"
+      aria-label="Panel de citas"
+    >
       <Calendar
         mode="single"
         selected={date}
         onSelect={onDateChange}
-        className="w-full bg-transparent"
+        className="w-full shrink-0 bg-transparent"
         locale={es}
         required
       />
 
-      <div className="border-t border-border/40 p-3 pb-4">
-        <div className="mb-2 flex items-baseline justify-between">
+      <div className="flex min-h-0 flex-1 flex-col border-t border-border/40 p-3 pb-4">
+        <div className="mb-2 flex shrink-0 items-baseline justify-between">
           <span className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
             {periodLabel}
           </span>
@@ -69,8 +72,8 @@ export function CalendarSidebar({
           </Empty>
         )}
 
-        <ScrollArea className="h-88">
-          <ul className="flex flex-col gap-1 overflow-y-auto">
+        <ScrollArea className="min-h-0 flex-1">
+          <ul className="flex flex-col gap-1">
             {apts.map((appt) => (
               <AppointmentSidebarItem
                 key={appt.id}
@@ -105,7 +108,7 @@ function AppointmentSidebarItem({ apt, onClick }: AppointmentSidebarItemProps) {
         )}
         onClick={onClick}
       >
-        <span className="block truncate text-[10px] leading-none tabular-nums opacity-55">
+        <span className="block truncate text-[10px] leading-none tabular-nums opacity-70">
           {formatTimeRange(apt.startsAt, apt.endsAt)}
         </span>
         <span className="mt-0.5 block truncate text-[11px] leading-snug font-semibold">

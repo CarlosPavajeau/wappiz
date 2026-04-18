@@ -39,14 +39,14 @@ export function CalendarAptBlock({
       }}
       onClick={onClick}
     >
-      <span className="block truncate text-[10px] leading-none tabular-nums opacity-55">
+      <span className="block truncate text-[10px] leading-none tabular-nums opacity-70">
         {formatTimeRange(apt.startsAt, apt.endsAt)}
       </span>
       <span className="mt-0.5 block truncate text-[11px] leading-snug font-semibold">
         {apt.customerName}
       </span>
       {height > 52 && (
-        <span className="block truncate text-[10px] leading-snug opacity-60">
+        <span className="block truncate text-[10px] leading-snug opacity-70">
           {apt.serviceName}
           {apt.resourceName ? ` · ${apt.resourceName}` : ""}
         </span>

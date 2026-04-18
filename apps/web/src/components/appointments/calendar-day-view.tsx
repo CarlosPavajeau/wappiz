@@ -22,7 +22,7 @@ export function CalendarDayView({
   const placed = useMemo(() => layoutApts(apts), [apts])
 
   return (
-    <ScrollArea className="h-[calc(100vh-16rem)]">
+    <ScrollArea className="min-h-0 flex-1">
       <div className="flex pt-4">
         <CalendarTimeGutter />
         <div className="relative min-w-0 flex-1 pr-2">

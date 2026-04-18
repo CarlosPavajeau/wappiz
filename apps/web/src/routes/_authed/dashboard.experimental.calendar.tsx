@@ -93,7 +93,7 @@ function CalendarPage() {
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile)
 
-  const calView = (view ?? "day") as CalView
+  const calView: CalView = view === "week" || view === "month" ? view : "day"
   const selectedDate = useMemo(() => parseISO(dateParam), [dateParam])
 
   const { from, to } = useMemo(() => {
@@ -197,7 +197,7 @@ function CalendarPage() {
   }
 
   return (
-    <div className="flex flex-col gap-0">
+    <div className="flex h-[calc(100dvh-6rem)] flex-col gap-0">
       <div className="flex items-center gap-2 pb-3">
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <div className="min-w-0">
@@ -261,7 +261,7 @@ function CalendarPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="md:hidden"
+                  className="min-h-11 md:hidden"
                   aria-label="Abrir filtros"
                 >
                   Filtros
@@ -433,8 +433,8 @@ function CalendarPage() {
 
       <Separator />
 
-      <div className="flex min-h-0">
-        <div className="min-w-0 flex-1">
+      <div className="flex min-h-0 flex-1">
+        <div className="flex min-w-0 flex-1 flex-col">
           {isLoading ? (
             <CalendarSkeleton view={calView} />
           ) : isError ? (
@@ -472,7 +472,7 @@ function CalendarPage() {
         </div>
 
         {sidebarOpen && (
-          <div className="hidden md:block">
+          <div className="hidden h-full md:block">
             <CalendarSidebar
               periodLabel={periodLabel}
               date={selectedDate}

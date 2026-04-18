@@ -91,6 +91,7 @@ export function CalendarMonthView({
                       : "text-foreground hover:bg-muted"
                   )}
                   onClick={() => onDayClick(day)}
+                  aria-label={format(day, "EEEE d 'de' MMMM", { locale: es })}
                 >
                   {format(day, "d")}
                 </button>
@@ -119,6 +120,7 @@ export function CalendarMonthView({
                       type="button"
                       className="px-1 text-left text-[10px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none"
                       onClick={() => onDayClick(day)}
+                      aria-label={`Ver ${extra} cita${extra === 1 ? "" : "s"} más el ${format(day, "d 'de' MMMM", { locale: es })}`}
                     >
                       +{extra} más
                     </button>
@@ -149,6 +151,7 @@ export function CalendarMonthView({
                     type="button"
                     className="mb-2 flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     onClick={() => onDayClick(day)}
+                    aria-label={format(day, "EEEE d 'de' MMMM", { locale: es })}
                   >
                     <span
                       className={cn(
@@ -180,6 +183,7 @@ export function CalendarMonthView({
                         <li key={a.id}>
                           <button
                             type="button"
+                            aria-label={`${a.customerName} — ${a.serviceName}`}
                             className={cn(
                               "flex w-full items-baseline gap-2 rounded px-2 py-1.5 text-left transition-opacity hover:opacity-80 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
                               aptColor(a.status)
