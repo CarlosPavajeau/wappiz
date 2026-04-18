@@ -122,12 +122,12 @@ export function StatusActionMenu({
 
   return (
     <>
-      <ButtonGroup>
+      <ButtonGroup className="w-full">
         <Button
           disabled={isPending}
           onClick={() => triggerAction(primaryStatus)}
           type="button"
-          variant="outline"
+          className="w-full flex-1"
         >
           {isPending ? (
             <>
@@ -149,7 +149,6 @@ export function StatusActionMenu({
                     disabled={isPending}
                     type="button"
                     className="pl-2!"
-                    variant="outline"
                   >
                     <HugeiconsIcon
                       icon={ArrowDown01Icon}
