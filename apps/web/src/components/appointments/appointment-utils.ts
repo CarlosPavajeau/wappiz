@@ -77,6 +77,8 @@ const REQUIRES_CONFIRMATION = new Set<AppointmentStatus>([
   "no_show",
 ])
 
+const TERMINAL_STATUSES = new Set(["completed", "cancelled", "no_show"])
+
 export function getAvailableTransitions(
   status: AppointmentStatus
 ): AppointmentStatus[] {
@@ -93,4 +95,8 @@ export function requiresReason(toStatus: AppointmentStatus): boolean {
 
 export function requiresConfirmation(toStatus: AppointmentStatus): boolean {
   return REQUIRES_CONFIRMATION.has(toStatus)
+}
+
+export function isTerminalStatus(status: AppointmentStatus): boolean {
+  return TERMINAL_STATUSES.has(status)
 }
