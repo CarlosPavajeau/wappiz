@@ -34,6 +34,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "../ui/empty"
+import { ScrollArea } from "../ui/scroll-area"
 import { AppointmentCard } from "./appointment-card"
 import { CalendarAptBlock } from "./calendar-apt-block"
 import {
@@ -143,15 +144,19 @@ function MiniCalendar({
   )
 }
 
-export function CalendarSidebar({
-  date,
-  onDateChange,
-  apts,
-}: {
+type CalendarSidebarProps = {
+  periodLabel: string
   date: Date
   onDateChange: (d: Date) => void
   apts: Appointment[]
-}) {
+}
+
+export function CalendarSidebar({
+  periodLabel,
+  date,
+  onDateChange,
+  apts,
+}: CalendarSidebarProps) {
   return (
     <aside className="flex w-72 shrink-0 flex-col overflow-y-auto border-l border-border/40 bg-background">
       <Calendar
@@ -166,7 +171,7 @@ export function CalendarSidebar({
       <div className="border-t border-border/40 p-3 pb-4">
         <div className="mb-2 flex items-baseline justify-between">
           <span className="text-[10px] font-semibold tracking-widest text-muted-foreground uppercase">
-            {format(date, "EEEE, d 'de' MMMM", { locale: es })}
+            {periodLabel}
           </span>
           <span className="text-[11px] text-muted-foreground tabular-nums">
             {apts.length}
@@ -188,11 +193,13 @@ export function CalendarSidebar({
           </Empty>
         )}
 
-        <ul className="flex flex-col gap-1 overflow-y-auto">
-          {apts.map((appt) => (
-            <AppointmentSidebarItem key={appt.id} apt={appt} />
-          ))}
-        </ul>
+        <ScrollArea className="h-88">
+          <ul className="flex flex-col gap-1 overflow-y-auto">
+            {apts.map((appt) => (
+              <AppointmentSidebarItem key={appt.id} apt={appt} />
+            ))}
+          </ul>
+        </ScrollArea>
       </div>
     </aside>
   )
