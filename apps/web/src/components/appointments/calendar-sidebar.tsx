@@ -35,7 +35,7 @@ export function CalendarSidebar({
 }: CalendarSidebarProps) {
   return (
     <aside
-      className="flex h-full w-72 shrink-0 flex-col overflow-hidden border-l border-border/40 bg-background"
+      className="flex h-full w-72 shrink-0 animate-in flex-col overflow-hidden border-l border-border/40 bg-background duration-200 ease-out fade-in slide-in-from-right-3"
       aria-label="Panel de citas"
     >
       <Calendar
@@ -58,26 +58,29 @@ export function CalendarSidebar({
         </div>
 
         {apts.length === 0 && (
-          <Empty>
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <HugeiconsIcon icon={CalendarOffIcon} strokeWidth={2} />
-              </EmptyMedia>
-              <EmptyTitle>No se encontraron citas</EmptyTitle>
-              <EmptyDescription>
-                No hay citas programadas para esta fecha o para los filtros
-                aplicados.
-              </EmptyDescription>
-            </EmptyHeader>
-          </Empty>
+          <div className="animate-in duration-200 ease-out fade-in">
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <HugeiconsIcon icon={CalendarOffIcon} strokeWidth={2} />
+                </EmptyMedia>
+                <EmptyTitle>No se encontraron citas</EmptyTitle>
+                <EmptyDescription>
+                  No hay citas programadas para esta fecha o para los filtros
+                  aplicados.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </div>
         )}
 
         <ScrollArea className="min-h-0 flex-1">
           <ul className="flex flex-col gap-1">
-            {apts.map((appt) => (
+            {apts.map((appt, i) => (
               <AppointmentSidebarItem
                 key={appt.id}
                 apt={appt}
+                index={i}
                 onClick={() => onAptClick(appt)}
               />
             ))}
@@ -90,14 +93,22 @@ export function CalendarSidebar({
 
 type AppointmentSidebarItemProps = {
   apt: Appointment
+  index: number
   onClick: () => void
 }
 
-function AppointmentSidebarItem({ apt, onClick }: AppointmentSidebarItemProps) {
+function AppointmentSidebarItem({
+  apt,
+  index,
+  onClick,
+}: AppointmentSidebarItemProps) {
   const terminal = ["completed", "cancelled", "no_show"].includes(apt.status)
 
   return (
-    <li>
+    <li
+      className="animate-in duration-150 ease-out fill-mode-both fade-in slide-in-from-bottom-1"
+      style={{ animationDelay: `${Math.min(index * 22, 180)}ms` }}
+    >
       <button
         type="button"
         aria-label={`${apt.customerName} — ${apt.serviceName}`}
