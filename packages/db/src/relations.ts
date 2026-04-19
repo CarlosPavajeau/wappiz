@@ -77,6 +77,7 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.user.id.through(r.tenantUsers.userId),
     }),
     tenantWhatsappConfigs: r.many.tenantWhatsappConfigs(),
+    tenantFlowFields: r.many.tenantFlowFields(),
   },
   appointmentReminderEvents: {
     appointment: r.one.appointments({
@@ -131,6 +132,12 @@ export const relations = defineRelations(schema, (r) => ({
     conversationSessions: r.many.conversationSessions(),
     tenant: r.one.tenants({
       from: r.tenantWhatsappConfigs.tenantId,
+      to: r.tenants.id,
+    }),
+  },
+  tenantFlowFields: {
+    tenant: r.one.tenants({
+      from: r.tenantFlowFields.tenantId,
       to: r.tenants.id,
     }),
   },

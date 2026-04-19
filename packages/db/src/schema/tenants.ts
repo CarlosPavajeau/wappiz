@@ -82,3 +82,19 @@ export const tenantWhatsappConfigs = pgTable(
     unique("tenant_whatsapp_configs_tenant_id_key").on(table.tenantId),
   ]
 )
+
+export const tenantFlowFields = pgTable("tenant_flow_fields", {
+  id: uuid().defaultRandom().primaryKey(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  fieldKey: varchar("field_key", { length: 50 }),
+  fieldType: varchar("field_type", { length: 20 }),
+  question: text("question"),
+  isRequired: boolean("is_required").default(false).notNull(),
+  isEnabled: boolean("is_enabled").default(true).notNull(),
+  sortOrder: integer("sort_order").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`now()`)
+    .notNull(),
+})
