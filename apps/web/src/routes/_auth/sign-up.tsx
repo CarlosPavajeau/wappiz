@@ -60,16 +60,11 @@ function RouteComponent() {
     from: "/",
   })
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    setError,
-    formState: { errors },
-    setValue,
-  } = useForm<SignUpFormData>({
-    resolver: arktypeResolver(signUpSchema),
-  })
+  const { control, handleSubmit, setError, setValue } = useForm<SignUpFormData>(
+    {
+      resolver: arktypeResolver(signUpSchema),
+    }
+  )
 
   const { mutate, isPending } = useMutation({
     mutationFn: (data: Omit<SignUpFormData, "confirmPassword">) =>
@@ -120,15 +115,17 @@ function RouteComponent() {
         if (result) {
           setValue("isTurstileVerify", true)
         } else {
-          toast.error(
-            "La verificación de Turnstile fallida. Por favor, inténtalo de nuevo."
-          )
+          setError("isTurstileVerify", {
+            message:
+              "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
+          })
         }
       },
       onError: () => {
-        toast.error(
-          "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo."
-        )
+        setError("isTurstileVerify", {
+          message:
+            "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
+        })
       },
     })
 
@@ -150,9 +147,10 @@ function RouteComponent() {
   }
 
   const handleTurnstileError = () => {
-    toast.error(
-      "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo."
-    )
+    setError("isTurstileVerify", {
+      message:
+        "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
+    })
   }
 
   return (

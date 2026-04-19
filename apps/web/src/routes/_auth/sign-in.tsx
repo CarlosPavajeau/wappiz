@@ -61,7 +61,7 @@ function RouteComponent() {
   })
   const [showPassword, setShowPassword] = useState(false)
 
-  const { handleSubmit, setValue, control } = useForm({
+  const { handleSubmit, setValue, control, setError } = useForm({
     resolver: arktypeResolver(signInSchema),
   })
 
@@ -118,15 +118,17 @@ function RouteComponent() {
         if (result) {
           setValue("isTurstileVerify", true)
         } else {
-          toast.error(
-            "La verificación de Turnstile fallida. Por favor, inténtalo de nuevo."
-          )
+          setError("isTurstileVerify", {
+            message:
+              "La verificación de Turnstile fallida. Por favor, inténtalo de nuevo.",
+          })
         }
       },
       onError: () => {
-        toast.error(
-          "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo."
-        )
+        setError("isTurstileVerify", {
+          message:
+            "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
+        })
       },
     })
 
@@ -138,9 +140,10 @@ function RouteComponent() {
   }
 
   const handleTurnstileError = () => {
-    toast.error(
-      "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo."
-    )
+    setError("isTurstileVerify", {
+      message:
+        "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
+    })
   }
 
   return (
@@ -155,7 +158,6 @@ function RouteComponent() {
       </div>
 
       <form
-        noValidate
         onSubmit={handleSubmit((data) => mutate(data))}
         className="flex flex-col gap-4"
       >
