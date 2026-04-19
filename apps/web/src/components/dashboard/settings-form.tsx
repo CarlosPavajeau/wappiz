@@ -77,16 +77,14 @@ export function SettingsForm({ defaultValues }: Props) {
         <FieldGroup>
           <Field>
             <FieldLabel htmlFor="botName">Nombre del bot</FieldLabel>
-            <FieldDescription>
+            <FieldDescription id="botName-description">
               Nombre con el que el asistente se presenta a los clientes.
             </FieldDescription>
             <Input
               id="botName"
               placeholder="Asistente"
               aria-invalid={!!form.formState.errors.botName}
-              aria-describedby={
-                form.formState.errors.botName ? "botName-error" : undefined
-              }
+              aria-describedby={`botName-description${form.formState.errors.botName ? " botName-error" : ""}`}
               {...form.register("botName")}
             />
             <FieldError
@@ -99,7 +97,7 @@ export function SettingsForm({ defaultValues }: Props) {
             <FieldLabel htmlFor="welcomeMessage">
               Mensaje de bienvenida
             </FieldLabel>
-            <FieldDescription>
+            <FieldDescription id="welcomeMessage-description">
               Primer mensaje que reciben los clientes al iniciar una
               conversación.
             </FieldDescription>
@@ -107,11 +105,7 @@ export function SettingsForm({ defaultValues }: Props) {
               id="welcomeMessage"
               placeholder="¡Hola! ¿En qué puedo ayudarte hoy?"
               aria-invalid={!!form.formState.errors.welcomeMessage}
-              aria-describedby={
-                form.formState.errors.welcomeMessage
-                  ? "welcomeMessage-error"
-                  : undefined
-              }
+              aria-describedby={`welcomeMessage-description${form.formState.errors.welcomeMessage ? " welcomeMessage-error" : ""}`}
               {...form.register("welcomeMessage")}
             />
             <FieldError
@@ -124,18 +118,14 @@ export function SettingsForm({ defaultValues }: Props) {
             <FieldLabel htmlFor="cancellationMessage">
               Mensaje de cancelación
             </FieldLabel>
-            <FieldDescription>
+            <FieldDescription id="cancellationMessage-description">
               Mensaje enviado al cliente cuando se cancela una cita.
             </FieldDescription>
             <Textarea
               id="cancellationMessage"
               placeholder="Tu cita ha sido cancelada. Escríbenos para reagendar."
               aria-invalid={!!form.formState.errors.cancellationMessage}
-              aria-describedby={
-                form.formState.errors.cancellationMessage
-                  ? "cancellationMessage-error"
-                  : undefined
-              }
+              aria-describedby={`cancellationMessage-description${form.formState.errors.cancellationMessage ? " cancellationMessage-error" : ""}`}
               {...form.register("cancellationMessage")}
             />
             <FieldError
@@ -156,7 +146,7 @@ export function SettingsForm({ defaultValues }: Props) {
             <FieldLabel htmlFor="contactEmail">
               Correo electrónico de contacto
             </FieldLabel>
-            <FieldDescription>
+            <FieldDescription id="contactEmail-description">
               Dirección de correo para notificaciones y comunicaciones del
               sistema.
             </FieldDescription>
@@ -165,11 +155,7 @@ export function SettingsForm({ defaultValues }: Props) {
               type="email"
               placeholder="hola@miempresa.com"
               aria-invalid={!!form.formState.errors.contactEmail}
-              aria-describedby={
-                form.formState.errors.contactEmail
-                  ? "contactEmail-error"
-                  : undefined
-              }
+              aria-describedby={`contactEmail-description${form.formState.errors.contactEmail ? " contactEmail-error" : ""}`}
               {...form.register("contactEmail")}
             />
             <FieldError
@@ -190,20 +176,17 @@ export function SettingsForm({ defaultValues }: Props) {
             <FieldLabel htmlFor="lateCancelHours">
               Horas para cancelación tardía
             </FieldLabel>
-            <FieldDescription>
+            <FieldDescription id="lateCancelHours-description">
               Horas previas a la cita a partir de las cuales se considera una
               cancelación tardía.
             </FieldDescription>
             <Input
               id="lateCancelHours"
               type="number"
+              inputMode="numeric"
               min={0}
               aria-invalid={!!form.formState.errors.lateCancelHours}
-              aria-describedby={
-                form.formState.errors.lateCancelHours
-                  ? "lateCancelHours-error"
-                  : undefined
-              }
+              aria-describedby={`lateCancelHours-description${form.formState.errors.lateCancelHours ? " lateCancelHours-error" : ""}`}
               {...form.register("lateCancelHours", { valueAsNumber: true })}
             />
             <FieldError
@@ -216,20 +199,17 @@ export function SettingsForm({ defaultValues }: Props) {
             <FieldLabel htmlFor="autoBlockAfterNoShows">
               Bloquear tras inasistencias
             </FieldLabel>
-            <FieldDescription>
+            <FieldDescription id="autoBlockAfterNoShows-description">
               Número de inasistencias acumuladas antes de bloquear
               automáticamente al cliente.
             </FieldDescription>
             <Input
               id="autoBlockAfterNoShows"
               type="number"
+              inputMode="numeric"
               min={1}
               aria-invalid={!!form.formState.errors.autoBlockAfterNoShows}
-              aria-describedby={
-                form.formState.errors.autoBlockAfterNoShows
-                  ? "autoBlockAfterNoShows-error"
-                  : undefined
-              }
+              aria-describedby={`autoBlockAfterNoShows-description${form.formState.errors.autoBlockAfterNoShows ? " autoBlockAfterNoShows-error" : ""}`}
               {...form.register("autoBlockAfterNoShows", {
                 valueAsNumber: true,
               })}
@@ -244,20 +224,17 @@ export function SettingsForm({ defaultValues }: Props) {
             <FieldLabel htmlFor="autoBlockAfterLateCancel">
               Bloquear tras cancelaciones tardías
             </FieldLabel>
-            <FieldDescription>
+            <FieldDescription id="autoBlockAfterLateCancel-description">
               Número de cancelaciones tardías acumuladas antes de bloquear
               automáticamente al cliente.
             </FieldDescription>
             <Input
               id="autoBlockAfterLateCancel"
               type="number"
+              inputMode="numeric"
               min={1}
               aria-invalid={!!form.formState.errors.autoBlockAfterLateCancel}
-              aria-describedby={
-                form.formState.errors.autoBlockAfterLateCancel
-                  ? "autoBlockAfterLateCancel-error"
-                  : undefined
-              }
+              aria-describedby={`autoBlockAfterLateCancel-description${form.formState.errors.autoBlockAfterLateCancel ? " autoBlockAfterLateCancel-error" : ""}`}
               {...form.register("autoBlockAfterLateCancel", {
                 valueAsNumber: true,
               })}
@@ -288,7 +265,7 @@ export function SettingsForm({ defaultValues }: Props) {
       </FieldSet>
 
       <div className="flex justify-end pt-2">
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} aria-busy={isPending} className="w-full sm:w-auto">
           {isPending ? "Guardando..." : "Guardar ajustes"}
         </Button>
       </div>
