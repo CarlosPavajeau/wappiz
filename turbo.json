@@ -15,7 +15,9 @@
         "VITE_PUBLIC_POSTHOG_HOST",
         "RESEND_API_KEY",
         "RESEND_SEGMENT_ID",
-        "SENTRY_AUTH_TOKEN"
+        "SENTRY_AUTH_TOKEN",
+        "VITE_CLOUDFLARE_TURNSTILE_SITE_KEY",
+        "CLOUDFLARE_TURNSTILE_SECRET_KEY"
       ],
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
