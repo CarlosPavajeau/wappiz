@@ -15,7 +15,7 @@ function RouteComponent() {
   const { tenant } = Route.useLoaderData()
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col space-y-6 sm:space-y-8">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
           Configuración
@@ -25,9 +25,7 @@ function RouteComponent() {
         </p>
       </div>
 
-      <div className="mx-auto w-full">
-        <SettingsForm defaultValues={tenant.settings} />
-      </div>
+      <SettingsForm defaultValues={tenant.settings} />
     </div>
   )
 }
