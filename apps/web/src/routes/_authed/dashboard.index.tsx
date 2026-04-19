@@ -19,14 +19,13 @@ function RouteComponent() {
   })
 
   const AdminComponent = (
-    <>
-      <PostHogFeature flag="calendar_view" match={true}>
-        <AppointmentsCalendar />
-      </PostHogFeature>
-      <PostHogFeature flag="calendar_view" match={false}>
-        <AdminDashboard />
-      </PostHogFeature>
-    </>
+    <PostHogFeature
+      flag="calendar_view"
+      match={true}
+      fallback={<AdminDashboard />}
+    >
+      <AppointmentsCalendar />
+    </PostHogFeature>
   )
 
   return <div>{isSuperAdmin ? <PendingActivations /> : AdminComponent}</div>
