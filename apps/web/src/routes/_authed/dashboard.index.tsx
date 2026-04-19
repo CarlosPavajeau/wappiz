@@ -20,18 +20,10 @@ function RouteComponent() {
 
   const AdminComponent = (
     <>
-      <PostHogFeature
-        flag="calendar_view"
-        match={true}
-        fallback={<PendingComponent />}
-      >
+      <PostHogFeature flag="calendar_view" match={true}>
         <AppointmentsCalendar />
       </PostHogFeature>
-      <PostHogFeature
-        flag="calendar_view"
-        match={false}
-        fallback={<PendingComponent />}
-      >
+      <PostHogFeature flag="calendar_view" match={false}>
         <AdminDashboard />
       </PostHogFeature>
     </>
