@@ -1,4 +1,4 @@
-import { useFeatureFlagEnabled } from "@posthog/react"
+import { PostHogFeature, useFeatureFlagEnabled } from "@posthog/react"
 import { createFileRoute, useRouteContext } from "@tanstack/react-router"
 
 import { AdminDashboard } from "@/components/appointments/admin-dashboard"
@@ -18,12 +18,23 @@ function RouteComponent() {
     from: "/_authed",
   })
 
-  const enableCalendarView = useFeatureFlagEnabled("calendar_view")
-
-  const AdminComponent = enableCalendarView ? (
-    <AdminDashboard />
-  ) : (
-    <AppointmentsCalendar />
+  const AdminComponent = (
+    <>
+      <PostHogFeature
+        flag="calendar_view"
+        match={true}
+        fallback={<PendingComponent />}
+      >
+        <AppointmentsCalendar />
+      </PostHogFeature>
+      <PostHogFeature
+        flag="calendar_view"
+        match={false}
+        fallback={<PendingComponent />}
+      >
+        <AdminDashboard />
+      </PostHogFeature>
+    </>
   )
 
   return <div>{isSuperAdmin ? <PendingActivations /> : AdminComponent}</div>
