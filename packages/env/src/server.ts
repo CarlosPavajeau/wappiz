@@ -14,6 +14,7 @@ export const env = createEnv({
     DATABASE_URL: z.string(),
     RESEND_API_KEY: z.string(),
     RESEND_SEGMENT_ID: z.string(),
+    CLOUDFLARE_TURNSTILE_SECRET_KEY: z.string(),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),

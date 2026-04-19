@@ -5,9 +5,10 @@ import { useMutation } from "@tanstack/react-query"
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { TurnstileChallenge } from "@/components/auth/turnstile-challenge"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { Button } from "@/components/ui/button"
 import {
@@ -17,7 +18,14 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
+import { verifyTurnstileToken } from "@/functions/verify-turnstile-token"
 import { authClient } from "@/lib/auth-client"
 
 const searchSchema = type({
@@ -38,6 +46,10 @@ const signInSchema = type({
   password: type("string >= 1").configure({
     message: "La contraseña es requerida",
   }),
+  isTurstileVerify: type("boolean").configure({
+    message:
+      "Verificación de Turnstile fallida. Por favor, inténtalo de nuevo.",
+  }),
 })
 
 type SignInFormData = typeof signInSchema.infer
@@ -49,11 +61,7 @@ function RouteComponent() {
   })
   const [showPassword, setShowPassword] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
+  const { handleSubmit, setValue, control } = useForm({
     resolver: arktypeResolver(signInSchema),
   })
 
@@ -100,8 +108,40 @@ function RouteComponent() {
     },
   })
 
+  const { mutate: verifyTurnstile, isPending: isTurnstilePending } =
+    useMutation({
+      mutationFn: (token: string) =>
+        verifyTurnstileToken({
+          data: { token },
+        }),
+      onSuccess: (result) => {
+        if (result) {
+          setValue("isTurstileVerify", true)
+        } else {
+          toast.error(
+            "La verificación de Turnstile fallida. Por favor, inténtalo de nuevo."
+          )
+        }
+      },
+      onError: () => {
+        toast.error(
+          "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo."
+        )
+      },
+    })
+
   const togglePassword = () => setShowPassword((prev) => !prev)
   const handleGoogleSignIn = () => signInWithGoogle()
+
+  const handleTurnstileSuccess = (token: string) => {
+    verifyTurnstile(token)
+  }
+
+  const handleTurnstileError = () => {
+    toast.error(
+      "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo."
+    )
+  }
 
   return (
     <div className="w-full max-w-sm">
@@ -120,64 +160,95 @@ function RouteComponent() {
         className="flex flex-col gap-4"
       >
         <FieldGroup>
-          <Field data-invalid={!!errors.email}>
-            <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="tu@ejemplo.com"
-              autoComplete="email"
-              aria-invalid={!!errors.email}
-              {...register("email")}
-            />
-            <FieldError errors={[errors.email]} />
-          </Field>
-
-          <Field data-invalid={!!errors.password}>
-            <FieldLabel htmlFor="password">
-              Contraseña
-              <Button
-                variant="link"
-                className="ml-auto p-0"
-                size="sm"
-                render={<Link to="/reset-password" />}
-                nativeButton={false}
-              >
-                ¿Olvidaste tu contraseña?
-              </Button>
-            </FieldLabel>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                autoComplete="current-password"
-                className="pr-9"
-                aria-invalid={!!errors.password}
-                {...register("password")}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label={
-                  showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                }
-                onClick={togglePassword}
-              >
-                <HugeiconsIcon
-                  icon={showPassword ? ViewOffSlashIcon : EyeIcon}
-                  size={16}
-                  strokeWidth={1.5}
+          <Controller
+            control={control}
+            name="email"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Correo electrónico</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="email"
+                  placeholder="tu@ejemplo.com"
+                  autoComplete="email"
+                  aria-invalid={fieldState.invalid}
                 />
-              </Button>
-            </div>
-            <FieldError errors={[errors.password]} />
-          </Field>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="password"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  Contraseña
+                  <Button
+                    variant="link"
+                    className="ml-auto p-0"
+                    size="sm"
+                    render={<Link to="/reset-password" />}
+                    nativeButton={false}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Button>
+                </FieldLabel>
+
+                <InputGroup>
+                  <InputGroupInput
+                    {...field}
+                    id={field.name}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    type={showPassword ? "text" : "password"}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      aria-label={
+                        showPassword
+                          ? "Ocultar contraseña"
+                          : "Mostrar contraseña"
+                      }
+                      size="icon-xs"
+                      onClick={togglePassword}
+                    >
+                      <HugeiconsIcon
+                        icon={showPassword ? ViewOffSlashIcon : EyeIcon}
+                        strokeWidth={2}
+                      />
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
         </FieldGroup>
 
-        <Button type="submit" className="mt-2 w-full" disabled={isPending}>
+        <Controller
+          control={control}
+          name="isTurstileVerify"
+          render={({ fieldState }) => (
+            <Field>
+              <TurnstileChallenge
+                onSuccess={handleTurnstileSuccess}
+                onError={handleTurnstileError}
+              />
+
+              <FieldError errors={[fieldState.error]} />
+            </Field>
+          )}
+        />
+
+        <Button
+          type="submit"
+          className="mt-2 w-full"
+          disabled={isPending || isTurnstilePending}
+        >
           {isPending && <Spinner className="animate-spin" />}
           Iniciar sesión
         </Button>
