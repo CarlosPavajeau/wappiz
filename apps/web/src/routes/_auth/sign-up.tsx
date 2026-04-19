@@ -8,8 +8,8 @@ import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { GoogleSigning } from "@/components/auth/google-signing"
 import { TurnstileChallenge } from "@/components/auth/turnstile-challenge"
-import { GoogleIcon } from "@/components/icons/google-icon"
 import { Button } from "@/components/ui/button"
 import {
   Field,
@@ -94,17 +94,6 @@ function RouteComponent() {
     },
   })
 
-  const { mutate: signInWithGoogle, isPending: isGooglePending } = useMutation({
-    mutationFn: () =>
-      authClient.signIn.social({
-        callbackURL: "/dashboard",
-        provider: "google",
-      }),
-    onError: () => {
-      toast.error("No se pudo registrar con Google. Inténtalo de nuevo.")
-    },
-  })
-
   const { mutate: verifyTurnstile, isPending: isTurnstilePending } =
     useMutation({
       mutationFn: (token: string) =>
@@ -140,7 +129,6 @@ function RouteComponent() {
 
   const togglePassword = () => setShowPassword((prev) => !prev)
   const toggleConfirm = () => setShowConfirm((prev) => !prev)
-  const handleGoogleSignIn = () => signInWithGoogle()
 
   const handleTurnstileSuccess = (token: string) => {
     verifyTurnstile(token)
@@ -311,21 +299,7 @@ function RouteComponent() {
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full gap-2 transition-colors duration-200"
-          disabled={isGooglePending || isPending}
-          onClick={handleGoogleSignIn}
-          aria-label="Registrarse con Google"
-        >
-          {isGooglePending ? (
-            <Spinner className="animate-spin" />
-          ) : (
-            <GoogleIcon size={18} />
-          )}
-          Continuar con Google
-        </Button>
+        <GoogleSigning />
       </form>
 
       <div className="mt-6 flex flex-col items-center gap-3 text-center">
