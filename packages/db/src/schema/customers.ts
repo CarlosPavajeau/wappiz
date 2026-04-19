@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm"
 import {
   boolean,
+  date,
   integer,
   pgTable,
   timestamp,
@@ -20,6 +21,10 @@ export const customers = pgTable(
       .references(() => tenants.id, { onDelete: "cascade" }),
     phoneNumber: varchar("phone_number", { length: 20 }).notNull(),
     name: varchar({ length: 255 }),
+    documentId: varchar({ length: 20 }),
+    birthDate: date("birth_date"),
+    email: varchar({ length: 255 }),
+    address: varchar({ length: 255 }),
     isBlocked: boolean("is_blocked").default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`now()`)
