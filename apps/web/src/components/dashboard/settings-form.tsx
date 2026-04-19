@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/client-api"
 
 const settingsSchema = type({
@@ -50,12 +49,16 @@ type Props = {
 export function SettingsForm({ defaultValues }: Props) {
   const router = useRouter()
 
-  const form = useForm<SettingsFormValues>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<SettingsFormValues>({
     defaultValues,
     resolver: arktypeResolver(settingsSchema),
   })
 
-  const { mutate: updateSettings, isPending } = useMutation({
+  const { mutateAsync: updateSettings } = useMutation({
     mutationFn: (values: SettingsFormValues) =>
       api.tenants.updateSettings(values),
     onError: () => {
@@ -67,72 +70,78 @@ export function SettingsForm({ defaultValues }: Props) {
     },
   })
 
-  const onSubmit = form.handleSubmit((values) => updateSettings(values))
+  const onSubmit = handleSubmit(async (values) => await updateSettings(values))
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-8">
+    <form onSubmit={onSubmit} className="space-y-8">
       <FieldSet>
         <FieldLegend>Chatbot</FieldLegend>
 
         <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="botName">Nombre del bot</FieldLabel>
-            <FieldDescription id="botName-description">
-              Nombre con el que el asistente se presenta a los clientes.
-            </FieldDescription>
-            <Input
-              id="botName"
-              placeholder="Asistente"
-              aria-invalid={!!form.formState.errors.botName}
-              aria-describedby={`botName-description${form.formState.errors.botName ? " botName-error" : ""}`}
-              {...form.register("botName")}
-            />
-            <FieldError
-              id="botName-error"
-              errors={[form.formState.errors.botName]}
-            />
-          </Field>
+          <Controller
+            control={control}
+            name="botName"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Nombre del bot</FieldLabel>
+                <FieldDescription>
+                  Nombre con el que el asistente se presenta a los clientes.
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id={field.name}
+                  placeholder="Asistente"
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-          <Field>
-            <FieldLabel htmlFor="welcomeMessage">
-              Mensaje de bienvenida
-            </FieldLabel>
-            <FieldDescription id="welcomeMessage-description">
-              Primer mensaje que reciben los clientes al iniciar una
-              conversación.
-            </FieldDescription>
-            <Textarea
-              id="welcomeMessage"
-              placeholder="¡Hola! ¿En qué puedo ayudarte hoy?"
-              aria-invalid={!!form.formState.errors.welcomeMessage}
-              aria-describedby={`welcomeMessage-description${form.formState.errors.welcomeMessage ? " welcomeMessage-error" : ""}`}
-              {...form.register("welcomeMessage")}
-            />
-            <FieldError
-              id="welcomeMessage-error"
-              errors={[form.formState.errors.welcomeMessage]}
-            />
-          </Field>
+          <Controller
+            control={control}
+            name="welcomeMessage"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  Mensaje de bienvenida
+                </FieldLabel>
+                <FieldDescription>
+                  Primer mensaje que reciben los clientes al iniciar una
+                  conversación.
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id={field.name}
+                  placeholder="¡Hola! ¿En qué puedo ayudarte hoy?"
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-          <Field>
-            <FieldLabel htmlFor="cancellationMessage">
-              Mensaje de cancelación
-            </FieldLabel>
-            <FieldDescription id="cancellationMessage-description">
-              Mensaje enviado al cliente cuando se cancela una cita.
-            </FieldDescription>
-            <Textarea
-              id="cancellationMessage"
-              placeholder="Tu cita ha sido cancelada. Escríbenos para reagendar."
-              aria-invalid={!!form.formState.errors.cancellationMessage}
-              aria-describedby={`cancellationMessage-description${form.formState.errors.cancellationMessage ? " cancellationMessage-error" : ""}`}
-              {...form.register("cancellationMessage")}
-            />
-            <FieldError
-              id="cancellationMessage-error"
-              errors={[form.formState.errors.cancellationMessage]}
-            />
-          </Field>
+          <Controller
+            control={control}
+            name="cancellationMessage"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  Mensaje de cancelación
+                </FieldLabel>
+                <FieldDescription>
+                  Mensaje enviado al cliente cuando se cancela una cita.
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id={field.name}
+                  placeholder="Tu cita ha sido cancelada. Escríbenos para reagendar."
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
         </FieldGroup>
       </FieldSet>
 
@@ -142,27 +151,29 @@ export function SettingsForm({ defaultValues }: Props) {
         <FieldLegend>Contacto</FieldLegend>
 
         <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="contactEmail">
-              Correo electrónico de contacto
-            </FieldLabel>
-            <FieldDescription id="contactEmail-description">
-              Dirección de correo para notificaciones y comunicaciones del
-              sistema.
-            </FieldDescription>
-            <Input
-              id="contactEmail"
-              type="email"
-              placeholder="hola@miempresa.com"
-              aria-invalid={!!form.formState.errors.contactEmail}
-              aria-describedby={`contactEmail-description${form.formState.errors.contactEmail ? " contactEmail-error" : ""}`}
-              {...form.register("contactEmail")}
-            />
-            <FieldError
-              id="contactEmail-error"
-              errors={[form.formState.errors.contactEmail]}
-            />
-          </Field>
+          <Controller
+            control={control}
+            name="contactEmail"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  Correo electrónico de contacto
+                </FieldLabel>
+                <FieldDescription>
+                  Dirección de correo para notificaciones y comunicaciones del
+                  sistema.
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="email"
+                  placeholder="hola@miempresa.com"
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
         </FieldGroup>
       </FieldSet>
 
@@ -172,101 +183,120 @@ export function SettingsForm({ defaultValues }: Props) {
         <FieldLegend>Políticas de cancelación y bloqueo</FieldLegend>
 
         <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="lateCancelHours">
-              Horas para cancelación tardía
-            </FieldLabel>
-            <FieldDescription id="lateCancelHours-description">
-              Horas previas a la cita a partir de las cuales se considera una
-              cancelación tardía.
-            </FieldDescription>
-            <Input
-              id="lateCancelHours"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              aria-invalid={!!form.formState.errors.lateCancelHours}
-              aria-describedby={`lateCancelHours-description${form.formState.errors.lateCancelHours ? " lateCancelHours-error" : ""}`}
-              {...form.register("lateCancelHours", { valueAsNumber: true })}
-            />
-            <FieldError
-              id="lateCancelHours-error"
-              errors={[form.formState.errors.lateCancelHours]}
-            />
-          </Field>
+          <Controller
+            control={control}
+            name="lateCancelHours"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  Horas para cancelación tardía
+                </FieldLabel>
+                <FieldDescription>
+                  Horas previas a la cita a partir de las cuales se considera
+                  una cancelación tardía.
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  aria-invalid={fieldState.invalid}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    field.onChange(val === "" ? "" : Number(val))
+                  }}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-          <Field>
-            <FieldLabel htmlFor="autoBlockAfterNoShows">
-              Bloquear tras inasistencias
-            </FieldLabel>
-            <FieldDescription id="autoBlockAfterNoShows-description">
-              Número de inasistencias acumuladas antes de bloquear
-              automáticamente al cliente.
-            </FieldDescription>
-            <Input
-              id="autoBlockAfterNoShows"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              aria-invalid={!!form.formState.errors.autoBlockAfterNoShows}
-              aria-describedby={`autoBlockAfterNoShows-description${form.formState.errors.autoBlockAfterNoShows ? " autoBlockAfterNoShows-error" : ""}`}
-              {...form.register("autoBlockAfterNoShows", {
-                valueAsNumber: true,
-              })}
-            />
-            <FieldError
-              id="autoBlockAfterNoShows-error"
-              errors={[form.formState.errors.autoBlockAfterNoShows]}
-            />
-          </Field>
+          <Controller
+            control={control}
+            name="autoBlockAfterNoShows"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  Bloquear tras inasistencias
+                </FieldLabel>
+                <FieldDescription>
+                  Número de inasistencias acumuladas antes de bloquear
+                  automáticamente al cliente.
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  aria-invalid={fieldState.invalid}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    field.onChange(val === "" ? "" : Number(val))
+                  }}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-          <Field>
-            <FieldLabel htmlFor="autoBlockAfterLateCancel">
-              Bloquear tras cancelaciones tardías
-            </FieldLabel>
-            <FieldDescription id="autoBlockAfterLateCancel-description">
-              Número de cancelaciones tardías acumuladas antes de bloquear
-              automáticamente al cliente.
-            </FieldDescription>
-            <Input
-              id="autoBlockAfterLateCancel"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              aria-invalid={!!form.formState.errors.autoBlockAfterLateCancel}
-              aria-describedby={`autoBlockAfterLateCancel-description${form.formState.errors.autoBlockAfterLateCancel ? " autoBlockAfterLateCancel-error" : ""}`}
-              {...form.register("autoBlockAfterLateCancel", {
-                valueAsNumber: true,
-              })}
-            />
-            <FieldError
-              id="autoBlockAfterLateCancel-error"
-              errors={[form.formState.errors.autoBlockAfterLateCancel]}
-            />
-          </Field>
+          <Controller
+            control={control}
+            name="autoBlockAfterLateCancel"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  Bloquear tras cancelaciones tardías
+                </FieldLabel>
+                <FieldDescription>
+                  Número de cancelaciones tardías acumuladas antes de bloquear
+                  automáticamente al cliente.
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id={field.name}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  aria-invalid={fieldState.invalid}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    field.onChange(val === "" ? "" : Number(val))
+                  }}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
 
-          <Field orientation="horizontal">
-            <Controller
-              control={form.control}
-              name="sendWarningBeforeBlock"
-              render={({ field }) => (
+          <Controller
+            control={control}
+            name="sendWarningBeforeBlock"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid} orientation="horizontal">
                 <Checkbox
                   id="sendWarningBeforeBlock"
                   checked={field.value}
                   onCheckedChange={(checked) => field.onChange(checked)}
                 />
-              )}
-            />
-            <FieldLabel htmlFor="sendWarningBeforeBlock">
-              Enviar advertencia antes de bloquear
-            </FieldLabel>
-          </Field>
+                <FieldLabel htmlFor="sendWarningBeforeBlock">
+                  Enviar advertencia antes de bloquear
+                </FieldLabel>
+              </Field>
+            )}
+          />
         </FieldGroup>
       </FieldSet>
 
       <div className="flex justify-end pt-2">
-        <Button type="submit" disabled={isPending} aria-busy={isPending} className="w-full sm:w-auto">
-          {isPending ? "Guardando..." : "Guardar ajustes"}
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          className="w-full sm:w-auto"
+        >
+          {isSubmitting ? "Guardando..." : "Guardar ajustes"}
         </Button>
       </div>
     </form>
