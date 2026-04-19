@@ -109,7 +109,7 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
                   para gestionar las reservas de tu negocio. Nos comunicaremos
                   por el correo que indiques a continuación. Si ya posees un
                   número de WhatsApp, puedes indicarlo en las notas y nos
-                  comunicaremos contigo para el proceso de asignación.
+                  comunicaremos contigo para el proceso de migración.
                 </p>
               </div>
             </div>
