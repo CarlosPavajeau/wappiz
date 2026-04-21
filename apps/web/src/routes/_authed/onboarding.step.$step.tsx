@@ -4,6 +4,7 @@ import { StepBarberForm } from "@/components/onboarding/step-barber-form"
 import { StepServicesForm } from "@/components/onboarding/step-services-form"
 import { StepTenantForm } from "@/components/onboarding/step-tenant-form"
 import { StepWhatsAppForm } from "@/components/onboarding/step-whatsapp-form"
+import { Skeleton } from "@/components/ui/skeleton"
 import { onboardingProgressQuery } from "@/queries/onboarding"
 
 const MIN_STEP = 1
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/_authed/onboarding/step/$step")({
 
     return { step }
   },
+  pendingComponent: PendingComponent,
 })
 
 function RouteComponent() {
@@ -62,4 +64,29 @@ function RouteComponent() {
   }
 
   return <StepWhatsAppForm initialEmail={user.user.email} />
+}
+
+function PendingComponent() {
+  return (
+    <section className="flex w-full flex-col items-center">
+      <div className="flex w-full max-w-lg flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-4 w-72" />
+        </div>
+
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-28" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+
+          <div className="flex justify-end">
+            <Skeleton className="h-10 w-28" />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
 }

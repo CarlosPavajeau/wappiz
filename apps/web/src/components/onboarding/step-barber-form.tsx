@@ -1,6 +1,4 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import { InformationCircleIcon } from "@hugeicons/core-free-icons"
-import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
@@ -9,14 +7,6 @@ import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Field,
   FieldError,
@@ -34,9 +24,8 @@ import {
 } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
+import { cn } from "@/lib/utils"
 import { onboardingProgressQuery } from "@/queries/onboarding"
-
-import { StepIndicator } from "./step-indicator"
 
 const TIME_OPTIONS = Array.from({ length: 35 }, (_, i) => {
   const totalMinutes = 6 * 60 + i * 30
@@ -135,169 +124,156 @@ export function StepBarberForm() {
   })
 
   return (
-    <div className="flex w-full max-w-prose flex-col gap-6">
-      <StepIndicator currentStep={2} />
+    <div className="flex w-full max-w-lg animate-in flex-col gap-8 duration-[280ms] ease-out fade-in-0 slide-in-from-bottom-3">
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-medium tracking-[0.18em] text-muted-foreground/60 uppercase">
+          Paso 2 de 4
+        </span>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Tu primer recurso
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Agrega el primer miembro de tu equipo y su horario.
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Tu primer recurso</CardTitle>
-          <CardDescription>
-            Agrega el primer miembro de tu equipo
-          </CardDescription>
-        </CardHeader>
+      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-6">
+        <FieldGroup>
+          <Controller
+            control={control}
+            name="name"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="text"
+                  placeholder="Ej. Carlos"
+                  autoComplete="off"
+                  autoFocus
+                  aria-invalid={fieldState.invalid}
+                  {...field}
+                />
+                <FieldError errors={[errors.name]} />
+              </Field>
+            )}
+          />
 
-        <CardContent>
-          <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
-            <FieldGroup>
+          <Controller
+            control={control}
+            name="workingDays"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldTitle>Días de trabajo</FieldTitle>
+                <div
+                  className="grid grid-cols-7 gap-1.5"
+                  role="group"
+                  aria-label="Días de trabajo"
+                >
+                  {DAYS.map((day) => {
+                    const isSelected = field.value.includes(day.value)
+                    return (
+                      <button
+                        key={day.value}
+                        type="button"
+                        role="checkbox"
+                        aria-checked={isSelected}
+                        onClick={() => {
+                          const next = isSelected
+                            ? field.value
+                                .filter((d) => d !== day.value)
+                                .sort(sortByDay)
+                            : [...field.value, day.value].sort(sortByDay)
+                          field.onChange(next)
+                        }}
+                        className={cn(
+                          "flex h-10 items-center justify-center rounded-md text-xs font-medium transition-all",
+                          isSelected
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted/60 text-muted-foreground hover:bg-muted"
+                        )}
+                      >
+                        {day.label}
+                      </button>
+                    )
+                  })}
+                </div>
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+
+          <Field>
+            <FieldTitle>Horario de atención</FieldTitle>
+            <div className="grid grid-cols-2 gap-3">
               <Controller
                 control={control}
-                name="name"
+                name="startTime"
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
-                    <Input
-                      id={field.name}
-                      type="text"
-                      placeholder="Ej. Carlos"
-                      autoComplete="off"
-                      aria-invalid={fieldState.invalid}
-                      {...field}
-                    />
-                    <FieldError errors={[errors.name]} />
-                  </Field>
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="workingDays"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldTitle>Días de trabajo</FieldTitle>
-                    <div className="grid grid-cols-7 gap-1">
-                      {DAYS.map((day) => (
-                        <label
-                          key={day.value}
-                          className="flex cursor-pointer flex-col items-center gap-1.5 rounded-md p-2 transition-colors hover:bg-muted"
-                        >
-                          <Checkbox
-                            checked={field.value.includes(day.value)}
-                            onCheckedChange={(checked) => {
-                              const next = checked
-                                ? [...field.value, day.value].sort(sortByDay)
-                                : field.value.filter((d) => d !== day.value)
-                              field.onChange(next)
-                            }}
-                          />
-                          <span className="text-xs text-muted-foreground">
-                            {day.label}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
+                    <FieldLabel htmlFor={field.name}>Apertura</FieldLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        id={field.name}
+                        className="w-full"
+                        aria-invalid={fieldState.invalid}
+                      >
+                        <SelectValue>
+                          {TIME_LABELS_BY_VALUE.get(field.value) ?? field.value}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIME_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FieldError errors={[fieldState.error]} />
                   </Field>
                 )}
               />
 
-              <Field>
-                <FieldTitle>Horario de atención</FieldTitle>
-                <div className="grid grid-cols-2 gap-3">
-                  <Controller
-                    control={control}
-                    name="startTime"
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor={field.name}>Apertura</FieldLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger
-                            id={field.name}
-                            className="w-full"
-                            aria-invalid={fieldState.invalid}
-                          >
-                            <SelectValue>
-                              {TIME_LABELS_BY_VALUE.get(field.value) ??
-                                field.value}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIME_OPTIONS.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FieldError errors={[fieldState.error]} />
-                      </Field>
-                    )}
-                  />
-
-                  <Controller
-                    control={control}
-                    name="endTime"
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor={field.name}>Cierre</FieldLabel>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger
-                            id={field.name}
-                            className="w-full"
-                            aria-invalid={fieldState.invalid}
-                          >
-                            <SelectValue>
-                              {TIME_LABELS_BY_VALUE.get(field.value) ??
-                                field.value}
-                            </SelectValue>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIME_OPTIONS.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FieldError errors={[fieldState.error]} />
-                      </Field>
-                    )}
-                  />
-                </div>
-              </Field>
-            </FieldGroup>
-
-            <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
-              <HugeiconsIcon
-                icon={InformationCircleIcon}
-                className="mt-px size-4 shrink-0 text-primary/70"
-                strokeWidth={2}
+              <Controller
+                control={control}
+                name="endTime"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Cierre</FieldLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        id={field.name}
+                        className="w-full"
+                        aria-invalid={fieldState.invalid}
+                      >
+                        <SelectValue>
+                          {TIME_LABELS_BY_VALUE.get(field.value) ?? field.value}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIME_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
               />
-              <p>
-                Podrás agregar más recursos y personalizar horarios individuales
-                desde el panel.
-              </p>
             </div>
+          </Field>
+        </FieldGroup>
 
-            <div className="flex items-center gap-3 pt-1">
-              <Button
-                type="submit"
-                className="ml-auto"
-                disabled={isSubmitting}
-                size="lg"
-              >
-                {isSubmitting && <Spinner />}
-                Continuar
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        <div className="flex justify-end pt-2">
+          <Button type="submit" disabled={isSubmitting} size="lg">
+            {isSubmitting && <Spinner />}
+            Continuar
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }

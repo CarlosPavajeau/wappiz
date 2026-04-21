@@ -13,13 +13,6 @@ import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
@@ -37,8 +30,6 @@ import {
 } from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
 import { onboardingProgressQuery } from "@/queries/onboarding"
-
-import { StepIndicator } from "./step-indicator"
 
 const MAX_SERVICES = 5
 
@@ -122,162 +113,148 @@ export function StepServicesForm() {
   })
 
   return (
-    <div className="flex w-full max-w-prose flex-col gap-6">
-      <StepIndicator currentStep={3} />
+    <div className="flex w-full max-w-lg animate-in flex-col gap-8 duration-[280ms] ease-out fade-in-0 slide-in-from-bottom-3">
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-medium tracking-[0.18em] text-muted-foreground/60 uppercase">
+          Paso 3 de 4
+        </span>
+        <h1 className="text-2xl font-semibold tracking-tight">Tus servicios</h1>
+        <p className="text-sm text-muted-foreground">
+          Ajusta los nombres, duración y precios de lo que ofreces.
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Tus servicios</CardTitle>
-          <CardDescription>
-            Ajusta los nombres, duración y precios
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <form onSubmit={onSubmit} className="flex flex-col gap-5">
-            <FieldGroup>
-              {fields.map((f, index) => (
-                <div
-                  className="flex flex-col gap-2 md:flex-row md:items-end"
-                  key={`${f.id}-${index}`}
-                >
-                  <Controller
-                    control={control}
-                    name={`services.${index}.name`}
-                    render={({ field, fieldState }) => (
-                      <Field className="flex-1">
-                        <FieldLabel htmlFor={field.name}>Servicio</FieldLabel>
-                        <Input
-                          {...field}
-                          id={field.name}
-                          type="text"
-                          placeholder="Nombre del servicio"
-                          aria-invalid={fieldState.invalid}
-                        />
-                      </Field>
-                    )}
-                  />
-
-                  <div className="flex gap-2">
-                    <Controller
-                      control={control}
-                      name={`services.${index}.durationMinutes`}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel htmlFor={field.name}>Duración</FieldLabel>
-                          <Select
-                            value={String(field.value)}
-                            onValueChange={(val) => field.onChange(Number(val))}
-                          >
-                            <SelectTrigger id={field.name} className="w-28">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {DURATION_OPTIONS.map((opt) => (
-                                <SelectItem
-                                  key={opt.value}
-                                  value={String(opt.value)}
-                                >
-                                  {opt.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </Field>
-                      )}
+      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
+        <FieldGroup>
+          {fields.map((f, index) => (
+            <div
+              className="flex flex-col gap-2 md:flex-row md:items-end"
+              key={`${f.id}-${index}`}
+            >
+              <Controller
+                control={control}
+                name={`services.${index}.name`}
+                render={({ field, fieldState }) => (
+                  <Field className="flex-1">
+                    <FieldLabel htmlFor={field.name}>Servicio</FieldLabel>
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type="text"
+                      placeholder="Nombre del servicio"
+                      aria-invalid={fieldState.invalid}
                     />
-
-                    <Controller
-                      control={control}
-                      name={`services.${index}.price`}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel htmlFor={field.name}>Precio</FieldLabel>
-                          <Input
-                            {...field}
-                            id={field.name}
-                            type="number"
-                            min="0"
-                            step="100"
-                            aria-invalid={fieldState.invalid}
-                            onChange={(e) => {
-                              const val = e.target.value
-                              field.onChange(val === "" ? "" : Number(val))
-                            }}
-                          />
-                        </Field>
-                      )}
-                    />
-                  </div>
-
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="self-end text-muted-foreground hover:text-destructive"
-                          disabled={fields.length <= 1}
-                          onClick={() => remove(index)}
-                          aria-label="Eliminar servicio"
-                        >
-                          <HugeiconsIcon icon={Trash} strokeWidth={2} />
-                        </Button>
-                      }
-                    />
-                    <TooltipContent>Descartar servicio</TooltipContent>
-                  </Tooltip>
-                </div>
-              ))}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="w-fit"
-                disabled={fields.length >= MAX_SERVICES}
-                onClick={() =>
-                  append({
-                    ...DEFAULT_SERVICE,
-                  })
-                }
-              >
-                <HugeiconsIcon
-                  icon={PlusSignIcon}
-                  strokeWidth={2}
-                  data-icon="inline-start"
-                />
-                Agregar servicio
-              </Button>
-            </FieldGroup>
-
-            <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
-              <HugeiconsIcon
-                icon={InformationCircleIcon}
-                className="mt-px size-4 shrink-0 text-primary/70"
-                strokeWidth={2}
+                  </Field>
+                )}
               />
-              <p>
-                Puedes agregar hasta {MAX_SERVICES} servicios. Si necesitas más,
-                puedes agregar más servicios en el panel.
-              </p>
-            </div>
 
-            <div className="flex items-center gap-3 pt-1">
-              <Button
-                type="submit"
-                className="ml-auto"
-                disabled={isSubmitting}
-                size="lg"
-              >
-                {isSubmitting && <Spinner />}
-                Continuar
-              </Button>
+              <div className="flex gap-2">
+                <Controller
+                  control={control}
+                  name={`services.${index}.durationMinutes`}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor={field.name}>Duración</FieldLabel>
+                      <Select
+                        value={String(field.value)}
+                        onValueChange={(val) => field.onChange(Number(val))}
+                      >
+                        <SelectTrigger id={field.name} className="w-28">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DURATION_OPTIONS.map((opt) => (
+                            <SelectItem
+                              key={opt.value}
+                              value={String(opt.value)}
+                            >
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  control={control}
+                  name={`services.${index}.price`}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor={field.name}>Precio</FieldLabel>
+                      <Input
+                        {...field}
+                        id={field.name}
+                        type="number"
+                        min="0"
+                        step="100"
+                        aria-invalid={fieldState.invalid}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          field.onChange(val === "" ? "" : Number(val))
+                        }}
+                      />
+                    </Field>
+                  )}
+                />
+              </div>
+
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="self-end text-muted-foreground hover:text-destructive"
+                      disabled={fields.length <= 1}
+                      onClick={() => remove(index)}
+                      aria-label="Eliminar servicio"
+                    >
+                      <HugeiconsIcon icon={Trash} strokeWidth={2} />
+                    </Button>
+                  }
+                />
+                <TooltipContent>Descartar servicio</TooltipContent>
+              </Tooltip>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+          ))}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="w-fit"
+            disabled={fields.length >= MAX_SERVICES}
+            onClick={() => append({ ...DEFAULT_SERVICE })}
+          >
+            <HugeiconsIcon
+              icon={PlusSignIcon}
+              strokeWidth={2}
+              data-icon="inline-start"
+            />
+            Agregar servicio
+          </Button>
+        </FieldGroup>
+
+        <p className="flex items-start gap-1.5 text-xs text-muted-foreground/70">
+          <HugeiconsIcon
+            icon={InformationCircleIcon}
+            className="mt-px size-3.5 shrink-0"
+            strokeWidth={2}
+          />
+          Puedes agregar hasta {MAX_SERVICES} servicios. Más opciones están
+          disponibles desde el panel.
+        </p>
+
+        <div className="flex justify-end pt-2">
+          <Button type="submit" disabled={isSubmitting} size="lg">
+            {isSubmitting && <Spinner />}
+            Continuar
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }

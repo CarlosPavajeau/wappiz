@@ -10,13 +10,6 @@ import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
   Field,
   FieldError,
   FieldGroup,
@@ -26,8 +19,6 @@ import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
 import { onboardingProgressQuery } from "@/queries/onboarding"
-
-import { StepIndicator } from "./step-indicator"
 
 const tenantSchema = type({
   name: type("string >= 2").configure({
@@ -68,71 +59,59 @@ export function StepTenantForm() {
   })
 
   return (
-    <div className="flex w-full max-w-prose flex-col gap-6">
-      <StepIndicator currentStep={1} />
+    <div className="flex w-full max-w-lg animate-in flex-col gap-8 duration-[280ms] ease-out fade-in-0 slide-in-from-bottom-3">
+      <div className="flex flex-col gap-2">
+        <span className="text-xs font-medium tracking-[0.18em] text-muted-foreground/60 uppercase">
+          Paso 1 de 4
+        </span>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Información de tu negocio
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Cuéntanos un poco sobre tu negocio para comenzar.
+        </p>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">Información de tu negocio</CardTitle>
-          <CardDescription>
-            Cuéntanos un poco sobre tu negocio para comenzar
-          </CardDescription>
-        </CardHeader>
+      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
+        <FieldGroup>
+          <Controller
+            control={control}
+            name="name"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Nombre del negocio</FieldLabel>
+                <Input
+                  id={field.name}
+                  type="text"
+                  placeholder="Ej. Barbería Don Carlos"
+                  autoComplete="off"
+                  autoFocus
+                  aria-invalid={fieldState.invalid}
+                  {...field}
+                />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+        </FieldGroup>
 
-        <CardContent>
-          <form noValidate onSubmit={onSubmit} className="flex flex-col gap-5">
-            <FieldGroup>
-              <Controller
-                control={control}
-                name="name"
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>
-                      Nombre del negocio
-                    </FieldLabel>
+        <p className="flex items-start gap-1.5 text-xs text-muted-foreground/70">
+          <HugeiconsIcon
+            icon={InformationCircleIcon}
+            className="mt-px size-3.5 shrink-0"
+            strokeWidth={2}
+          />
+          Este nombre será visible para tus clientes al momento de agendar una
+          cita.
+        </p>
 
-                    <Input
-                      id={field.name}
-                      type="text"
-                      placeholder="Ej. Barbería Don Carlos"
-                      autoComplete="off"
-                      autoFocus
-                      aria-invalid={fieldState.invalid}
-                      {...field}
-                    />
-
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
-            </FieldGroup>
-
-            <div className="flex items-start gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-sm text-muted-foreground">
-              <HugeiconsIcon
-                icon={InformationCircleIcon}
-                className="mt-px size-4 shrink-0 text-primary/70"
-                strokeWidth={2}
-              />
-              <p>
-                Este nombre será visible para tus clientes al momento de agendar
-                una cita.
-              </p>
-            </div>
-
-            <div className="flex items-center pt-1">
-              <Button
-                type="submit"
-                className="ml-auto"
-                disabled={isSubmitting}
-                size="lg"
-              >
-                {isSubmitting && <Spinner />}
-                Continuar
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        <div className="flex justify-end pt-2">
+          <Button type="submit" disabled={isSubmitting} size="lg">
+            {isSubmitting && <Spinner />}
+            Continuar
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }
