@@ -109,10 +109,8 @@ export function StepBarberForm() {
           : "Algo salió mal. Intenta de nuevo."
       )
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: onboardingProgressQuery.queryKey,
-      })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(onboardingProgressQuery)
       navigate({
         params: { step: "3" },
         to: "/onboarding/step/$step",

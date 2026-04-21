@@ -66,10 +66,8 @@ export function StepWhatsAppForm({ initialEmail }: { initialEmail: string }) {
           : "Algo salió mal. Intenta de nuevo."
       )
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: onboardingProgressQuery.queryKey,
-      })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(onboardingProgressQuery)
       navigate({
         to: "/dashboard",
       })

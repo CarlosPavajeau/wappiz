@@ -4,7 +4,7 @@ import { Check } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const STEP_LABELS = ["Cuenta", "Recurso", "Servicios", "WhatsApp"]
+const STEP_LABELS = ["Negocio", "Recurso", "Servicios", "WhatsApp"]
 
 export function StepIndicator({
   currentStep,

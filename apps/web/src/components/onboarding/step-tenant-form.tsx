@@ -57,10 +57,8 @@ export function StepTenantForm() {
         error instanceof ApiError ? error.message : "Error al crear el negocio"
       )
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: onboardingProgressQuery.queryKey,
-      })
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(onboardingProgressQuery)
       navigate({ params: { step: "2" }, to: "/onboarding/step/$step" })
     },
   })
