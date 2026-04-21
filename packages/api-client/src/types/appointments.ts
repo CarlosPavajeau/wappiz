@@ -18,13 +18,6 @@ export type Appointment = {
   endsAt: string
   status: AppointmentStatus
   priceAtBooking: number
-  checked_in_at: string | null
-  completed_at: string | null
-  cancelled_at: string | null
-  cancelled_by: CancelledBy | null
-  cancel_reason: string | null
-  no_show_at: string | null
-  no_show_reason: string | null
 }
 
 export type UpdateAppointmentStatusRequest = {
