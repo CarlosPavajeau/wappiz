@@ -83,18 +83,24 @@ export const tenantWhatsappConfigs = pgTable(
   ]
 )
 
-export const tenantFlowFields = pgTable("tenant_flow_fields", {
-  id: uuid().defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id")
-    .notNull()
-    .references(() => tenants.id, { onDelete: "cascade" }),
-  fieldKey: varchar("field_key", { length: 50 }),
-  fieldType: varchar("field_type", { length: 20 }),
-  question: text("question"),
-  isRequired: boolean("is_required").default(false).notNull(),
-  isEnabled: boolean("is_enabled").default(true).notNull(),
-  sortOrder: integer("sort_order").notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`now()`)
-    .notNull(),
-})
+export const flowFieldType = pgEnum("flow_field_type", ["predefined", "custom"])
+
+export const tenantFlowFields = pgTable(
+  "tenant_flow_fields",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
+    fieldKey: varchar("field_key", { length: 50 }).notNull(),
+    fieldType: flowFieldType("field_type").notNull(),
+    question: text("question"),
+    isRequired: boolean("is_required").default(false).notNull(),
+    isEnabled: boolean("is_enabled").default(true).notNull(),
+    sortOrder: integer("sort_order").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+  },
+  (table) => [unique("uq_tenant_field_key").on(table.tenantId, table.fieldKey)]
+)
