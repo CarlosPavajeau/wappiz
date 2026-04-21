@@ -19,9 +19,10 @@ export const Route = createFileRoute("/_authed/onboarding/step/$step")({
       throw notFound()
     }
 
-    const progress = await context.queryClient.ensureQueryData(
-      onboardingProgressQuery
-    )
+    const progress = await context.queryClient.fetchQuery({
+      ...onboardingProgressQuery,
+      staleTime: 0,
+    })
 
     if (!progress) {
       throw notFound()
