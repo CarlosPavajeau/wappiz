@@ -29,6 +29,13 @@ import { onboardingProgressQuery } from "@/queries/onboarding"
 
 export const Route = createFileRoute("/_authed/dashboard")({
   beforeLoad: async ({ context }) => {
+    const user = context.user
+
+    if (user.user.role === "admin") {
+      // Don't check onboarding for admin users
+      return
+    }
+
     const progress = await context.queryClient.ensureQueryData(
       onboardingProgressQuery
     )
