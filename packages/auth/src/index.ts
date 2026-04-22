@@ -158,7 +158,7 @@ export const auth = betterAuth({
               throw new Error(`Missing tenant_id in subscription metadata`)
             }
 
-            const subscriptionId = event.data.subscriptionId
+            const subscriptionId = event.data.subscription?.id
 
             if (!subscriptionId) {
               console.error(
@@ -175,7 +175,7 @@ export const auth = betterAuth({
               externalId: event.data.id,
               amount: event.data.totalAmount,
               currency: event.data.currency,
-              status: "paid",
+              status: event.data.status,
               environment,
             })
           },
