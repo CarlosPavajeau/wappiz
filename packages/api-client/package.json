@@ -12,6 +12,7 @@
     }
   },
   "dependencies": {
+    "@polar-sh/better-auth": "^1.8.3",
     "@wappiz/env": "workspace:*",
     "js-cookie": "^3.0.5"
   },
