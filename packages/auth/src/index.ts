@@ -147,15 +147,24 @@ export const auth = betterAuth({
             })
           },
           onOrderCreated: async (event) => {
-            const tenantId = event.data.metadata.tenant_id?.toString()
+            const tenantId =
+              event.data.subscription?.metadata.tenant_id?.toString()
 
             if (!tenantId) {
+              console.error(
+                `Missing tenant_id in subscription metadata`,
+                event.data
+              )
               throw new Error(`Missing tenant_id in subscription metadata`)
             }
 
             const subscriptionId = event.data.subscriptionId
 
             if (!subscriptionId) {
+              console.error(
+                `Missing subscriptionId in order metadata`,
+                event.data
+              )
               throw new Error(`Missing subscriptionId in order metadata`)
             }
 
