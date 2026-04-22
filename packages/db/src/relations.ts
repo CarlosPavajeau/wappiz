@@ -78,6 +78,7 @@ export const relations = defineRelations(schema, (r) => ({
     }),
     tenantWhatsappConfigs: r.many.tenantWhatsappConfigs(),
     tenantFlowFields: r.many.tenantFlowFields(),
+    subscriptions: r.many.subscriptions(),
   },
   appointmentReminderEvents: {
     appointment: r.one.appointments({
@@ -163,6 +164,23 @@ export const relations = defineRelations(schema, (r) => ({
     resource: r.one.resources({
       from: r.workingHours.resourceId,
       to: r.resources.id,
+    }),
+  },
+  subscriptions: {
+    tenant: r.one.tenants({
+      from: r.subscriptions.tenantId,
+      to: r.tenants.id,
+    }),
+    plan: r.one.plans({
+      from: r.subscriptions.planId,
+      to: r.plans.id,
+    }),
+    subscriptionOrders: r.many.subscriptionOrders(),
+  },
+  subscriptionOrders: {
+    subscription: r.one.subscriptions({
+      from: r.subscriptionOrders.subscriptionId,
+      to: r.subscriptions.id,
     }),
   },
 }))
