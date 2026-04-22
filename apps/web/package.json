@@ -26,6 +26,7 @@
     "@wappiz/api-client": "workspace:*",
     "@wappiz/auth": "workspace:*",
     "@wappiz/env": "workspace:*",
+    "@wappiz/polar": "workspace:*",
     "arktype": "^2.1.29",
     "babel-plugin-react-compiler": "^1.0.0",
     "better-auth": "catalog:",

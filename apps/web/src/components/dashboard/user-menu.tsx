@@ -1,7 +1,12 @@
-import { Logout } from "@hugeicons/core-free-icons"
+import {
+  CreditCardIcon,
+  Invoice01Icon,
+  Logout,
+  User,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
-import { useNavigate, useRouteContext } from "@tanstack/react-router"
+import { Link, useNavigate, useRouteContext } from "@tanstack/react-router"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -20,7 +25,7 @@ import { authClient } from "@/lib/auth-client"
 
 export function UserMenu() {
   const { isMobile } = useSidebar()
-  const { user } = useRouteContext({
+  const { user, isSuperAdmin } = useRouteContext({
     from: "/_authed",
   })
 
@@ -76,6 +81,20 @@ export function UserMenu() {
               )}
               Cerrar sesión
             </DropdownMenuItem>
+
+            {!isSuperAdmin && (
+              <DropdownMenuItem
+                render={<Link to="/dashboard/billing" />}
+                nativeButton={false}
+              >
+                <HugeiconsIcon
+                  icon={CreditCardIcon}
+                  strokeWidth={2}
+                  data-icon="inline-start"
+                />
+                Facturación
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

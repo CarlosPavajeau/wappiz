@@ -86,6 +86,9 @@ function getRouteLabel(routeId: string, loaderData: unknown): string {
     case "/_authed/dashboard/settings": {
       return "Configuración"
     }
+    case "/_authed/dashboard/billing": {
+      return "Facturación"
+    }
     default: {
       return ""
     }

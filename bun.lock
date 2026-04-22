@@ -42,6 +42,7 @@
         "@wappiz/api-client": "workspace:*",
         "@wappiz/auth": "workspace:*",
         "@wappiz/env": "workspace:*",
+        "@wappiz/polar": "workspace:*",
         "arktype": "^2.1.29",
         "babel-plugin-react-compiler": "^1.0.0",
         "better-auth": "catalog:",
@@ -80,7 +81,6 @@
       "name": "@wappiz/api-client",
       "version": "0.0.0",
       "dependencies": {
-        "@polar-sh/better-auth": "^1.8.3",
         "@wappiz/env": "workspace:*",
         "js-cookie": "^3.0.5",
       },
