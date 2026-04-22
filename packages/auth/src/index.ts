@@ -1,6 +1,13 @@
 import { polar, checkout, portal, usage, webhooks } from "@polar-sh/better-auth"
 import { db } from "@wappiz/db"
+import {
+  findPlanByExternalId,
+  insertSubscription,
+  updateSubscriptionStatus,
+  upsertPlan,
+} from "@wappiz/db/queries/billing"
 import * as schema from "@wappiz/db/schema/auth"
+import { subscriptionOrders } from "@wappiz/db/schema/billing"
 import { env } from "@wappiz/env/server"
 import { createPolarClient } from "@wappiz/polar"
 import { Resend } from "@wappiz/resend"
@@ -86,8 +93,142 @@ export const auth = betterAuth({
         usage(),
         webhooks({
           secret: env.POLAR_WEBHOOK_SECRET,
-          onSubscriptionActive: async (subscription) => {
-            console.log("Subscription active", subscription.data.productId)
+          onSubscriptionCreated: async (event) => {
+            const tenantId = event.data.metadata.tenant_id?.toString()
+            if (!tenantId) {
+              throw new Error(`Missing tenant_id in subscription metadata`)
+            }
+
+            const plan = await findPlanByExternalId(event.data.productId)
+            if (!plan) {
+              throw new Error(
+                `Plan not found for productId: ${event.data.productId}`
+              )
+            }
+
+            await insertSubscription({
+              tenantId: tenantId,
+              planId: plan.id,
+              externalId: event.data.id,
+              externalCustomerId: event.data.customerId,
+              status: event.data.status,
+              currentPeriodStart: new Date(event.data.currentPeriodStart),
+              currentPeriodEnd: new Date(event.data.currentPeriodEnd),
+            })
+          },
+          onSubscriptionUpdated: async (event) => {
+            await updateSubscriptionStatus({
+              status: event.data.status,
+              externalId: event.data.id,
+            })
+          },
+          onSubscriptionActive: async (event) => {
+            await updateSubscriptionStatus({
+              status: "active",
+              externalId: event.data.id,
+            })
+          },
+          onSubscriptionCanceled: async (event) => {
+            await updateSubscriptionStatus({
+              status: "canceled",
+              externalId: event.data.id,
+              cancelAtPeriodEnd: true,
+              canceledAt: new Date(),
+            })
+          },
+          onSubscriptionRevoked: async (event) => {
+            await updateSubscriptionStatus({
+              status: "revoked",
+              externalId: event.data.id,
+              canceledAt: new Date(),
+            })
+          },
+          onOrderCreated: async (event) => {
+            const tenantId = event.data.metadata.tenant_id?.toString()
+
+            if (!tenantId) {
+              throw new Error(`Missing tenant_id in subscription metadata`)
+            }
+
+            const subscriptionId = event.data.subscriptionId
+
+            if (!subscriptionId) {
+              throw new Error(`Missing subscriptionId in order metadata`)
+            }
+
+            await db.insert(subscriptionOrders).values({
+              subscriptionId,
+              externalId: event.data.id,
+              amount: event.data.totalAmount,
+              currency: event.data.currency,
+              status: "paid",
+            })
+          },
+          onProductCreated: async (event) => {
+            const price = event.data.prices[0]
+
+            if (!price) {
+              return
+            }
+
+            if (price.amountType !== "fixed") {
+              return
+            }
+
+            const features = event.data.benefits
+              .filter((benefit) => benefit.type === "feature_flag")
+              .reduce(
+                (acc, benefit) => {
+                  acc[benefit.id] = true
+                  return acc
+                },
+                {} as Record<string, boolean>
+              )
+
+            await upsertPlan({
+              externalId: event.data.id,
+              externalPriceId: price.id,
+              name: event.data.name,
+              description: event.data.description,
+              price: price.priceAmount,
+              currency: price.priceCurrency,
+              interval: event.data.recurringInterval,
+              isActive: !event.data.isArchived,
+              features: features,
+            })
+          },
+          onProductUpdated: async (event) => {
+            const price = event.data.prices[0]
+
+            if (!price) {
+              return
+            }
+
+            if (price.amountType !== "fixed") {
+              return
+            }
+
+            const features = event.data.benefits
+              .filter((benefit) => benefit.type === "feature_flag")
+              .reduce(
+                (acc, benefit) => {
+                  acc[benefit.id] = true
+                  return acc
+                },
+                {} as Record<string, boolean>
+              )
+
+            await upsertPlan({
+              externalId: event.data.id,
+              externalPriceId: price.id,
+              name: event.data.name,
+              description: event.data.description,
+              price: price.priceAmount,
+              currency: price.priceCurrency,
+              interval: event.data.recurringInterval,
+              isActive: !event.data.isArchived,
+              features: features,
+            })
           },
         }),
       ],
