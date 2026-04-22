@@ -5,6 +5,7 @@ import {
   CreditCardIcon,
   InformationCircleIcon,
   Invoice01Icon,
+  LinkSquare02Icon,
   Loading03Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
@@ -201,7 +202,7 @@ function ActivePlanCard({ customerState }: { customerState: CustomerState }) {
     const result = await authClient.customer.portal()
 
     if (result.data?.url) {
-      window.open(result.data.url, "_blank", "noopener")
+      window.open(result.data.url, "_self", "noopener")
     }
   }
 
@@ -296,7 +297,7 @@ function ActivePlanCard({ customerState }: { customerState: CustomerState }) {
       >
         Administrar suscripción
         <HugeiconsIcon
-          icon={ArrowRight02Icon}
+          icon={LinkSquare02Icon}
           strokeWidth={2}
           aria-hidden="true"
           data-icon="inline-end"
