@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm"
 
 import { db } from ".."
-import { plans, subscriptions } from "../schema"
+import { plans, subscriptionOrders, subscriptions } from "../schema"
 
 export type InsertSubscription = typeof subscriptions.$inferInsert
 
@@ -30,6 +30,17 @@ export async function updateSubscriptionStatus(
     .where(eq(subscriptions.externalId, subscription.externalId))
 }
 
+export async function findSubscriptionByExternalId(externalId: string) {
+  return await db.query.subscriptions.findFirst({
+    where: {
+      externalId: externalId,
+    },
+    columns: {
+      id: true,
+    },
+  })
+}
+
 export async function findPlanByExternalId(externalId: string) {
   return await db.query.plans.findFirst({
     where: {
@@ -43,6 +54,7 @@ export async function findPlanByExternalId(externalId: string) {
 }
 
 export type InsertPlan = typeof plans.$inferInsert
+
 export async function upsertPlan(plan: InsertPlan) {
   const existingPlan = await findPlanByExternalId(plan.externalId)
   if (existingPlan) {
@@ -58,4 +70,12 @@ export async function upsertPlan(plan: InsertPlan) {
   const [created] = await db.insert(plans).values(plan).returning()
 
   return created
+}
+
+export type InsertSubscriptionOrder = typeof subscriptionOrders.$inferInsert
+
+export async function insertSubscriptionOrder(order: InsertSubscriptionOrder) {
+  const [result] = await db.insert(subscriptionOrders).values(order).returning()
+
+  return result
 }

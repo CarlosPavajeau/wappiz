@@ -2,7 +2,9 @@ import { polar, checkout, portal, usage, webhooks } from "@polar-sh/better-auth"
 import { db } from "@wappiz/db"
 import {
   findPlanByExternalId,
+  findSubscriptionByExternalId,
   insertSubscription,
+  insertSubscriptionOrder,
   updateSubscriptionStatus,
   upsertPlan,
 } from "@wappiz/db/queries/billing"
@@ -168,10 +170,18 @@ export const auth = betterAuth({
               throw new Error(`Missing subscriptionId in order metadata`)
             }
 
+            const subscription =
+              await findSubscriptionByExternalId(subscriptionId)
+
+            if (!subscription) {
+              console.error(`Subscription not found`, subscriptionId)
+              throw new Error(`Subscription not found`)
+            }
+
             const environment = env.POLAR_MODE
 
-            await db.insert(subscriptionOrders).values({
-              subscriptionId,
+            await insertSubscriptionOrder({
+              subscriptionId: subscription.id,
               externalId: event.data.id,
               amount: event.data.totalAmount,
               currency: event.data.currency,
