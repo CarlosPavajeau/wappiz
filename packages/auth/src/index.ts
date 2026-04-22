@@ -1,11 +1,15 @@
+import { polar, checkout, portal, usage, webhooks } from "@polar-sh/better-auth"
 import { db } from "@wappiz/db"
 import * as schema from "@wappiz/db/schema/auth"
 import { env } from "@wappiz/env/server"
+import { createPolarClient } from "@wappiz/polar"
 import { Resend } from "@wappiz/resend"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { betterAuth } from "better-auth/minimal"
 import { jwt, admin } from "better-auth/plugins"
 import { tanstackStartCookies } from "better-auth/tanstack-start"
+
+const polarClient = createPolarClient(env.POLAR_ACCESS_TOKEN, env.POLAR_MODE)
 
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
@@ -69,6 +73,24 @@ export const auth = betterAuth({
           ...user,
         }),
       },
+    }),
+    polar({
+      client: polarClient,
+      createCustomerOnSignUp: true,
+      use: [
+        checkout({
+          successUrl: "/dashboard?checkout_id={CHECKOUT_ID}",
+          authenticatedUsersOnly: true,
+        }),
+        portal(),
+        usage(),
+        webhooks({
+          secret: env.POLAR_WEBHOOK_SECRET,
+          onSubscriptionActive: async (subscription) => {
+            console.log("Subscription active", subscription.data.productId)
+          },
+        }),
+      ],
     }),
     tanstackStartCookies(),
   ],

@@ -14,6 +14,7 @@
     "@wappiz/db": "workspace:*",
     "@wappiz/env": "workspace:*",
     "@wappiz/resend": "workspace:*",
+    "@wappiz/polar": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
     "zod": "catalog:"

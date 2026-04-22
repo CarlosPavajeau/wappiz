@@ -1,0 +1,23 @@
+{
+  "name": "@wappiz/polar",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "@polar-sh/sdk": "^0.47.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "@wappiz/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

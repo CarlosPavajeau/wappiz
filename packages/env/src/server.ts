@@ -15,6 +15,9 @@ export const env = createEnv({
     RESEND_API_KEY: z.string(),
     RESEND_SEGMENT_ID: z.string(),
     CLOUDFLARE_TURNSTILE_SECRET_KEY: z.string(),
+    POLAR_ACCESS_TOKEN: z.string(),
+    POLAR_WEBHOOK_SECRET: z.string(),
+    POLAR_MODE: z.enum(["sandbox", "production"]).default("sandbox"),
     NODE_ENV: z
       .enum(["development", "production", "test"])
       .default("development"),
