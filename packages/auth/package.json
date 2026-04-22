@@ -11,6 +11,7 @@
   },
   "scripts": {},
   "dependencies": {
+    "@polar-sh/better-auth": "^1.8.3",
     "@wappiz/db": "workspace:*",
     "@wappiz/env": "workspace:*",
     "@wappiz/polar": "workspace:*",
