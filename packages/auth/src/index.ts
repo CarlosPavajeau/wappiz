@@ -106,6 +106,8 @@ export const auth = betterAuth({
               )
             }
 
+            const environment = env.POLAR_MODE
+
             await insertSubscription({
               tenantId: tenantId,
               planId: plan.id,
@@ -114,6 +116,7 @@ export const auth = betterAuth({
               status: event.data.status,
               currentPeriodStart: new Date(event.data.currentPeriodStart),
               currentPeriodEnd: new Date(event.data.currentPeriodEnd),
+              environment,
             })
           },
           onSubscriptionUpdated: async (event) => {
@@ -156,12 +159,15 @@ export const auth = betterAuth({
               throw new Error(`Missing subscriptionId in order metadata`)
             }
 
+            const environment = env.POLAR_MODE
+
             await db.insert(subscriptionOrders).values({
               subscriptionId,
               externalId: event.data.id,
               amount: event.data.totalAmount,
               currency: event.data.currency,
               status: "paid",
+              environment,
             })
           },
           onProductCreated: async (event) => {
@@ -185,6 +191,8 @@ export const auth = betterAuth({
                 {} as Record<string, boolean>
               )
 
+            const environment = env.POLAR_MODE
+
             await upsertPlan({
               externalId: event.data.id,
               externalPriceId: price.id,
@@ -195,6 +203,7 @@ export const auth = betterAuth({
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
               features: features,
+              environment,
             })
           },
           onProductUpdated: async (event) => {
@@ -218,6 +227,8 @@ export const auth = betterAuth({
                 {} as Record<string, boolean>
               )
 
+            const environment = env.POLAR_MODE
+
             await upsertPlan({
               externalId: event.data.id,
               externalPriceId: price.id,
@@ -228,6 +239,7 @@ export const auth = betterAuth({
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
               features: features,
+              environment,
             })
           },
         }),
