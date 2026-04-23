@@ -4,7 +4,13 @@ import react from "ultracite/oxlint/react"
 
 export default defineConfig({
   extends: [core, react],
-  ignorePatterns: ["*.gen.ts", "*.md", "**/migrations/**"],
+  ignorePatterns: [
+    "*.gen.ts",
+    "*.md",
+    "**/migrations/**",
+    ".agents/**",
+    ".claude/**",
+  ],
   rules: {
     "func-style": "off",
     "max-statements": [
