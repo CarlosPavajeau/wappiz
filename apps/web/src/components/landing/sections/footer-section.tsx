@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router"
 import { Section, SectionContent } from "../layout/section"
 
 const navLinks = [
-  { label: "Política de privacidad", href: "/privacy", external: false },
+  { external: false, href: "/privacy", label: "Política de privacidad" },
 ]
 
 export function FooterSection() {

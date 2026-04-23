@@ -26,12 +26,12 @@ export class Resend {
 
     try {
       const result = await this.client.emails.send({
-        to: email,
         from: "Carlos de Wappiz <carlos@mail.cantte.com>",
-        replyTo: this.replyTo,
-        subject: "Bienvenido a Wappiz — esto es solo el comienzo",
         html,
+        replyTo: this.replyTo,
         scheduledAt: fiveMinutesFromNow,
+        subject: "Bienvenido a Wappiz — esto es solo el comienzo",
+        to: email,
       })
 
       if (!result.error) {
@@ -41,7 +41,7 @@ export class Resend {
       throw result.error
     } catch (error) {
       console.error(
-        "Error occurred sending welcome email ",
+        "Error occurred sending welcome email",
         JSON.stringify(error)
       )
     }
@@ -52,11 +52,11 @@ export class Resend {
 
     try {
       const result = await this.client.emails.send({
-        to: email,
         from: "Soporte de Wappiz <support@mail.cantte.com>",
+        html,
         replyTo: this.replyTo,
         subject: "Recuperación de contraseña",
-        html,
+        to: email,
       })
 
       if (!result.error) {
@@ -66,7 +66,7 @@ export class Resend {
       throw result.error
     } catch (error) {
       console.error(
-        "Error occurred sending reset password email ",
+        "Error occurred sending reset password email",
         JSON.stringify(error)
       )
     }
@@ -77,11 +77,11 @@ export class Resend {
 
     try {
       const result = await this.client.emails.send({
-        to: email,
         from: "Soporte de Wappiz <support@mail.cantte.com>",
+        html,
         replyTo: this.replyTo,
         subject: "Tu contraseña ha sido restablecida",
-        html,
+        to: email,
       })
 
       if (!result.error) {
@@ -91,7 +91,7 @@ export class Resend {
       throw result.error
     } catch (error) {
       console.error(
-        "Error occurred sending password reset email ",
+        "Error occurred sending password reset email",
         JSON.stringify(error)
       )
     }

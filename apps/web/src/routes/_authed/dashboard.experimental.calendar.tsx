@@ -31,9 +31,9 @@ import { AppointmentDetailModal } from "@/components/appointments/appointment-de
 import {
   STATUS_ITEMS,
   WEEK_OPTS,
-  type CalView,
   toDateKey,
 } from "@/components/appointments/calendar-config"
+import type { CalView } from "@/components/appointments/calendar-config"
 import { CalendarDayView } from "@/components/appointments/calendar-day-view"
 import { CalendarMonthView } from "@/components/appointments/calendar-month-view"
 import { CalendarSidebar } from "@/components/appointments/calendar-sidebar"
@@ -444,7 +444,7 @@ function CalendarPage() {
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           {isLoading ? (
             <CalendarSkeleton view={calView} />
-          ) : isError ? (
+          ) : (isError ? (
             <p className="mt-6 text-sm text-destructive">
               Ha ocurrido un error al cargar las citas. Por favor, inténtalo de
               nuevo.
@@ -475,7 +475,7 @@ function CalendarPage() {
                 />
               )}
             </>
-          )}
+          ))}
         </div>
 
         {sidebarOpen && (
@@ -485,7 +485,9 @@ function CalendarPage() {
               date={selectedDate}
               onDateChange={(d) => {
                 setDateParam(toDateKey(d))
-                if (calView !== "day") setView("day")
+                if (calView !== "day") {
+                  setView("day")
+                }
               }}
               onAptClick={openApt}
               apts={apts}

@@ -34,18 +34,18 @@ export const listUsers = createServerFn({ method: "GET" })
     })
 
     const users: AdminUser[] = result.users.map((u) => ({
-      id: u.id,
-      name: u.name,
+      banExpires: toIso(u.banExpires),
+      banReason: u.banReason ?? null,
+      banned: u.banned ?? null,
+      createdAt: new Date(u.createdAt).toISOString(),
       email: u.email,
       emailVerified: u.emailVerified,
+      id: u.id,
       image: u.image ?? null,
-      createdAt: new Date(u.createdAt).toISOString(),
-      updatedAt: new Date(u.updatedAt).toISOString(),
+      name: u.name,
       role: u.role ?? null,
-      banned: u.banned ?? null,
-      banReason: u.banReason ?? null,
-      banExpires: toIso(u.banExpires),
+      updatedAt: new Date(u.updatedAt).toISOString(),
     }))
 
-    return { users, total: result.total }
+    return { total: result.total, users }
   })

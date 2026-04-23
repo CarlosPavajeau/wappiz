@@ -182,8 +182,8 @@ export function StepBarberForm() {
                           const next = isSelected
                             ? field.value
                                 .filter((d) => d !== day.value)
-                                .sort(sortByDay)
-                            : [...field.value, day.value].sort(sortByDay)
+                                .toSorted(sortByDay)
+                            : [...field.value, day.value].toSorted(sortByDay)
                           field.onChange(next)
                         }}
                         className={cn(

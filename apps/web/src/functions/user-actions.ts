@@ -11,7 +11,7 @@ export const banUser = createServerFn({ method: "POST" })
   .inputValidator((data: { userId: string; banReason?: string }) => data)
   .handler(async ({ data: { userId, banReason } }) => {
     const headers = await getRequestHeaders()
-    return auth.api.banUser({ headers, body: { userId, banReason } })
+    return auth.api.banUser({ body: { banReason, userId }, headers })
   })
 
 export const unbanUser = createServerFn({ method: "POST" })
@@ -19,5 +19,5 @@ export const unbanUser = createServerFn({ method: "POST" })
   .inputValidator((data: { userId: string }) => data)
   .handler(async ({ data: { userId } }) => {
     const headers = await getRequestHeaders()
-    return auth.api.unbanUser({ headers, body: { userId } })
+    return auth.api.unbanUser({ body: { userId }, headers })
   })

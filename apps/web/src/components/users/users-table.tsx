@@ -143,7 +143,7 @@ function UserRowActions({ user }: { user: AdminUser }) {
               variant={isBanned ? "default" : "destructive"}
               onClick={handleConfirm}
             >
-              {isPending ? <Spinner /> : isBanned ? "Desbanear" : "Banear"}
+              {isPending ? <Spinner /> : (isBanned ? "Desbanear" : "Banear")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -160,9 +160,15 @@ function getPageRange(current: number, total: number): (number | "ellipsis")[] {
   const left = Math.max(2, current - delta)
   const right = Math.min(total - 1, current + delta)
   const pages: (number | "ellipsis")[] = [1]
-  if (left > 2) pages.push("ellipsis")
-  for (let i = left; i <= right; i++) pages.push(i)
-  if (right < total - 1) pages.push("ellipsis")
+  if (left > 2) {
+    pages.push("ellipsis")
+  }
+  for (let i = left; i <= right; i++) {
+    pages.push(i)
+  }
+  if (right < total - 1) {
+    pages.push("ellipsis")
+  }
   pages.push(total)
   return pages
 }
@@ -170,9 +176,9 @@ function getPageRange(current: number, total: number): (number | "ellipsis")[] {
 function formatShortDate(iso: string): string {
   try {
     return new Intl.DateTimeFormat("es", {
-      year: "numeric",
-      month: "short",
       day: "numeric",
+      month: "short",
+      year: "numeric",
     }).format(new Date(iso))
   } catch {
     return iso
@@ -187,7 +193,7 @@ function UserAvatar({ name }: { name: string }) {
     .join("")
     .toUpperCase()
 
-  const hue = [...name].reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
+  const hue = [...name].reduce((acc, c) => acc + c.codePointAt(0), 0) % 360
 
   return (
     <span
@@ -221,8 +227,6 @@ export function UsersTable({
   const columns = useMemo(
     () => [
       columnHelper.display({
-        id: "user",
-        header: "Usuario",
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <UserAvatar name={row.original.name} />
@@ -236,9 +240,10 @@ export function UsersTable({
             </div>
           </div>
         ),
+        header: "Usuario",
+        id: "user",
       }),
       columnHelper.accessor("role", {
-        header: "Rol",
         cell: ({ getValue }) => {
           const role = getValue() ?? "user"
           return (
@@ -247,9 +252,9 @@ export function UsersTable({
             </Badge>
           )
         },
+        header: "Rol",
       }),
       columnHelper.accessor("emailVerified", {
-        header: "Email",
         cell: ({ getValue }) =>
           getValue() ? (
             <Badge
@@ -266,27 +271,28 @@ export function UsersTable({
               Pendiente
             </Badge>
           ),
+        header: "Email",
       }),
       columnHelper.accessor("banned", {
-        header: "Estado",
         cell: ({ getValue }) =>
           getValue() === true ? (
             <Badge variant="destructive">Baneado</Badge>
           ) : (
             <Badge variant="outline">Activo</Badge>
           ),
+        header: "Estado",
       }),
       columnHelper.accessor("createdAt", {
-        header: "Registrado",
         cell: ({ getValue }) => (
           <span className="text-muted-foreground tabular-nums">
             {formatShortDate(getValue())}
           </span>
         ),
+        header: "Registrado",
       }),
       columnHelper.display({
-        id: "actions",
         cell: ({ row }) => <UserRowActions user={row.original} />,
+        id: "actions",
       }),
     ],
     []
@@ -295,17 +301,17 @@ export function UsersTable({
   const pageCount = Math.ceil(total / limit)
 
   const table = useReactTable({
-    data: users,
     columns,
-    pageCount,
-    state: {
-      sorting,
-      pagination: { pageIndex: page - 1, pageSize: limit },
-    },
-    onSortingChange: setSorting,
-    manualPagination: true,
+    data: users,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    manualPagination: true,
+    onSortingChange: setSorting,
+    pageCount,
+    state: {
+      pagination: { pageIndex: page - 1, pageSize: limit },
+      sorting,
+    },
   })
 
   const goToPage = (p: number) => {
@@ -362,7 +368,9 @@ export function UsersTable({
                   href={`?page=${Math.max(1, page - 1)}`}
                   onClick={(e) => {
                     e.preventDefault()
-                    if (page > 1) goToPage(page - 1)
+                    if (page > 1) {
+                      goToPage(page - 1)
+                    }
                   }}
                   aria-disabled={page <= 1}
                   className={
@@ -398,7 +406,9 @@ export function UsersTable({
                   href={`?page=${Math.min(pageCount, page + 1)}`}
                   onClick={(e) => {
                     e.preventDefault()
-                    if (page < pageCount) goToPage(page + 1)
+                    if (page < pageCount) {
+                      goToPage(page + 1)
+                    }
                   }}
                   aria-disabled={page >= pageCount}
                   className={

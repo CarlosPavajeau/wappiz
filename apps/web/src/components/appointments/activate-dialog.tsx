@@ -78,7 +78,9 @@ export function ActivateDialog({ request }: Props) {
   const onSubmit = form.handleSubmit((values) => activate(values))
 
   const handleOpenChange = (next: boolean) => {
-    if (!next) form.reset()
+    if (!next) {
+      form.reset()
+    }
     setOpen(next)
   }
 

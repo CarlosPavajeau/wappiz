@@ -59,8 +59,8 @@ export function TurnstileChallenge({ onSuccess, onError }: Props) {
                 onError(new Error("Turnstile verification failed"))
               }}
               options={{
-                theme: resolvedTheme,
                 size: "normal",
+                theme: resolvedTheme,
               }}
             />
           </div>

@@ -181,7 +181,7 @@ function AppointmentDetailContent({
 
         {isLoadingHistory ? (
           <HistorySkeleton />
-        ) : history && history.length > 0 ? (
+        ) : (history && history.length > 0 ? (
           <ol className="flex flex-col">
             {history.map((entry) => (
               <HistoryItem key={entry.id} entry={entry} />
@@ -196,7 +196,7 @@ function AppointmentDetailContent({
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
-        )}
+        ))}
       </section>
     </div>
   )

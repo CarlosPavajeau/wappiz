@@ -5,8 +5,8 @@ export function createPolarClient(
   server: "sandbox" | "production" = "sandbox"
 ) {
   return new Polar({
-    accessToken: accessToken,
-    server: server,
+    accessToken,
+    server,
   })
 }
 

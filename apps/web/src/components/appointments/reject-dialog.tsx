@@ -62,7 +62,9 @@ export function RejectDialog({ request }: Props) {
   const onSubmit = form.handleSubmit((values) => reject(values))
 
   const handleOpenChange = (next: boolean) => {
-    if (!next) form.reset()
+    if (!next) {
+      form.reset()
+    }
     setOpen(next)
   }
 

@@ -19,9 +19,9 @@ export default defineConfig({
       ],
     }),
     sentryTanstackStart({
+      authToken: process.env.SENTRY_AUTH_TOKEN,
       org: "cantte",
       project: "wappiz",
-      authToken: process.env.SENTRY_AUTH_TOKEN,
     }),
     nitro(),
     viteReact(),

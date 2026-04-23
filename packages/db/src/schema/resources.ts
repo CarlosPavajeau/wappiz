@@ -17,31 +17,31 @@ import {
 import { tenants } from "./tenants"
 
 export const resources = pgTable("resources", {
-  id: uuid().defaultRandom().primaryKey(),
-  tenantId: uuid("tenant_id")
-    .notNull()
-    .references(() => tenants.id, { onDelete: "cascade" }),
-  name: varchar({ length: 255 }).notNull(),
-  type: varchar({ length: 50 }).default("barber").notNull(),
   avatarUrl: varchar("avatar_url", { length: 500 }),
-  isActive: boolean("is_active").default(true).notNull(),
-  sortOrder: integer("sort_order").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`now()`)
     .notNull(),
+  id: uuid().defaultRandom().primaryKey(),
+  isActive: boolean("is_active").default(true).notNull(),
+  name: varchar({ length: 255 }).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  tenantId: uuid("tenant_id")
+    .notNull()
+    .references(() => tenants.id, { onDelete: "cascade" }),
+  type: varchar({ length: 50 }).default("barber").notNull(),
 })
 
 export const workingHours = pgTable(
   "working_hours",
   {
+    dayOfWeek: smallint("day_of_week").notNull(),
+    endTime: time("end_time").notNull(),
     id: uuid().defaultRandom().primaryKey(),
+    isActive: boolean("is_active").default(true).notNull(),
     resourceId: uuid("resource_id")
       .notNull()
       .references(() => resources.id, { onDelete: "cascade" }),
-    dayOfWeek: smallint("day_of_week").notNull(),
     startTime: time("start_time").notNull(),
-    endTime: time("end_time").notNull(),
-    isActive: boolean("is_active").default(true).notNull(),
   },
   (table) => [
     index("idx_working_hours_resource_id").using(
@@ -62,18 +62,18 @@ export const workingHours = pgTable(
 export const scheduleOverrides = pgTable(
   "schedule_overrides",
   {
-    id: uuid().defaultRandom().primaryKey(),
-    resourceId: uuid("resource_id")
-      .notNull()
-      .references(() => resources.id, { onDelete: "cascade" }),
-    date: date().notNull(),
-    isDayOff: boolean("is_day_off").default(false).notNull(),
-    startTime: time("start_time"),
-    endTime: time("end_time"),
-    reason: varchar({ length: 255 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
+    date: date().notNull(),
+    endTime: time("end_time"),
+    id: uuid().defaultRandom().primaryKey(),
+    isDayOff: boolean("is_day_off").default(false).notNull(),
+    reason: varchar({ length: 255 }),
+    resourceId: uuid("resource_id")
+      .notNull()
+      .references(() => resources.id, { onDelete: "cascade" }),
+    startTime: time("start_time"),
   },
   (table) => [
     unique("uq_schedule_overrides_resource_date").on(

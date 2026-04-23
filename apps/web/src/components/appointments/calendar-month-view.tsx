@@ -46,7 +46,7 @@ export function CalendarMonthView({
   const byDate = useMemo(() => groupByDate(apts), [apts])
 
   const agendaDays = useMemo(() => {
-    const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+    const monthDays = eachDayOfInterval({ end: monthEnd, start: monthStart })
     return monthDays.filter(
       (d) => isToday(d) || (byDate[toDateKey(d)]?.length ?? 0) > 0
     )

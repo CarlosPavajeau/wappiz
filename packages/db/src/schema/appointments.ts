@@ -31,41 +31,41 @@ export const appointmentStatus = pgEnum("appointment_status", [
 export const appointments = pgTable(
   "appointments",
   {
-    id: uuid().defaultRandom().primaryKey(),
-    tenantId: uuid("tenant_id")
+    cancelReason: varchar("cancel_reason", { length: 500 }),
+    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    cancelledBy: text("cancelled_by"),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+    customerId: uuid("customer_id")
       .notNull()
-      .references(() => tenants.id),
+      .references(() => customers.id),
+    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+    id: uuid().defaultRandom().primaryKey(),
+    notes: varchar({ length: 500 }),
+    priceAtBooking: numeric("price_at_booking", {
+      precision: 10,
+      scale: 2,
+    }).notNull(),
+    reminder1hSentAt: timestamp("reminder_1h_sent_at", { withTimezone: true }),
+    reminder24hSentAt: timestamp("reminder_24h_sent_at", {
+      withTimezone: true,
+    }),
     resourceId: uuid("resource_id")
       .notNull()
       .references(() => resources.id),
     serviceId: uuid("service_id")
       .notNull()
       .references(() => services.id),
-    customerId: uuid("customer_id")
-      .notNull()
-      .references(() => customers.id),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
-    endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
     status: appointmentStatus().default("pending").notNull(),
-    cancelledBy: text("cancelled_by"),
-    cancelReason: varchar("cancel_reason", { length: 500 }),
-    priceAtBooking: numeric("price_at_booking", {
-      precision: 10,
-      scale: 2,
-    }).notNull(),
-    reminder24hSentAt: timestamp("reminder_24h_sent_at", {
-      withTimezone: true,
-    }),
-    reminder1hSentAt: timestamp("reminder_1h_sent_at", { withTimezone: true }),
-    notes: varchar({ length: 500 }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
-    cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
-    completedAt: timestamp("completed_at", { withTimezone: true }),
   },
   (table) => [
     index("idx_appointments_cancelled_recent")
@@ -115,18 +115,18 @@ export const appointments = pgTable(
 export const appointmentStatusHistory = pgTable(
   "appointment_status_history",
   {
-    id: uuid().defaultRandom().primaryKey(),
     appointmentId: uuid("appointment_id")
       .notNull()
       .references(() => appointments.id),
-    fromStatus: appointmentStatus("from_status").notNull(),
-    toStatus: appointmentStatus("to_status").notNull(),
     changedBy: text("changed_by").references(() => user.id),
     changedByRole: varchar("changed_by_role", { length: 20 }),
-    reason: varchar({ length: 500 }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
+    fromStatus: appointmentStatus("from_status").notNull(),
+    id: uuid().defaultRandom().primaryKey(),
+    reason: varchar({ length: 500 }),
+    toStatus: appointmentStatus("to_status").notNull(),
   },
   (table) => [
     index("idx_status_history_appointment").using(
@@ -139,21 +139,21 @@ export const appointmentStatusHistory = pgTable(
 export const appointmentPenaltyEvents = pgTable(
   "appointment_penalty_events",
   {
-    id: uuid().defaultRandom().primaryKey(),
     appointmentId: uuid("appointment_id")
       .notNull()
       .references(() => appointments.id, { onDelete: "cascade" }),
-    tenantId: uuid("tenant_id")
-      .notNull()
-      .references(() => tenants.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
     customerId: uuid("customer_id")
       .notNull()
       .references(() => customers.id, { onDelete: "cascade" }),
     eventType: varchar("event_type", { length: 20 }).notNull(),
+    id: uuid().defaultRandom().primaryKey(),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .default(sql`now()`)
-      .notNull(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
   },
   (table) => [
     index("idx_appointment_penalty_events_customer").using(
@@ -172,24 +172,24 @@ export const appointmentPenaltyEvents = pgTable(
 export const appointmentReminderEvents = pgTable(
   "appointment_reminder_events",
   {
-    id: uuid().defaultRandom().primaryKey(),
     appointmentId: uuid("appointment_id")
       .notNull()
       .references(() => appointments.id, { onDelete: "cascade" }),
-    tenantId: uuid("tenant_id")
-      .notNull()
-      .references(() => tenants.id, { onDelete: "cascade" }),
-    customerId: uuid("customer_id")
-      .notNull()
-      .references(() => customers.id, { onDelete: "cascade" }),
-    reminderType: varchar("reminder_type", { length: 10 }).notNull(),
     attempts: integer().default(0).notNull(),
-    sentAt: timestamp("sent_at", { withTimezone: true }),
-    lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }),
-    lastError: text("last_error"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
+    customerId: uuid("customer_id")
+      .notNull()
+      .references(() => customers.id, { onDelete: "cascade" }),
+    id: uuid().defaultRandom().primaryKey(),
+    lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }),
+    lastError: text("last_error"),
+    reminderType: varchar("reminder_type", { length: 10 }).notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
   },
   (table) => [
     index("idx_appointment_reminder_events_pending")

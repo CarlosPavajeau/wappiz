@@ -24,9 +24,15 @@ export function toDateKey(d: Date) {
 }
 
 export function formatHour(h: number): string {
-  if (h === 0) return "12 am"
-  if (h === 12) return "12 pm"
-  if (h < 12) return `${h} am`
+  if (h === 0) {
+    return "12 am"
+  }
+  if (h === 12) {
+    return "12 pm"
+  }
+  if (h < 12) {
+    return `${h} am`
+  }
   return `${h - 12} pm`
 }
 
@@ -58,9 +64,9 @@ const APT_COLORS: Record<string, string> = {
 }
 
 export const STATUS_ITEMS = Object.entries(STATUS_LABEL).map(([id, label]) => ({
+  color: statusColor(id) ?? STATUS_COLOR.pending,
   id,
   label,
-  color: statusColor(id) ?? STATUS_COLOR.pending,
 }))
 
 export function aptColor(status: string) {
@@ -100,7 +106,7 @@ export type PlacedApt = {
 }
 
 export function layoutApts(apts: Appointment[]): PlacedApt[] {
-  const sorted = [...apts].sort(
+  const sorted = [...apts].toSorted(
     (a, b) =>
       new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime() ||
       new Date(b.endsAt).getTime() - new Date(a.endsAt).getTime()
@@ -108,7 +114,7 @@ export function layoutApts(apts: Appointment[]): PlacedApt[] {
 
   // Greedy column assignment: find first column that is free at apt's start
   const colEnds: number[] = []
-  const placed: Array<{ apt: Appointment; col: number }> = []
+  const placed: { apt: Appointment; col: number }[] = []
 
   for (const apt of sorted) {
     const s = new Date(apt.startsAt).getTime()
@@ -145,7 +151,9 @@ export function layoutApts(apts: Appointment[]): PlacedApt[] {
 
   for (let i = 0; i < placed.length; i++) {
     const p = placed[i]
-    if (!p) continue
+    if (!p) {
+      continue
+    }
     const s = new Date(p.apt.startsAt).getTime()
     const e = new Date(p.apt.endsAt).getTime()
 
@@ -162,7 +170,9 @@ export function layoutApts(apts: Appointment[]): PlacedApt[] {
       groupMaxCol = p.col
     }
   }
-  if (placed.length > 0) closeGroup(placed.length)
+  if (placed.length > 0) {
+    closeGroup(placed.length)
+  }
 
   return placed.map((p, i) => ({ ...p, colCount: colCounts[i] ?? 1 }))
 }

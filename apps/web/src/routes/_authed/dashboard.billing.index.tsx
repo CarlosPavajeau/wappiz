@@ -17,7 +17,9 @@ function RouteComponent() {
     queryFn: async () => {
       const result = await authClient.customer.state()
 
-      if (result.error) return null
+      if (result.error) {
+        return null
+      }
       return result.data
     },
     queryKey: ["polar", "state"],

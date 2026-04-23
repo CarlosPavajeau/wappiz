@@ -39,15 +39,15 @@ const signUpSchema = type({
   email: type("string.email").configure({
     message: "Ingresa un correo electrónico válido",
   }),
+  isTurstileVerify: type("boolean").configure({
+    message:
+      "Verificación de Turnstile fallida. Por favor, inténtalo de nuevo.",
+  }),
   name: type("string >= 2").configure({
     message: "El nombre debe tener al menos 2 caracteres",
   }),
   password: type("string >= 8").configure({
     message: "La contraseña debe tener al menos 8 caracteres",
-  }),
-  isTurstileVerify: type("boolean").configure({
-    message:
-      "Verificación de Turnstile fallida. Por favor, inténtalo de nuevo.",
   }),
 })
 
@@ -100,6 +100,12 @@ function RouteComponent() {
         verifyTurnstileToken({
           data: { token },
         }),
+      onError: () => {
+        setError("isTurstileVerify", {
+          message:
+            "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
+        })
+      },
       onSuccess: (result) => {
         if (result) {
           setValue("isTurstileVerify", true)
@@ -109,12 +115,6 @@ function RouteComponent() {
               "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
           })
         }
-      },
-      onError: () => {
-        setError("isTurstileVerify", {
-          message:
-            "Ha ocurrido un error al verificar la verificación de Turnstile. Por favor, inténtalo de nuevo.",
-        })
       },
     })
 

@@ -7,15 +7,15 @@ import { tenants } from "./tenants"
 export const onboardingProgress = pgTable(
   "onboarding_progress",
   {
-    id: uuid().defaultRandom().primaryKey(),
-    tenantId: uuid("tenant_id")
-      .notNull()
-      .references(() => tenants.id, { onDelete: "cascade" }),
-    currentStep: integer("current_step").default(1).notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
+    currentStep: integer("current_step").default(1).notNull(),
+    id: uuid().defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => tenants.id, { onDelete: "cascade" }),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),

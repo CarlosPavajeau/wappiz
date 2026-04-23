@@ -108,7 +108,9 @@ export function StatusActionMenu({
   }
 
   const handleConfirm = () => {
-    if (pendingStatus) mutate(pendingStatus)
+    if (pendingStatus) {
+      mutate(pendingStatus)
+    }
   }
 
   const handleDialogOpenChange = (open: boolean) => {

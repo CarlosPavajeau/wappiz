@@ -14,13 +14,13 @@ export const getRouter = () => {
 
   const router = createTanStackRouter({
     context: { queryClient },
+    defaultErrorComponent: SentryErrorBoundary,
     defaultPendingComponent: () => <DefaultLoader />,
     defaultPendingMinMs: 0,
     defaultPendingMs: 0,
     defaultPreloadStaleTime: 0,
     routeTree,
     scrollRestoration: true,
-    defaultErrorComponent: SentryErrorBoundary,
   })
 
   setupRouterSsrQueryIntegration({

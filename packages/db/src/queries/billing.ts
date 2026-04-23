@@ -22,9 +22,9 @@ export async function updateSubscriptionStatus(
   await db
     .update(subscriptions)
     .set({
-      status: subscription.status,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
       canceledAt: subscription.canceledAt,
+      status: subscription.status,
       updatedAt: new Date(),
     })
     .where(eq(subscriptions.externalId, subscription.externalId))
@@ -32,23 +32,23 @@ export async function updateSubscriptionStatus(
 
 export async function findSubscriptionByExternalId(externalId: string) {
   return await db.query.subscriptions.findFirst({
-    where: {
-      externalId: externalId,
-    },
     columns: {
       id: true,
+    },
+    where: {
+      externalId,
     },
   })
 }
 
 export async function findPlanByExternalId(externalId: string) {
   return await db.query.plans.findFirst({
-    where: {
-      externalId: externalId,
-    },
     columns: {
       id: true,
       name: true,
+    },
+    where: {
+      externalId,
     },
   })
 }

@@ -37,6 +37,9 @@ export function RequestResetPasswordForm() {
         email: data.email,
         redirectTo: "/reset-password",
       }),
+    onError: (error) => {
+      toast.error(error.message)
+    },
     onSuccess: (result) => {
       if (result.data?.status) {
         setRequestSent(true)
@@ -48,9 +51,6 @@ export function RequestResetPasswordForm() {
       } else {
         toast.error("Ha ocurrido un error al reestablecer la contraseña")
       }
-    },
-    onError: (error) => {
-      toast.error(error.message)
     },
   })
 

@@ -18,14 +18,14 @@ export const verifyTurnstileToken = createServerFn({ method: "POST" })
       const response = await fetch(
         "https://challenges.cloudflare.com/turnstile/v0/siteverify",
         {
-          method: "POST",
+          body: JSON.stringify({
+            response: data.token,
+            secret: secretKey,
+          }),
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            secret: secretKey,
-            response: data.token,
-          }),
+          method: "POST",
         }
       )
 

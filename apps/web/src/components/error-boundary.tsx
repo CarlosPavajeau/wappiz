@@ -1,5 +1,6 @@
 import { withErrorBoundary } from "@sentry/tanstackstart-react"
-import { Link, type ErrorComponentProps } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router"
+import type { ErrorComponentProps } from "@tanstack/react-router"
 
 import { Section, SectionContent } from "./landing/layout/section"
 import { Button } from "./ui/button"

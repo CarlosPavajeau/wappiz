@@ -31,11 +31,11 @@ export function CalendarAptBlock({
         terminal && "opacity-40"
       )}
       style={{
-        top,
         height,
         left: `calc(${leftPct}% + 1px)`,
-        width: `calc(${pct}% - 3px)`,
         overflow: "hidden",
+        top,
+        width: `calc(${pct}% - 3px)`,
       }}
       onClick={onClick}
     >

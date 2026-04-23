@@ -24,25 +24,8 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
 
-    schema: schema,
+    schema,
   }),
-  emailAndPassword: {
-    enabled: true,
-    sendResetPassword: async ({ user, url }, _) => {
-      const resend = new Resend({ apiKey: env.RESEND_API_KEY })
-      await resend.sendResetPasswordEmail(user.email, url)
-    },
-    onPasswordReset: async ({ user }) => {
-      const resend = new Resend({ apiKey: env.RESEND_API_KEY })
-      await resend.sendPasswordResetEmail(user.email)
-    },
-  },
-  session: {
-    cookieCache: {
-      enabled: true,
-      maxAge: 5 * 60, // Cache duration in seconds
-    },
-  },
   databaseHooks: {
     user: {
       create: {
@@ -70,6 +53,17 @@ export const auth = betterAuth({
       },
     },
   },
+  emailAndPassword: {
+    enabled: true,
+    onPasswordReset: async ({ user }) => {
+      const resend = new Resend({ apiKey: env.RESEND_API_KEY })
+      await resend.sendPasswordResetEmail(user.email)
+    },
+    sendResetPassword: async ({ user, url }, _) => {
+      const resend = new Resend({ apiKey: env.RESEND_API_KEY })
+      await resend.sendResetPasswordEmail(user.email, url)
+    },
+  },
   plugins: [
     admin(),
     jwt({
@@ -87,66 +81,12 @@ export const auth = betterAuth({
       createCustomerOnSignUp: true,
       use: [
         checkout({
-          successUrl: "/dashboard/billing?checkout_id={CHECKOUT_ID}",
           authenticatedUsersOnly: true,
+          successUrl: "/dashboard/billing?checkout_id={CHECKOUT_ID}",
         }),
         portal(),
         usage(),
         webhooks({
-          secret: env.POLAR_WEBHOOK_SECRET,
-          onSubscriptionCreated: async (event) => {
-            const tenantId = event.data.metadata.tenant_id?.toString()
-            if (!tenantId) {
-              throw new Error(`Missing tenant_id in subscription metadata`)
-            }
-
-            const plan = await findPlanByExternalId(event.data.productId)
-            if (!plan) {
-              throw new Error(
-                `Plan not found for productId: ${event.data.productId}`
-              )
-            }
-
-            const environment = env.POLAR_MODE
-
-            await insertSubscription({
-              tenantId: tenantId,
-              planId: plan.id,
-              externalId: event.data.id,
-              externalCustomerId: event.data.customerId,
-              status: event.data.status,
-              currentPeriodStart: new Date(event.data.currentPeriodStart),
-              currentPeriodEnd: new Date(event.data.currentPeriodEnd),
-              environment,
-            })
-          },
-          onSubscriptionUpdated: async (event) => {
-            await updateSubscriptionStatus({
-              status: event.data.status,
-              externalId: event.data.id,
-            })
-          },
-          onSubscriptionActive: async (event) => {
-            await updateSubscriptionStatus({
-              status: "active",
-              externalId: event.data.id,
-            })
-          },
-          onSubscriptionCanceled: async (event) => {
-            await updateSubscriptionStatus({
-              status: "canceled",
-              externalId: event.data.id,
-              cancelAtPeriodEnd: true,
-              canceledAt: new Date(),
-            })
-          },
-          onSubscriptionRevoked: async (event) => {
-            await updateSubscriptionStatus({
-              status: "revoked",
-              externalId: event.data.id,
-              canceledAt: new Date(),
-            })
-          },
           onOrderCreated: async (event) => {
             const tenantId =
               event.data.subscription?.metadata.tenant_id?.toString()
@@ -180,16 +120,16 @@ export const auth = betterAuth({
             const environment = env.POLAR_MODE
 
             await insertSubscriptionOrder({
-              subscriptionId: subscription.id,
-              externalId: event.data.id,
               amount: event.data.totalAmount,
               currency: event.data.currency,
-              status: event.data.status,
               environment,
+              externalId: event.data.id,
+              status: event.data.status,
+              subscriptionId: subscription.id,
             })
           },
           onProductCreated: async (event) => {
-            const price = event.data.prices[0]
+            const [price] = event.data.prices
 
             if (!price) {
               return
@@ -212,20 +152,20 @@ export const auth = betterAuth({
             const environment = env.POLAR_MODE
 
             await upsertPlan({
+              currency: price.priceCurrency,
+              description: event.data.description,
+              environment,
               externalId: event.data.id,
               externalPriceId: price.id,
-              name: event.data.name,
-              description: event.data.description,
-              price: price.priceAmount,
-              currency: price.priceCurrency,
+              features,
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
-              features: features,
-              environment,
+              name: event.data.name,
+              price: price.priceAmount,
             })
           },
           onProductUpdated: async (event) => {
-            const price = event.data.prices[0]
+            const [price] = event.data.prices
 
             if (!price) {
               return
@@ -237,7 +177,7 @@ export const auth = betterAuth({
 
             const features = event.data.benefits
               .filter((benefit) => benefit.type === "feature_flag")
-              .reduce(
+              .reduceRight(
                 (acc, benefit) => {
                   acc[benefit.id] = true
                   return acc
@@ -248,24 +188,85 @@ export const auth = betterAuth({
             const environment = env.POLAR_MODE
 
             await upsertPlan({
+              currency: price.priceCurrency,
+              description: event.data.description,
+              environment,
               externalId: event.data.id,
               externalPriceId: price.id,
-              name: event.data.name,
-              description: event.data.description,
-              price: price.priceAmount,
-              currency: price.priceCurrency,
+              features,
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
-              features: features,
-              environment,
+              name: event.data.name,
+              price: price.priceAmount,
             })
           },
+          onSubscriptionActive: async (event) => {
+            await updateSubscriptionStatus({
+              externalId: event.data.id,
+              status: "active",
+            })
+          },
+          onSubscriptionCanceled: async (event) => {
+            await updateSubscriptionStatus({
+              cancelAtPeriodEnd: true,
+              canceledAt: new Date(),
+              externalId: event.data.id,
+              status: "canceled",
+            })
+          },
+          onSubscriptionCreated: async (event) => {
+            const tenantId = event.data.metadata.tenant_id?.toString()
+            if (!tenantId) {
+              throw new Error(`Missing tenant_id in subscription metadata`)
+            }
+
+            const plan = await findPlanByExternalId(event.data.productId)
+            if (!plan) {
+              throw new Error(
+                `Plan not found for productId: ${event.data.productId}`
+              )
+            }
+
+            const environment = env.POLAR_MODE
+
+            await insertSubscription({
+              currentPeriodEnd: new Date(event.data.currentPeriodEnd),
+              currentPeriodStart: new Date(event.data.currentPeriodStart),
+              environment,
+              externalCustomerId: event.data.customerId,
+              externalId: event.data.id,
+              planId: plan.id,
+              status: event.data.status,
+              tenantId,
+            })
+          },
+          onSubscriptionRevoked: async (event) => {
+            await updateSubscriptionStatus({
+              canceledAt: new Date(),
+              externalId: event.data.id,
+              status: "revoked",
+            })
+          },
+          onSubscriptionUpdated: async (event) => {
+            await updateSubscriptionStatus({
+              externalId: event.data.id,
+              status: event.data.status,
+            })
+          },
+          secret: env.POLAR_WEBHOOK_SECRET,
         }),
       ],
     }),
     tanstackStartCookies(),
   ],
   secret: env.BETTER_AUTH_SECRET,
+  session: {
+    cookieCache: {
+      enabled: true,
+      // Cache duration in seconds
+      maxAge: 5 * 60,
+    },
+  },
   socialProviders: {
     google: {
       clientId: env.AUTH_GOOGLE_ID,

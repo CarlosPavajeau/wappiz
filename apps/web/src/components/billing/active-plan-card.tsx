@@ -25,18 +25,18 @@ type PlanStatus =
   | "free"
 
 const INTERVAL_LABELS: Record<string, string> = {
-  month: "mes",
-  year: "año",
-  week: "semana",
   day: "día",
+  month: "mes",
+  week: "semana",
+  year: "año",
 }
 
 const STATUS_LABELS: Record<string, string> = {
   active: "Activo",
-  trialing: "Periodo de prueba",
   canceled: "Cancelado",
   pending: "Pendiente",
   revoked: "Revocado",
+  trialing: "Periodo de prueba",
 }
 
 type Props = {
@@ -46,10 +46,10 @@ type Props = {
 export function ActivePlanCard({ customerState }: Props) {
   const subscription = customerState?.activeSubscriptions[0]
   const { data: plan, isLoading } = useQuery({
-    queryKey: ["billing", "plan", subscription?.productId],
+    enabled: !!subscription,
     queryFn: () =>
       api.billing.getPlanByExternalId(subscription?.productId ?? ""),
-    enabled: !!subscription,
+    queryKey: ["billing", "plan", subscription?.productId],
   })
 
   if (!subscription) {

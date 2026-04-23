@@ -30,7 +30,7 @@ export type FetchRequestConfig = {
   data?: unknown
   params?: Record<
     string,
-    string | number | boolean | Array<string | number | boolean>
+    string | number | boolean | (string | number | boolean)[]
   >
   skipAuth?: boolean
   headers?: Record<string, string>

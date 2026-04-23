@@ -21,13 +21,13 @@ import {
 import { Spinner } from "../ui/spinner"
 
 const resetPasswordSchema = type({
-  token: "string",
-  password: type("string >= 1").configure({
-    message: "La contraseña es requerida",
-  }),
   confirmPassword: type("string").configure({
     message: "La confirmación de contraseña es requerida",
   }),
+  password: type("string >= 1").configure({
+    message: "La contraseña es requerida",
+  }),
+  token: "string",
 })
 
 type FormValues = typeof resetPasswordSchema.infer
@@ -48,10 +48,10 @@ export function ResetPasswordForm({ token }: Props) {
     handleSubmit,
     formState: { isSubmitting },
   } = useForm<FormValues>({
-    resolver: arktypeResolver(resetPasswordSchema),
     defaultValues: {
       token,
     },
+    resolver: arktypeResolver(resetPasswordSchema),
   })
 
   const { mutateAsync: resetPassword } = useMutation({
@@ -60,6 +60,9 @@ export function ResetPasswordForm({ token }: Props) {
         newPassword: data.password,
         token,
       }),
+    onError: (error) => {
+      toast.error(error.message)
+    },
     onSuccess: (result) => {
       if (result.data) {
         toast.success("Contraseña reestablecida con éxito")
@@ -74,9 +77,6 @@ export function ResetPasswordForm({ token }: Props) {
       } else {
         toast.error("Ha ocurrido un error al reestablecer la contraseña")
       }
-    },
-    onError: (error) => {
-      toast.error(error.message)
     },
   })
 

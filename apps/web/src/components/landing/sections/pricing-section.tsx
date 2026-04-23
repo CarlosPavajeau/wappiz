@@ -14,7 +14,6 @@ import { Section, SectionContent } from "../layout/section"
 
 const plans = [
   {
-    id: "free",
     badge: null,
     cta: "Comenzar gratis",
     description: "Para probar sin compromisos",
@@ -26,13 +25,13 @@ const plans = [
     ],
     highlighted: false,
     href: "/sign-up",
-    search: {},
+    id: "free",
     name: "Gratis",
     period: null,
     price: null,
+    search: {},
   },
   {
-    id: "pro",
     badge: "Recomendado",
     cta: "Empezar con Pro",
     description: "Para negocios que quieren crecer",
@@ -46,15 +45,15 @@ const plans = [
     ],
     highlighted: true,
     href: "/sign-up",
-    search: {
-      plan: "pro",
-    },
+    id: "pro",
     name: "Pro",
     period: "COP/mes",
     price: "$49.900",
+    search: {
+      plan: "pro",
+    },
   },
   {
-    id: "business",
     badge: null,
     cta: "Empezar con Negocio",
     description: "Para cadenas y múltiples sucursales",
@@ -67,12 +66,13 @@ const plans = [
     ],
     highlighted: false,
     href: "/sign-up",
-    search: {
-      plan: "business",
-    },
+    id: "business",
     name: "Negocio",
     period: "COP/mes",
     price: "$99.900",
+    search: {
+      plan: "business",
+    },
   },
 ] as const
 

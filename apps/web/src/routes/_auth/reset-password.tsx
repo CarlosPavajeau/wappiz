@@ -6,13 +6,13 @@ import { ResetPasswordForm } from "@/components/auth/reset-password-form"
 import { Button } from "@/components/ui/button"
 
 const search = type({
-  "token?": "string",
   "error?": "string",
+  "token?": "string",
 })
 
 export const Route = createFileRoute("/_auth/reset-password")({
-  validateSearch: search,
   component: RouteComponent,
+  validateSearch: search,
 })
 
 function RouteComponent() {
@@ -26,9 +26,9 @@ function RouteComponent() {
     const message =
       error === "INVALID_TOKEN"
         ? "El enlace no es válido."
-        : !token
+        : (!token
           ? "El enlace ha expirado."
-          : error
+          : error)
 
     return (
       <div className="w-full max-w-sm">

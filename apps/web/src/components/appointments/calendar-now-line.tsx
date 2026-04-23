@@ -5,7 +5,9 @@ import { GRID_HEIGHT, HOUR_HEIGHT, START_HOUR } from "./calendar-config"
 export function CalendarNowLine() {
   const now = new Date()
   const top = (getHours(now) - START_HOUR + getMinutes(now) / 60) * HOUR_HEIGHT
-  if (top < 0 || top > GRID_HEIGHT) return null
+  if (top < 0 || top > GRID_HEIGHT) {
+    return null
+  }
   return (
     <div
       aria-hidden

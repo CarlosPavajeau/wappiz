@@ -69,9 +69,9 @@ export function ScheduleOverridesCard({ resourceId, overrides }: Props) {
                   <span className="text-muted-foreground tabular-nums">
                     {override.isDayOff
                       ? "Cerrado"
-                      : override.startTime && override.endTime
+                      : (override.startTime && override.endTime
                         ? `${formatTime(override.startTime)} – ${formatTime(override.endTime)}`
-                        : null}
+                        : null)}
                   </span>
                   <DeleteOverrideButton
                     resourceId={resourceId}

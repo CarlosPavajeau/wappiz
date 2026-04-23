@@ -16,16 +16,16 @@ import { listUsers } from "@/functions/list-users"
 const PAGE_SIZE = 20
 
 export const Route = createFileRoute("/_authed/dashboard/users")({
+  component: RouteComponent,
+  loader: ({ deps: { page, limit } }) => listUsers({ data: { limit, page } }),
+  loaderDeps: ({ search: { page, limit } }) => ({ limit, page }),
   validateSearch: (search: Record<string, unknown>) => {
     const raw = Number(search["page"])
     return {
-      page: Number.isInteger(raw) && raw > 0 ? raw : 1,
       limit: PAGE_SIZE,
+      page: Number.isInteger(raw) && raw > 0 ? raw : 1,
     }
   },
-  loaderDeps: ({ search: { page, limit } }) => ({ page, limit }),
-  loader: ({ deps: { page, limit } }) => listUsers({ data: { page, limit } }),
-  component: RouteComponent,
 })
 
 function RouteComponent() {

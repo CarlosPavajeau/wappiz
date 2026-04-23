@@ -17,16 +17,16 @@ import { api } from "@/lib/client-api"
 
 export function FreePlanCard() {
   const { data: plans, isLoading } = useQuery({
-    queryKey: ["billing", "plans"],
     queryFn: () => api.billing.listPlans(),
+    queryKey: ["billing", "plans"],
   })
 
   const { tenant } = use(tenantContext)
   const { mutate: checkout } = useMutation({
     mutationFn: (productId: string) =>
       authClient.checkout({
-        products: [productId],
         metadata: { tenant_id: tenant?.id },
+        products: [productId],
       }),
   })
 

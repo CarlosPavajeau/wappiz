@@ -26,7 +26,9 @@ export function OrdersTable() {
         },
       })
 
-      if (result.error) throw result.error
+      if (result.error) {
+        throw result.error
+      }
       return result.data
     },
     queryKey: ["polar", "orders"],
