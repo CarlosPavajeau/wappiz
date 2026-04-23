@@ -4,29 +4,25 @@ export function parsePlanMetadata(
   metadata: Record<string, MetadataOutputType>
 ) {
   return {
-    feature_analytics: parseBool(metadata.feature_analytics as string),
-    feature_basic_reminders: parseBool(
+    featureAnalytics: parseBool(metadata.feature_analytics as string),
+    featureBasicReminders: parseBool(
       metadata.feature_basic_reminders as string
     ),
-    feature_custom_reminders: parseBool(
+    featureCustomReminders: parseBool(
       metadata.feature_custom_reminders as string
     ),
-    feature_multi_location: parseBool(
-      metadata.feature_multi_location as string
-    ),
-    feature_priority_support: parseBool(
+    featureMultiLocation: parseBool(metadata.feature_multi_location as string),
+    featurePrioritySupport: parseBool(
       metadata.feature_priority_support as string
     ),
-    feature_public_booking: parseBool(
-      metadata.feature_public_booking as string
-    ),
-    feature_recurring: parseBool(metadata.feature_recurring as string),
-    feature_waiting_list: parseBool(metadata.feature_waiting_list as string),
-    max_appointments_per_month: parseNumber(
+    featurePublicBooking: parseBool(metadata.feature_public_booking as string),
+    featureRecurring: parseBool(metadata.feature_recurring as string),
+    featureWaitingList: parseBool(metadata.feature_waiting_list as string),
+    maxAppointmentsPerMonth: parseNumber(
       metadata.max_appointments_per_month as string
     ),
-    max_resources: parseNumber(metadata.max_resources as string),
-    max_services: parseNumber(metadata.max_services as string),
+    maxResources: parseNumber(metadata.max_resources as string),
+    maxServices: parseNumber(metadata.max_services as string),
   }
 }
 
