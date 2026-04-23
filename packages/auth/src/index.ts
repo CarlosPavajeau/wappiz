@@ -17,6 +17,8 @@ import { betterAuth } from "better-auth/minimal"
 import { jwt, admin } from "better-auth/plugins"
 import { tanstackStartCookies } from "better-auth/tanstack-start"
 
+import { parsePlanMetadata } from "./lib/parse-metadata"
+
 const polarClient = createPolarClient(env.POLAR_ACCESS_TOKEN, env.POLAR_MODE)
 
 export const auth = betterAuth({
@@ -173,7 +175,7 @@ export const auth = betterAuth({
               environment,
               externalId: event.data.id,
               externalPriceId: price.id,
-              features: event.data.metadata,
+              features: parsePlanMetadata(event.data.metadata),
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
               name: event.data.name,
