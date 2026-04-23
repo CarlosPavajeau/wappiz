@@ -9,7 +9,6 @@ import {
   upsertPlan,
 } from "@wappiz/db/queries/billing"
 import * as schema from "@wappiz/db/schema/auth"
-import { subscriptionOrders } from "@wappiz/db/schema/billing"
 import { env } from "@wappiz/env/server"
 import { createPolarClient } from "@wappiz/polar"
 import { Resend } from "@wappiz/resend"
