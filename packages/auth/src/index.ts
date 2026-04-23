@@ -149,7 +149,7 @@ export const auth = betterAuth({
               environment,
               externalId: event.data.id,
               externalPriceId: price.id,
-              features: event.data.metadata,
+              features: parsePlanMetadata(event.data.metadata),
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
               name: event.data.name,
