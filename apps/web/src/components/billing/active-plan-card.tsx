@@ -1,5 +1,6 @@
 import { LinkSquare02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { useQuery } from "@tanstack/react-query"
 import type { CustomerState } from "@wappiz/polar"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
@@ -7,7 +8,9 @@ import { es } from "date-fns/locale"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
 import { authClient } from "@/lib/auth-client"
+import { api } from "@/lib/client-api"
 import { formatCurrency } from "@/lib/intl"
 import { cn } from "@/lib/utils"
 
@@ -42,6 +45,12 @@ type Props = {
 
 export function ActivePlanCard({ customerState }: Props) {
   const subscription = customerState?.activeSubscriptions[0]
+  const { data: plan, isLoading } = useQuery({
+    queryKey: ["billing", "plan", subscription?.productId],
+    queryFn: () =>
+      api.billing.getPlanByExternalId(subscription?.productId ?? ""),
+    enabled: !!subscription,
+  })
 
   if (!subscription) {
     return <FreePlanCard />
@@ -65,7 +74,9 @@ export function ActivePlanCard({ customerState }: Props) {
     <div className="space-y-6">
       <div className="space-y-1">
         <div className="flex flex-wrap items-baseline gap-3 pt-1">
-          <h2 className="text-2xl font-semibold tracking-tight">Pro</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {isLoading ? <Skeleton className="w-12" /> : plan?.name}
+          </h2>
 
           <div className="flex items-baseline gap-1">
             <span className="text-2xl font-semibold tabular-nums">
@@ -82,7 +93,7 @@ export function ActivePlanCard({ customerState }: Props) {
         <div className="flex items-center gap-2 pt-0.5">
           <Badge
             variant={isActive ? "default" : "outline"}
-            className={cn(!isActive && "text-muted-foreground")}
+            className={cn(!isActive && "text-muted-foreground", "rounded-md")}
           >
             {STATUS_LABELS[status] ?? status}
           </Badge>
