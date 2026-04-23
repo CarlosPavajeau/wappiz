@@ -4,7 +4,6 @@ export type Tenant = {
   slug: string
   timezone: string
   currency: string
-  plan: string
   settings: TenantSettings
 }
 

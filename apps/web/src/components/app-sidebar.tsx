@@ -94,9 +94,6 @@ function TenantHeaderContent({ tenant, isLoading }: TenantHeaderContentProps) {
         <span className="truncate text-sm leading-tight font-semibold">
           {tenant.name}
         </span>
-        <span className="truncate text-xs text-muted-foreground capitalize">
-          {tenant.plan}
-        </span>
       </div>
     </div>
   )
