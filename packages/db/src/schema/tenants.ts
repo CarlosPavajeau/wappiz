@@ -26,8 +26,6 @@ export const tenants = pgTable(
     isActive: boolean("is_active").default(true).notNull(),
     monthResetAt: timestamp("month_reset_at", { withTimezone: true }).notNull(),
     name: varchar({ length: 255 }).notNull(),
-    plan: varchar({ length: 20 }).default("free").notNull(),
-    planExpiresAt: timestamp("plan_expires_at", { withTimezone: true }),
     settings: jsonb().default({}),
     slug: varchar({ length: 100 }).notNull(),
     timezone: varchar({ length: 50 }).default("America/Bogota").notNull(),
