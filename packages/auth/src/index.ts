@@ -139,15 +139,13 @@ export const auth = betterAuth({
               return
             }
 
-            const features = event.data.benefits
-              .filter((benefit) => benefit.type === "feature_flag")
-              .reduce(
-                (acc, benefit) => {
-                  acc[benefit.id] = true
-                  return acc
-                },
-                {} as Record<string, boolean>
-              )
+            const features: Record<string, boolean> = {}
+            const benefits = event.data.benefits.filter(
+              (b) => b.type === "feature_flag"
+            )
+            for (const benefit of benefits) {
+              features[benefit.id] = true
+            }
 
             const environment = env.POLAR_MODE
 
@@ -175,15 +173,13 @@ export const auth = betterAuth({
               return
             }
 
-            const features = event.data.benefits
-              .filter((benefit) => benefit.type === "feature_flag")
-              .reduceRight(
-                (acc, benefit) => {
-                  acc[benefit.id] = true
-                  return acc
-                },
-                {} as Record<string, boolean>
-              )
+            const features: Record<string, boolean> = {}
+            const benefits = event.data.benefits.filter(
+              (b) => b.type === "feature_flag"
+            )
+            for (const benefit of benefits) {
+              features[benefit.id] = true
+            }
 
             const environment = env.POLAR_MODE
 
