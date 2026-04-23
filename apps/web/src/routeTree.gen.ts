@@ -27,8 +27,8 @@ import { Route as AuthedDashboardUsersRouteImport } from './routes/_authed/dashb
 import { Route as AuthedDashboardSettingsRouteImport } from './routes/_authed/dashboard.settings'
 import { Route as AuthedDashboardServicesRouteImport } from './routes/_authed/dashboard.services'
 import { Route as AuthedDashboardCustomersRouteImport } from './routes/_authed/dashboard.customers'
-import { Route as AuthedDashboardBillingRouteImport } from './routes/_authed/dashboard.billing'
 import { Route as AuthedDashboardResourcesIndexRouteImport } from './routes/_authed/dashboard.resources.index'
+import { Route as AuthedDashboardBillingIndexRouteImport } from './routes/_authed/dashboard.billing.index'
 import { Route as AuthedOnboardingStepStepRouteImport } from './routes/_authed/onboarding.step.$step'
 import { Route as AuthedDashboardResourcesIdRouteImport } from './routes/_authed/dashboard.resources.$id'
 import { Route as AuthedDashboardExperimentalCalendarRouteImport } from './routes/_authed/dashboard.experimental.calendar'
@@ -122,15 +122,16 @@ const AuthedDashboardCustomersRoute =
     path: '/customers',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
-const AuthedDashboardBillingRoute = AuthedDashboardBillingRouteImport.update({
-  id: '/billing',
-  path: '/billing',
-  getParentRoute: () => AuthedDashboardRoute,
-} as any)
 const AuthedDashboardResourcesIndexRoute =
   AuthedDashboardResourcesIndexRouteImport.update({
     id: '/resources/',
     path: '/resources/',
+    getParentRoute: () => AuthedDashboardRoute,
+  } as any)
+const AuthedDashboardBillingIndexRoute =
+  AuthedDashboardBillingIndexRouteImport.update({
+    id: '/billing/',
+    path: '/billing/',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
 const AuthedOnboardingStepStepRoute =
@@ -162,7 +163,6 @@ export interface FileRoutesByFullPath {
   '/banned': typeof AuthedBannedRoute
   '/dashboard': typeof AuthedDashboardRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRouteWithChildren
-  '/dashboard/billing': typeof AuthedDashboardBillingRoute
   '/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
@@ -173,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/experimental/calendar': typeof AuthedDashboardExperimentalCalendarRoute
   '/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
+  '/dashboard/billing/': typeof AuthedDashboardBillingIndexRoute
   '/dashboard/resources/': typeof AuthedDashboardResourcesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -183,7 +184,6 @@ export interface FileRoutesByTo {
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/banned': typeof AuthedBannedRoute
-  '/dashboard/billing': typeof AuthedDashboardBillingRoute
   '/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
@@ -194,6 +194,7 @@ export interface FileRoutesByTo {
   '/dashboard/experimental/calendar': typeof AuthedDashboardExperimentalCalendarRoute
   '/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
+  '/dashboard/billing': typeof AuthedDashboardBillingIndexRoute
   '/dashboard/resources': typeof AuthedDashboardResourcesIndexRoute
 }
 export interface FileRoutesById {
@@ -209,7 +210,6 @@ export interface FileRoutesById {
   '/_authed/banned': typeof AuthedBannedRoute
   '/_authed/dashboard': typeof AuthedDashboardRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRouteWithChildren
-  '/_authed/dashboard/billing': typeof AuthedDashboardBillingRoute
   '/_authed/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/_authed/dashboard/services': typeof AuthedDashboardServicesRoute
   '/_authed/dashboard/settings': typeof AuthedDashboardSettingsRoute
@@ -220,6 +220,7 @@ export interface FileRoutesById {
   '/_authed/dashboard/experimental/calendar': typeof AuthedDashboardExperimentalCalendarRoute
   '/_authed/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/_authed/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
+  '/_authed/dashboard/billing/': typeof AuthedDashboardBillingIndexRoute
   '/_authed/dashboard/resources/': typeof AuthedDashboardResourcesIndexRoute
 }
 export interface FileRouteTypes {
@@ -234,7 +235,6 @@ export interface FileRouteTypes {
     | '/banned'
     | '/dashboard'
     | '/onboarding'
-    | '/dashboard/billing'
     | '/dashboard/customers'
     | '/dashboard/services'
     | '/dashboard/settings'
@@ -245,6 +245,7 @@ export interface FileRouteTypes {
     | '/dashboard/experimental/calendar'
     | '/dashboard/resources/$id'
     | '/onboarding/step/$step'
+    | '/dashboard/billing/'
     | '/dashboard/resources/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -255,7 +256,6 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/banned'
-    | '/dashboard/billing'
     | '/dashboard/customers'
     | '/dashboard/services'
     | '/dashboard/settings'
@@ -266,6 +266,7 @@ export interface FileRouteTypes {
     | '/dashboard/experimental/calendar'
     | '/dashboard/resources/$id'
     | '/onboarding/step/$step'
+    | '/dashboard/billing'
     | '/dashboard/resources'
   id:
     | '__root__'
@@ -280,7 +281,6 @@ export interface FileRouteTypes {
     | '/_authed/banned'
     | '/_authed/dashboard'
     | '/_authed/onboarding'
-    | '/_authed/dashboard/billing'
     | '/_authed/dashboard/customers'
     | '/_authed/dashboard/services'
     | '/_authed/dashboard/settings'
@@ -291,6 +291,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard/experimental/calendar'
     | '/_authed/dashboard/resources/$id'
     | '/_authed/onboarding/step/$step'
+    | '/_authed/dashboard/billing/'
     | '/_authed/dashboard/resources/'
   fileRoutesById: FileRoutesById
 }
@@ -431,18 +432,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardCustomersRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
-    '/_authed/dashboard/billing': {
-      id: '/_authed/dashboard/billing'
-      path: '/billing'
-      fullPath: '/dashboard/billing'
-      preLoaderRoute: typeof AuthedDashboardBillingRouteImport
-      parentRoute: typeof AuthedDashboardRoute
-    }
     '/_authed/dashboard/resources/': {
       id: '/_authed/dashboard/resources/'
       path: '/resources'
       fullPath: '/dashboard/resources/'
       preLoaderRoute: typeof AuthedDashboardResourcesIndexRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
+    '/_authed/dashboard/billing/': {
+      id: '/_authed/dashboard/billing/'
+      path: '/billing'
+      fullPath: '/dashboard/billing/'
+      preLoaderRoute: typeof AuthedDashboardBillingIndexRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
     '/_authed/onboarding/step/$step': {
@@ -484,7 +485,6 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthedDashboardRouteChildren {
-  AuthedDashboardBillingRoute: typeof AuthedDashboardBillingRoute
   AuthedDashboardCustomersRoute: typeof AuthedDashboardCustomersRoute
   AuthedDashboardServicesRoute: typeof AuthedDashboardServicesRoute
   AuthedDashboardSettingsRoute: typeof AuthedDashboardSettingsRoute
@@ -492,11 +492,11 @@ interface AuthedDashboardRouteChildren {
   AuthedDashboardIndexRoute: typeof AuthedDashboardIndexRoute
   AuthedDashboardExperimentalCalendarRoute: typeof AuthedDashboardExperimentalCalendarRoute
   AuthedDashboardResourcesIdRoute: typeof AuthedDashboardResourcesIdRoute
+  AuthedDashboardBillingIndexRoute: typeof AuthedDashboardBillingIndexRoute
   AuthedDashboardResourcesIndexRoute: typeof AuthedDashboardResourcesIndexRoute
 }
 
 const AuthedDashboardRouteChildren: AuthedDashboardRouteChildren = {
-  AuthedDashboardBillingRoute: AuthedDashboardBillingRoute,
   AuthedDashboardCustomersRoute: AuthedDashboardCustomersRoute,
   AuthedDashboardServicesRoute: AuthedDashboardServicesRoute,
   AuthedDashboardSettingsRoute: AuthedDashboardSettingsRoute,
@@ -505,6 +505,7 @@ const AuthedDashboardRouteChildren: AuthedDashboardRouteChildren = {
   AuthedDashboardExperimentalCalendarRoute:
     AuthedDashboardExperimentalCalendarRoute,
   AuthedDashboardResourcesIdRoute: AuthedDashboardResourcesIdRoute,
+  AuthedDashboardBillingIndexRoute: AuthedDashboardBillingIndexRoute,
   AuthedDashboardResourcesIndexRoute: AuthedDashboardResourcesIndexRoute,
 }
 
