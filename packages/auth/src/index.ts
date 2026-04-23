@@ -139,14 +139,6 @@ export const auth = betterAuth({
               return
             }
 
-            const features: Record<string, boolean> = {}
-            const benefits = event.data.benefits.filter(
-              (b) => b.type === "feature_flag"
-            )
-            for (const benefit of benefits) {
-              features[benefit.id] = true
-            }
-
             const environment = env.POLAR_MODE
 
             await upsertPlan({
@@ -155,7 +147,7 @@ export const auth = betterAuth({
               environment,
               externalId: event.data.id,
               externalPriceId: price.id,
-              features,
+              features: event.data.metadata,
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
               name: event.data.name,
@@ -173,14 +165,6 @@ export const auth = betterAuth({
               return
             }
 
-            const features: Record<string, boolean> = {}
-            const benefits = event.data.benefits.filter(
-              (b) => b.type === "feature_flag"
-            )
-            for (const benefit of benefits) {
-              features[benefit.id] = true
-            }
-
             const environment = env.POLAR_MODE
 
             await upsertPlan({
@@ -189,7 +173,7 @@ export const auth = betterAuth({
               environment,
               externalId: event.data.id,
               externalPriceId: price.id,
-              features,
+              features: event.data.metadata,
               interval: event.data.recurringInterval,
               isActive: !event.data.isArchived,
               name: event.data.name,
