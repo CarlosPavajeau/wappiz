@@ -22,6 +22,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { authClient } from "@/lib/auth-client"
+import { clearTokenCache } from "@/lib/client-api"
 
 export function UserMenu() {
   const { isMobile } = useSidebar()
@@ -34,6 +35,7 @@ export function UserMenu() {
   const { mutate: signOut, isPending } = useMutation({
     mutationFn: () => authClient.signOut(),
     onSuccess: () => {
+      clearTokenCache()
       navigate({ to: "/sign-in" })
     },
   })

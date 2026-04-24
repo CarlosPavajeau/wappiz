@@ -15,6 +15,10 @@ const FALLBACK_TTL_MS = 14 * 60 * 1000
 
 let cache: CachedToken | null = null
 
+export function clearTokenCache(): void {
+  cache = null
+}
+
 function parseJwtExpiry(token: string): number | null {
   try {
     const payload = JSON.parse(atob(token.split(".")[1]))
