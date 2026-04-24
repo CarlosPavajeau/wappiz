@@ -22,6 +22,7 @@
     "@tanstack/react-start": "^1.167.13",
     "@tanstack/react-table": "^8.21.3",
     "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "@vitejs/plugin-react": "^6.0.1",
     "@wappiz/api-client": "workspace:*",
     "@wappiz/auth": "workspace:*",

@@ -7,6 +7,8 @@ import {
   Scripts,
 } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router"
 
 import { Toaster } from "@/components/ui/sonner"
@@ -83,11 +85,13 @@ function RootDocument() {
                 </div>
                 <Toaster richColors />
                 <TanStackRouterDevtools position="bottom-right" />
-                <Scripts />
               </NuqsAdapter>
             </TooltipProvider>
           </ThemeProvider>
         </PostHogProvider>
+        <Analytics />
+        <SpeedInsights />
+        <Scripts />
       </body>
     </html>
   )
