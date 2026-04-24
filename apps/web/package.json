@@ -47,8 +47,7 @@
     "tw-animate-css": "^1.3.4",
     "vaul": "^1.1.2",
     "vite": "^8.0.3",
-    "zod": "catalog:",
-    "zustand": "^5.0.12"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
