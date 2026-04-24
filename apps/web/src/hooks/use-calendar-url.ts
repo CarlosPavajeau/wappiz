@@ -9,10 +9,7 @@ import { parseAsArrayOf, parseAsString, useQueryState } from "nuqs"
 import { useMemo } from "react"
 
 import type { CalView } from "@/components/appointments/calendar-config"
-import {
-  WEEK_OPTS,
-  toDateKey,
-} from "@/components/appointments/calendar-config"
+import { WEEK_OPTS, toDateKey } from "@/components/appointments/calendar-config"
 
 export function useCalendarUrl() {
   const [view, setView] = useQueryState(
