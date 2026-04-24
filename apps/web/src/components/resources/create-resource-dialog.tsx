@@ -3,6 +3,7 @@ import { ResourcesAddIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
+import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -50,9 +51,11 @@ export function CreateResourceDialog() {
   const { mutate: createResource, isPending } = useMutation({
     mutationFn: (values: CreateResourceFormValues) =>
       api.resources.create(values),
-    onError: () => {
+    onError: (error) => {
       toast.error(
-        "Error al crear el recurso. Verifica los datos e intenta de nuevo."
+        error instanceof ApiError
+          ? error.message
+          : "Error al crear el recurso. Verifica los datos e intenta de nuevo."
       )
     },
     onSuccess: (resource) => {

@@ -49,16 +49,40 @@ export type RequestOptions = {
   signal?: AbortSignal
 }
 
+export type ProblemDetail = {
+  error: {
+    detail: string
+    status: number
+    title: string
+    type: string
+  }
+  meta: {
+    requestId: string
+  }
+}
+
 export class ApiError extends Error {
+  readonly status: number
+  readonly code: string | undefined
+  readonly data: unknown
+  readonly originalError?: unknown
+  readonly requestId?: string
+
   constructor(
     message: string,
-    public readonly status: number,
-    public readonly code: string | undefined,
-    public readonly data: unknown,
-    public readonly originalError?: unknown
+    status: number,
+    code: string | undefined,
+    data: unknown,
+    originalError?: unknown,
+    requestId?: string
   ) {
     super(message)
     this.name = "ApiError"
+    this.status = status
+    this.code = code
+    this.data = data
+    this.originalError = originalError
+    this.requestId = requestId
   }
 
   static fromError(error: unknown): ApiError {

@@ -9,6 +9,7 @@ import type {
 } from "./types"
 
 type ResourceFactory<
+  // oxlint-disable-next-line typescript/no-explicit-any
   TDefs extends Record<string, EndpointDefinition<any, any, any>>,
 > = (client: FetchClient) => ResourceApi<TDefs>
 
@@ -21,6 +22,41 @@ type BoundResources<
   [K in keyof TRegistry]: TRegistry[K] extends ResourceFactory<infer TDefs>
     ? ResourceApi<TDefs>
     : never
+}
+
+function parseProblemDetail(
+  data: unknown,
+  fallback: string
+): {
+  message: string
+  code: string | undefined
+  requestId: string | undefined
+} {
+  if (typeof data !== "object" || data === null) {
+    return { code: undefined, message: fallback, requestId: undefined }
+  }
+
+  const d = data as Record<string, unknown>
+  const meta = d.meta as Record<string, unknown> | undefined
+  const requestId =
+    typeof meta?.requestId === "string" ? meta.requestId : undefined
+
+  const e = d.error
+  if (typeof e === "object" && e !== null) {
+    const err = e as Record<string, unknown>
+    const message =
+      (typeof err.detail === "string" ? err.detail : undefined) ??
+      (typeof err.title === "string" ? err.title : undefined) ??
+      fallback
+    const code = typeof err.type === "string" ? err.type : undefined
+    return { code, message, requestId }
+  }
+
+  return {
+    code: typeof d.code === "string" ? d.code : undefined,
+    message: typeof d.message === "string" ? d.message : fallback,
+    requestId,
+  }
 }
 
 function buildUrl(
@@ -133,13 +169,17 @@ export class HttpClient implements FetchClient {
       }
 
       if (!response.ok) {
-        const errorData = typeof data === "object" && data !== null ? data : {}
+        const { message, code, requestId } = parseProblemDetail(
+          data,
+          response.statusText
+        )
         throw new ApiError(
-          ((errorData as Record<string, unknown>).message as string) ??
-            response.statusText,
+          message,
           response.status,
-          (errorData as Record<string, unknown>).code as string | undefined,
-          data
+          code,
+          data,
+          undefined,
+          requestId
         )
       }
 
@@ -177,6 +217,7 @@ export class HttpClient implements FetchClient {
   bindResources<
     TRegistry extends Record<
       string,
+      // oxlint-disable-next-line typescript/no-explicit-any
       ResourceFactory<Record<string, EndpointDefinition<any, any, any>>>
     >,
   >(registry: TRegistry): BoundResources<TRegistry> {
