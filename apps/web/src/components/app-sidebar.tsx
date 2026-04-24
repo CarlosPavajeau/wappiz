@@ -10,7 +10,6 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Link, useLocation, useRouteContext } from "@tanstack/react-router"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
-import { use } from "react"
 
 import {
   Sidebar,
@@ -25,9 +24,9 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useTenant } from "@/hooks/use-tenant"
 
 import { UserMenu } from "./dashboard/user-menu"
-import { tenantContext } from "./tenant-provider"
 import { Skeleton } from "./ui/skeleton"
 
 const USER_NAV_ITEMS = [
@@ -143,7 +142,7 @@ export function AppSidebar() {
   const { user } = useRouteContext({
     from: "/_authed",
   })
-  const { tenant, isLoading } = use(tenantContext)
+  const { data: tenant, isLoading } = useTenant()
   const { isMobile, openMobile, setOpenMobile } = useSidebar()
 
   const toggleSidebar = () => {

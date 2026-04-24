@@ -11,7 +11,6 @@ import { Fragment } from "react"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { ModeToggle } from "@/components/mode-toggle"
-import { TenantProvider } from "@/components/tenant-provider"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -138,30 +137,28 @@ function DashboardBreadcrumb() {
 
 function RouteComponent() {
   return (
-    <TenantProvider>
-      <SidebarProvider>
-        <AppSidebar />
+    <SidebarProvider>
+      <AppSidebar />
 
-        <SidebarInset>
-          <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center border-b border-border bg-background/75 backdrop-blur-xl">
-            <nav
-              aria-label="Navegacion principal"
-              className="flex w-full items-center justify-between px-4 sm:px-6"
-            >
-              <div className="flex items-center gap-2">
-                <SidebarTrigger />
-                <DashboardBreadcrumb />
-              </div>
+      <SidebarInset>
+        <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center border-b border-border bg-background/75 backdrop-blur-xl">
+          <nav
+            aria-label="Navegacion principal"
+            className="flex w-full items-center justify-between px-4 sm:px-6"
+          >
+            <div className="flex items-center gap-2">
+              <SidebarTrigger />
+              <DashboardBreadcrumb />
+            </div>
 
-              <ModeToggle />
-            </nav>
-          </header>
+            <ModeToggle />
+          </nav>
+        </header>
 
-          <div className="px-4 pt-8 pb-16 sm:px-6">
-            <Outlet />
-          </div>
-        </SidebarInset>
-      </SidebarProvider>
-    </TenantProvider>
+        <div className="px-4 pt-8 pb-16 sm:px-6">
+          <Outlet />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

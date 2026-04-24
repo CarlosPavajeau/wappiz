@@ -5,13 +5,12 @@ import {
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { use } from "react"
 
-import { tenantContext } from "@/components/tenant-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Spinner } from "@/components/ui/spinner"
+import { useTenant } from "@/hooks/use-tenant"
 import { authClient } from "@/lib/auth-client"
 import { api } from "@/lib/client-api"
 
@@ -21,7 +20,7 @@ export function FreePlanCard() {
     queryKey: ["billing", "plans"],
   })
 
-  const { tenant } = use(tenantContext)
+  const { data: tenant } = useTenant()
   const { mutate: checkout } = useMutation({
     mutationFn: (productId: string) =>
       authClient.checkout({
