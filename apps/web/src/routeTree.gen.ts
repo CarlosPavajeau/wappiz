@@ -26,11 +26,12 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthedDashboardUsersRouteImport } from './routes/_authed/dashboard.users'
 import { Route as AuthedDashboardSettingsRouteImport } from './routes/_authed/dashboard.settings'
 import { Route as AuthedDashboardServicesRouteImport } from './routes/_authed/dashboard.services'
-import { Route as AuthedDashboardCustomersRouteImport } from './routes/_authed/dashboard.customers'
 import { Route as AuthedDashboardResourcesIndexRouteImport } from './routes/_authed/dashboard.resources.index'
+import { Route as AuthedDashboardCustomersIndexRouteImport } from './routes/_authed/dashboard.customers.index'
 import { Route as AuthedDashboardBillingIndexRouteImport } from './routes/_authed/dashboard.billing.index'
 import { Route as AuthedOnboardingStepStepRouteImport } from './routes/_authed/onboarding.step.$step'
 import { Route as AuthedDashboardResourcesIdRouteImport } from './routes/_authed/dashboard.resources.$id'
+import { Route as AuthedDashboardCustomersIdRouteImport } from './routes/_authed/dashboard.customers.$id'
 
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
@@ -115,16 +116,16 @@ const AuthedDashboardServicesRoute = AuthedDashboardServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => AuthedDashboardRoute,
 } as any)
-const AuthedDashboardCustomersRoute =
-  AuthedDashboardCustomersRouteImport.update({
-    id: '/customers',
-    path: '/customers',
-    getParentRoute: () => AuthedDashboardRoute,
-  } as any)
 const AuthedDashboardResourcesIndexRoute =
   AuthedDashboardResourcesIndexRouteImport.update({
     id: '/resources/',
     path: '/resources/',
+    getParentRoute: () => AuthedDashboardRoute,
+  } as any)
+const AuthedDashboardCustomersIndexRoute =
+  AuthedDashboardCustomersIndexRouteImport.update({
+    id: '/customers/',
+    path: '/customers/',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
 const AuthedDashboardBillingIndexRoute =
@@ -145,6 +146,12 @@ const AuthedDashboardResourcesIdRoute =
     path: '/resources/$id',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
+const AuthedDashboardCustomersIdRoute =
+  AuthedDashboardCustomersIdRouteImport.update({
+    id: '/customers/$id',
+    path: '/customers/$id',
+    getParentRoute: () => AuthedDashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -156,16 +163,17 @@ export interface FileRoutesByFullPath {
   '/banned': typeof AuthedBannedRoute
   '/dashboard': typeof AuthedDashboardRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRouteWithChildren
-  '/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard/': typeof AuthedDashboardIndexRoute
   '/onboarding/': typeof AuthedOnboardingIndexRoute
+  '/dashboard/customers/$id': typeof AuthedDashboardCustomersIdRoute
   '/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
   '/dashboard/billing/': typeof AuthedDashboardBillingIndexRoute
+  '/dashboard/customers/': typeof AuthedDashboardCustomersIndexRoute
   '/dashboard/resources/': typeof AuthedDashboardResourcesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -176,16 +184,17 @@ export interface FileRoutesByTo {
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/banned': typeof AuthedBannedRoute
-  '/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/dashboard': typeof AuthedDashboardIndexRoute
   '/onboarding': typeof AuthedOnboardingIndexRoute
+  '/dashboard/customers/$id': typeof AuthedDashboardCustomersIdRoute
   '/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
   '/dashboard/billing': typeof AuthedDashboardBillingIndexRoute
+  '/dashboard/customers': typeof AuthedDashboardCustomersIndexRoute
   '/dashboard/resources': typeof AuthedDashboardResourcesIndexRoute
 }
 export interface FileRoutesById {
@@ -201,16 +210,17 @@ export interface FileRoutesById {
   '/_authed/banned': typeof AuthedBannedRoute
   '/_authed/dashboard': typeof AuthedDashboardRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRouteWithChildren
-  '/_authed/dashboard/customers': typeof AuthedDashboardCustomersRoute
   '/_authed/dashboard/services': typeof AuthedDashboardServicesRoute
   '/_authed/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/_authed/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/dashboard/': typeof AuthedDashboardIndexRoute
   '/_authed/onboarding/': typeof AuthedOnboardingIndexRoute
+  '/_authed/dashboard/customers/$id': typeof AuthedDashboardCustomersIdRoute
   '/_authed/dashboard/resources/$id': typeof AuthedDashboardResourcesIdRoute
   '/_authed/onboarding/step/$step': typeof AuthedOnboardingStepStepRoute
   '/_authed/dashboard/billing/': typeof AuthedDashboardBillingIndexRoute
+  '/_authed/dashboard/customers/': typeof AuthedDashboardCustomersIndexRoute
   '/_authed/dashboard/resources/': typeof AuthedDashboardResourcesIndexRoute
 }
 export interface FileRouteTypes {
@@ -225,16 +235,17 @@ export interface FileRouteTypes {
     | '/banned'
     | '/dashboard'
     | '/onboarding'
-    | '/dashboard/customers'
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/users'
     | '/api/auth/$'
     | '/dashboard/'
     | '/onboarding/'
+    | '/dashboard/customers/$id'
     | '/dashboard/resources/$id'
     | '/onboarding/step/$step'
     | '/dashboard/billing/'
+    | '/dashboard/customers/'
     | '/dashboard/resources/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -245,16 +256,17 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/banned'
-    | '/dashboard/customers'
     | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/users'
     | '/api/auth/$'
     | '/dashboard'
     | '/onboarding'
+    | '/dashboard/customers/$id'
     | '/dashboard/resources/$id'
     | '/onboarding/step/$step'
     | '/dashboard/billing'
+    | '/dashboard/customers'
     | '/dashboard/resources'
   id:
     | '__root__'
@@ -269,16 +281,17 @@ export interface FileRouteTypes {
     | '/_authed/banned'
     | '/_authed/dashboard'
     | '/_authed/onboarding'
-    | '/_authed/dashboard/customers'
     | '/_authed/dashboard/services'
     | '/_authed/dashboard/settings'
     | '/_authed/dashboard/users'
     | '/api/auth/$'
     | '/_authed/dashboard/'
     | '/_authed/onboarding/'
+    | '/_authed/dashboard/customers/$id'
     | '/_authed/dashboard/resources/$id'
     | '/_authed/onboarding/step/$step'
     | '/_authed/dashboard/billing/'
+    | '/_authed/dashboard/customers/'
     | '/_authed/dashboard/resources/'
   fileRoutesById: FileRoutesById
 }
@@ -412,18 +425,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardServicesRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
-    '/_authed/dashboard/customers': {
-      id: '/_authed/dashboard/customers'
-      path: '/customers'
-      fullPath: '/dashboard/customers'
-      preLoaderRoute: typeof AuthedDashboardCustomersRouteImport
-      parentRoute: typeof AuthedDashboardRoute
-    }
     '/_authed/dashboard/resources/': {
       id: '/_authed/dashboard/resources/'
       path: '/resources'
       fullPath: '/dashboard/resources/'
       preLoaderRoute: typeof AuthedDashboardResourcesIndexRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
+    '/_authed/dashboard/customers/': {
+      id: '/_authed/dashboard/customers/'
+      path: '/customers'
+      fullPath: '/dashboard/customers/'
+      preLoaderRoute: typeof AuthedDashboardCustomersIndexRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
     '/_authed/dashboard/billing/': {
@@ -447,6 +460,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardResourcesIdRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
+    '/_authed/dashboard/customers/$id': {
+      id: '/_authed/dashboard/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/dashboard/customers/$id'
+      preLoaderRoute: typeof AuthedDashboardCustomersIdRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
   }
 }
 
@@ -465,24 +485,26 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthedDashboardRouteChildren {
-  AuthedDashboardCustomersRoute: typeof AuthedDashboardCustomersRoute
   AuthedDashboardServicesRoute: typeof AuthedDashboardServicesRoute
   AuthedDashboardSettingsRoute: typeof AuthedDashboardSettingsRoute
   AuthedDashboardUsersRoute: typeof AuthedDashboardUsersRoute
   AuthedDashboardIndexRoute: typeof AuthedDashboardIndexRoute
+  AuthedDashboardCustomersIdRoute: typeof AuthedDashboardCustomersIdRoute
   AuthedDashboardResourcesIdRoute: typeof AuthedDashboardResourcesIdRoute
   AuthedDashboardBillingIndexRoute: typeof AuthedDashboardBillingIndexRoute
+  AuthedDashboardCustomersIndexRoute: typeof AuthedDashboardCustomersIndexRoute
   AuthedDashboardResourcesIndexRoute: typeof AuthedDashboardResourcesIndexRoute
 }
 
 const AuthedDashboardRouteChildren: AuthedDashboardRouteChildren = {
-  AuthedDashboardCustomersRoute: AuthedDashboardCustomersRoute,
   AuthedDashboardServicesRoute: AuthedDashboardServicesRoute,
   AuthedDashboardSettingsRoute: AuthedDashboardSettingsRoute,
   AuthedDashboardUsersRoute: AuthedDashboardUsersRoute,
   AuthedDashboardIndexRoute: AuthedDashboardIndexRoute,
+  AuthedDashboardCustomersIdRoute: AuthedDashboardCustomersIdRoute,
   AuthedDashboardResourcesIdRoute: AuthedDashboardResourcesIdRoute,
   AuthedDashboardBillingIndexRoute: AuthedDashboardBillingIndexRoute,
+  AuthedDashboardCustomersIndexRoute: AuthedDashboardCustomersIndexRoute,
   AuthedDashboardResourcesIndexRoute: AuthedDashboardResourcesIndexRoute,
 }
 

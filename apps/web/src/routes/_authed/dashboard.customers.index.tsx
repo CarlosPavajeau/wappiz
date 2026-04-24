@@ -3,10 +3,11 @@ import {
   CircleUnlock01Icon,
   MoreHorizontalIcon,
   UserGroupIcon,
+  ViewIcon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
-import { createFileRoute, useRouter } from "@tanstack/react-router"
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 import type { Customer } from "@wappiz/api-client/types/customers"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
@@ -48,7 +49,7 @@ import {
 } from "@/components/ui/table"
 import { api } from "@/lib/client-api"
 
-export const Route = createFileRoute("/_authed/dashboard/customers")({
+export const Route = createFileRoute("/_authed/dashboard/customers/")({
   component: RouteComponent,
   loader: async () => {
     const customers = await api.customers.list()
@@ -120,6 +121,19 @@ function CustomerRowActions({ customer }: { customer: Customer }) {
               aria-hidden="true"
             />
             {action === "block" ? "Bloquear" : "Desbloquear"}
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            render={
+              <Link
+                to="/dashboard/customers/$id"
+                params={{ id: customer.id }}
+              />
+            }
+            nativeButton={false}
+          >
+            <HugeiconsIcon icon={ViewIcon} strokeWidth={2} aria-hidden="true" />
+            Ver detalles
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

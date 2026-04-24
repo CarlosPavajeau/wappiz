@@ -7,6 +7,10 @@ const definitions = {
     method: "POST",
     path: (id: string) => `/customers/${id}/block`,
   } as EndpointDefinition<void, void, string>,
+  byId: {
+    method: "GET",
+    path: (id: string) => `/customers/${id}`,
+  } as EndpointDefinition<Customer, void, string>,
   list: {
     method: "GET",
     path: "/customers",
