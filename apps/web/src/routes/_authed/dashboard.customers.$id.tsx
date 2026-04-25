@@ -47,36 +47,36 @@ type Incident = {
 
 const MOCK_INCIDENTS: Incident[] = [
   {
-    id: "1",
     date: "2025-03-15T10:00:00",
+    id: "1",
+    note: null,
+    resource: "Carlos M.",
     service: "Corte de cabello",
-    resource: "Carlos M.",
     type: "no_show",
-    note: null,
   },
   {
-    id: "2",
     date: "2025-02-28T14:30:00",
-    service: "Tinte completo",
-    resource: "Ana R.",
-    type: "late_cancel",
+    id: "2",
     note: "Canceló 1 hora antes",
-  },
-  {
-    id: "3",
-    date: "2025-01-12T09:00:00",
-    service: "Manicure y pedicure",
-    resource: "Laura S.",
-    type: "no_show",
-    note: null,
-  },
-  {
-    id: "4",
-    date: "2024-12-05T11:00:00",
-    service: "Barba y bigote",
-    resource: "Carlos M.",
+    resource: "Ana R.",
+    service: "Tinte completo",
     type: "late_cancel",
+  },
+  {
+    date: "2025-01-12T09:00:00",
+    id: "3",
+    note: null,
+    resource: "Laura S.",
+    service: "Manicure y pedicure",
+    type: "no_show",
+  },
+  {
+    date: "2024-12-05T11:00:00",
+    id: "4",
     note: "Canceló 30 minutos antes",
+    resource: "Carlos M.",
+    service: "Barba y bigote",
+    type: "late_cancel",
   },
 ]
 
@@ -109,7 +109,12 @@ function IncidentTypeBadge({ type }: { type: IncidentType }) {
         className
       )}
     >
-      <HugeiconsIcon className="size-3!" icon={icon} strokeWidth={2} aria-hidden />
+      <HugeiconsIcon
+        className="size-3!"
+        icon={icon}
+        strokeWidth={2}
+        aria-hidden
+      />
       {label}
     </span>
   )
@@ -121,8 +126,12 @@ function RouteComponent() {
     queryFn: () => api.customers.byId(id),
     queryKey: ["customer", id],
   })
+  const { data: incidents, isLoading: isLoadingIncidents } = useQuery({
+    queryFn: () => api.customers.incidents(id),
+    queryKey: ["customer", id, "incidents"],
+  })
 
-  if (isLoading) {
+  if (isLoading || isLoadingIncidents) {
     return <DefaultLoader />
   }
 
@@ -149,7 +158,7 @@ function RouteComponent() {
     .join("")
     .toUpperCase()
 
-  const hasIncidents = MOCK_INCIDENTS.length > 0
+  const hasIncidents = incidents !== undefined && incidents.length > 0
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -210,15 +219,16 @@ function RouteComponent() {
       <dl className="grid grid-cols-3 divide-x divide-border rounded-lg border">
         <div className="flex flex-col gap-0.5 px-4 py-3 sm:px-6 sm:py-4">
           <dt className="text-xs text-muted-foreground">Total citas</dt>
-          <dd className="text-2xl font-semibold tabular-nums">12</dd>
+          <dd className="text-2xl font-semibold tabular-nums">
+            {customer.appointmentCount}
+          </dd>
         </div>
         <div className="flex flex-col gap-0.5 px-4 py-3 sm:px-6 sm:py-4">
           <dt className="text-xs text-muted-foreground">No shows</dt>
           <dd
             className={cn(
               "text-2xl font-semibold tabular-nums",
-              customer.noShowCount > 0 &&
-                "text-amber-600 dark:text-amber-400"
+              customer.noShowCount > 0 && "text-amber-600 dark:text-amber-400"
             )}
           >
             {customer.noShowCount}
@@ -243,13 +253,13 @@ function RouteComponent() {
         <div className="mb-5">
           <h2
             id="incidents-heading"
-            className="text-base font-semibold leading-snug"
+            className="text-base leading-snug font-semibold"
           >
             Incidencias
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {hasIncidents
-              ? `${MOCK_INCIDENTS.length} incidencias registradas`
+              ? `${incidents.length} incidencias registradas`
               : "Sin incidencias registradas"}
           </p>
         </div>
@@ -262,37 +272,31 @@ function RouteComponent() {
                 <TableHead>Servicio</TableHead>
                 <TableHead className="hidden sm:table-cell">Recurso</TableHead>
                 <TableHead>Tipo</TableHead>
-                <TableHead className="hidden md:table-cell">Nota</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_INCIDENTS.map((incident) => (
+              {incidents.map((incident) => (
                 <TableRow key={incident.id}>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium">
-                        {format(new Date(incident.date), "d MMM yyyy", {
+                        {format(new Date(incident.startsAt), "d MMM yyyy", {
                           locale: es,
                         })}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {format(new Date(incident.date), "h:mm a")}
+                        {format(new Date(incident.startsAt), "h:mm a")}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {incident.service}
+                    {incident.serviceName}
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground sm:table-cell">
-                    {incident.resource}
+                    {incident.resourceName}
                   </TableCell>
                   <TableCell>
-                    <IncidentTypeBadge type={incident.type} />
-                  </TableCell>
-                  <TableCell className="hidden text-sm text-muted-foreground md:table-cell">
-                    {incident.note ?? (
-                      <span className="text-muted-foreground/40">—</span>
-                    )}
+                    <IncidentTypeBadge type={incident.eventType} />
                   </TableCell>
                 </TableRow>
               ))}
