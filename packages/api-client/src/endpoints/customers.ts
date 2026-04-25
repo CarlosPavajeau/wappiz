@@ -1,6 +1,6 @@
 import { defineResource } from "../core/define-resource"
 import type { EndpointDefinition } from "../core/types"
-import type { Customer } from "../types/customers"
+import type { Customer, Incident } from "../types/customers"
 
 const definitions = {
   block: {
@@ -11,6 +11,10 @@ const definitions = {
     method: "GET",
     path: (id: string) => `/customers/${id}`,
   } as EndpointDefinition<Customer, void, string>,
+  incidents: {
+    method: "GET",
+    path: (id: string) => `/customers/${id}/incidents`,
+  } as EndpointDefinition<Incident[], void, string>,
   list: {
     method: "GET",
     path: "/customers",

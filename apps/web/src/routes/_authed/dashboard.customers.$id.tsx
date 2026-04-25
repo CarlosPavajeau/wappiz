@@ -9,6 +9,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
+import type { IncidentEventType } from "@wappiz/api-client/types/customers"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 
@@ -34,54 +35,8 @@ import {
 import { api } from "@/lib/client-api"
 import { cn } from "@/lib/utils"
 
-type IncidentType = "no_show" | "late_cancel"
-
-type Incident = {
-  id: string
-  date: string
-  service: string
-  resource: string
-  type: IncidentType
-  note: string | null
-}
-
-const MOCK_INCIDENTS: Incident[] = [
-  {
-    date: "2025-03-15T10:00:00",
-    id: "1",
-    note: null,
-    resource: "Carlos M.",
-    service: "Corte de cabello",
-    type: "no_show",
-  },
-  {
-    date: "2025-02-28T14:30:00",
-    id: "2",
-    note: "Canceló 1 hora antes",
-    resource: "Ana R.",
-    service: "Tinte completo",
-    type: "late_cancel",
-  },
-  {
-    date: "2025-01-12T09:00:00",
-    id: "3",
-    note: null,
-    resource: "Laura S.",
-    service: "Manicure y pedicure",
-    type: "no_show",
-  },
-  {
-    date: "2024-12-05T11:00:00",
-    id: "4",
-    note: "Canceló 30 minutos antes",
-    resource: "Carlos M.",
-    service: "Barba y bigote",
-    type: "late_cancel",
-  },
-]
-
 const INCIDENT_CONFIG: Record<
-  IncidentType,
+  IncidentEventType,
   { label: string; className: string; icon: typeof Cancel01Icon }
 > = {
   late_cancel: {
@@ -100,7 +55,7 @@ export const Route = createFileRoute("/_authed/dashboard/customers/$id")({
   component: RouteComponent,
 })
 
-function IncidentTypeBadge({ type }: { type: IncidentType }) {
+function IncidentTypeBadge({ type }: { type: IncidentEventType }) {
   const { label, className, icon } = INCIDENT_CONFIG[type]
   return (
     <span
