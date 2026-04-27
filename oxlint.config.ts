@@ -28,5 +28,6 @@ export default defineConfig({
       },
     ],
     "typescript/consistent-type-definitions": ["error", "type"],
+    "sort-keys": "off",
   },
 })
