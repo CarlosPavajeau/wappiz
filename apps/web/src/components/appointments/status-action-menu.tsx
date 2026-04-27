@@ -54,6 +54,9 @@ const DIALOG_DESCRIPTIONS: Partial<Record<AppointmentStatus, string>> = {
     "Esta acción marcará al cliente como no presentado y no se podrá deshacer.",
 }
 
+const isDestructive = (status: AppointmentStatus) =>
+  status === "cancelled" || status === "no_show"
+
 export function StatusActionMenu({
   appointment,
 }: {
@@ -92,9 +95,6 @@ export function StatusActionMenu({
   const [primaryStatus, ...overflowStatuses] = transitions
   const primaryConfig = getStatusConfig(primaryStatus)
   const hasOverflow = overflowStatuses.length > 0
-
-  const isDestructive = (status: AppointmentStatus) =>
-    status === "cancelled" || status === "no_show"
 
   const triggerAction = (status: AppointmentStatus) => {
     if (requiresConfirmation(status)) {
