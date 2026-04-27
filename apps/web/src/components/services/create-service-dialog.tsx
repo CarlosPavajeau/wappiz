@@ -1,16 +1,11 @@
-"use client"
-
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import {
-  MoreHorizontalCircle01Icon,
-  ServiceIcon,
-} from "@hugeicons/core-free-icons"
+import { InformationCircleIcon, ServiceIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import { type } from "arktype"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -34,10 +29,11 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
+
+import { Spinner } from "../ui/spinner"
 
 const createServiceSchema = type({
   bufferMinutes: type("number >= 0").configure({
@@ -61,7 +57,12 @@ export function CreateServiceDialog() {
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
-  const form = useForm<CreateServiceFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<CreateServiceFormValues>({
     defaultValues: {
       bufferMinutes: 0,
       description: "",
@@ -72,7 +73,7 @@ export function CreateServiceDialog() {
     resolver: arktypeResolver(createServiceSchema),
   })
 
-  const { mutate: createService, isPending } = useMutation({
+  const { mutateAsync: createService } = useMutation({
     mutationFn: (values: CreateServiceFormValues) =>
       api.services.create(values),
     onError: () => {
@@ -87,11 +88,11 @@ export function CreateServiceDialog() {
     },
   })
 
-  const onSubmit = form.handleSubmit((values) => createService(values))
+  const onSubmit = handleSubmit(async (values) => await createService(values))
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      form.reset()
+      reset()
     }
     setOpen(next)
   }
@@ -115,151 +116,138 @@ export function CreateServiceDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <form id="create-service-form" onSubmit={onSubmit} noValidate>
+        <form id="create-service-form" onSubmit={onSubmit}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="name">Nombre</FieldLabel>
-              <Input
-                id="name"
-                placeholder="Corte de cabello"
-                aria-invalid={!!form.formState.errors.name}
-                aria-describedby={
-                  form.formState.errors.name ? "name-error" : undefined
-                }
-                {...form.register("name")}
-              />
-              <FieldError
-                id="name-error"
-                errors={[form.formState.errors.name]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    placeholder="Corte de cabello"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
-            <Field>
-              <FieldLabel htmlFor="description">
-                Descripción{" "}
-                <span className="font-normal text-muted-foreground">
-                  (opcional)
-                </span>
-              </FieldLabel>
-              <Textarea
-                id="description"
-                placeholder="Descripción del servicio"
-                rows={3}
-                aria-invalid={!!form.formState.errors.description}
-                aria-describedby={
-                  form.formState.errors.description
-                    ? "description-error"
-                    : undefined
-                }
-                {...form.register("description")}
-              />
-              <FieldError
-                id="description-error"
-                errors={[form.formState.errors.description]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="description"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>
+                    Descripción{" "}
+                    <span className="font-normal text-muted-foreground">
+                      (opcional)
+                    </span>
+                  </FieldLabel>
+                  <Textarea
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <FieldLabel htmlFor="durationMinutes">
-                  Duración (min)
-                </FieldLabel>
-                <Input
-                  id="durationMinutes"
-                  type="number"
-                  min={1}
-                  placeholder="30"
-                  aria-invalid={!!form.formState.errors.durationMinutes}
-                  aria-describedby={
-                    form.formState.errors.durationMinutes
-                      ? "durationMinutes-error"
-                      : undefined
-                  }
-                  {...form.register("durationMinutes", { valueAsNumber: true })}
-                />
-                <FieldError
-                  id="durationMinutes-error"
-                  errors={[form.formState.errors.durationMinutes]}
-                />
-              </Field>
+              <Controller
+                control={control}
+                name="durationMinutes"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Duración (min)</FieldLabel>
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type="number"
+                      min={1}
+                      placeholder="30"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
 
-              <Field>
-                <FieldLabel htmlFor="bufferMinutes">
-                  Buffer (min)
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger
-                        aria-label="¿Qué es el buffer?"
-                        className="ml-1 inline-flex cursor-default items-center text-muted-foreground hover:text-foreground"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="13"
-                          height="13"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
+              <Controller
+                control={control}
+                name="bufferMinutes"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>
+                      Buffer (min)
+                      <Tooltip>
+                        <TooltipTrigger
+                          aria-label="¿Qué es el buffer?"
+                          className="ml-1 inline-flex cursor-default items-center text-muted-foreground hover:text-foreground"
                         >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 16v-4" />
-                          <path d="M12 8h.01" />
-                        </svg>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        Tiempo de descanso entre citas consecutivas
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </FieldLabel>
-                <Input
-                  id="bufferMinutes"
-                  type="number"
-                  min={0}
-                  placeholder="0"
-                  aria-invalid={!!form.formState.errors.bufferMinutes}
-                  aria-describedby={
-                    form.formState.errors.bufferMinutes
-                      ? "bufferMinutes-error"
-                      : undefined
-                  }
-                  {...form.register("bufferMinutes", { valueAsNumber: true })}
-                />
-                <FieldError
-                  id="bufferMinutes-error"
-                  errors={[form.formState.errors.bufferMinutes]}
-                />
-              </Field>
+                          <HugeiconsIcon
+                            icon={InformationCircleIcon}
+                            strokeWidth={2}
+                            size={13}
+                            className="size-3.25"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          Tiempo de descanso entre citas consecutivas
+                        </TooltipContent>
+                      </Tooltip>
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      aria-invalid={fieldState.invalid}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
             </div>
 
-            <Field>
-              <FieldLabel htmlFor="price">Precio</FieldLabel>
-              <Input
-                id="price"
-                type="number"
-                min={0}
-                step={0.01}
-                placeholder="0.00"
-                aria-invalid={!!form.formState.errors.price}
-                aria-describedby={
-                  form.formState.errors.price ? "price-error" : undefined
-                }
-                {...form.register("price", { valueAsNumber: true })}
-              />
-              <FieldError
-                id="price-error"
-                errors={[form.formState.errors.price]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="price"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Precio</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="0.00"
+                    aria-invalid={fieldState.invalid}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      field.onChange(val === "" ? "" : Number(val))
+                    }}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
           </FieldGroup>
         </form>
 
         <DialogFooter showCloseButton>
-          <Button type="submit" form="create-service-form" disabled={isPending}>
-            {isPending ? "Creando..." : "Agregar servicio"}
+          <Button
+            type="submit"
+            form="create-service-form"
+            disabled={isSubmitting}
+          >
+            {isSubmitting && <Spinner />}
+            Agregar servicio
           </Button>
         </DialogFooter>
       </DialogContent>
