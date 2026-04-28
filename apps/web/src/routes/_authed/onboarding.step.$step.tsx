@@ -1,6 +1,6 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router"
 
-import { StepBarberForm } from "@/components/onboarding/step-barber-form"
+import { StepResourceForm } from "@/components/onboarding/step-resource-form"
 import { StepServicesForm } from "@/components/onboarding/step-services-form"
 import { StepTenantForm } from "@/components/onboarding/step-tenant-form"
 import { StepWhatsAppForm } from "@/components/onboarding/step-whatsapp-form"
@@ -56,7 +56,7 @@ function RouteComponent() {
   }
 
   if (step === 2) {
-    return <StepBarberForm />
+    return <StepResourceForm />
   }
 
   if (step === 3) {

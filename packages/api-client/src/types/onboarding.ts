@@ -20,6 +20,7 @@ export type OnboardingTemplatesResponse = {
 
 export type OnboardingStep2Request = {
   name: string
+  type: string
   endTime: string
   startTime: string
   workingDays: number[]

@@ -53,44 +53,57 @@ const DAYS = [
   { label: "Sáb", value: 6 },
 ]
 
-const barberSchema = type({
-  endTime: type("string").configure({
-    message: "Selecciona una hora de cierre.",
-  }),
+const resourceSchema = type({
   name: type("string >= 2").configure({
     message: "El nombre debe tener al menos 2 caracteres.",
+  }),
+  type: type("string >= 1").configure({
+    message: "El tipo es requerido",
   }),
   startTime: type("string").configure({
     message: "Selecciona una hora de apertura.",
   }),
-  workingDays: type("number[]").configure({
+  endTime: type("string").configure({
+    message: "Selecciona una hora de cierre.",
+  }),
+  workingDays: type("number[] > 0").configure({
     message: "Selecciona al menos un día de trabajo.",
   }),
+}).narrow((data, ctx) => {
+  const { startTime, endTime } = data
+  if (endTime <= startTime) {
+    return ctx.reject({
+      expected: "La hora de cierre debe ser después de la apertura",
+      actual: endTime,
+      path: ["endTime"],
+    })
+  }
+
+  return true
 })
 
-type BarberFormData = typeof barberSchema.infer
+type ResourceFormData = typeof resourceSchema.infer
 
-export function StepBarberForm() {
+export function StepResourceForm() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const {
     control,
     handleSubmit,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<BarberFormData>({
+    formState: { isSubmitting },
+  } = useForm<ResourceFormData>({
     defaultValues: {
       endTime: "19:00",
       name: "",
       startTime: "09:00",
       workingDays: [1, 2, 3, 4, 5, 6],
     },
-    resolver: arktypeResolver(barberSchema),
+    resolver: arktypeResolver(resourceSchema),
   })
 
   const { mutateAsync } = useMutation({
-    mutationFn: (data: BarberFormData) => api.onboarding.completeStep2(data),
+    mutationFn: (data: ResourceFormData) => api.onboarding.completeStep2(data),
     onError: (error) => {
       toast.error(
         error instanceof ApiError
@@ -107,24 +120,10 @@ export function StepBarberForm() {
     },
   })
 
-  const onSubmit = handleSubmit(async (data) => {
-    if (data.workingDays.length === 0) {
-      setError("workingDays", { message: "Selecciona al menos un día." })
-      return
-    }
-
-    if (data.endTime <= data.startTime) {
-      setError("endTime", {
-        message: "La hora de cierre debe ser después de la apertura.",
-      })
-      return
-    }
-
-    await mutateAsync(data)
-  })
+  const onSubmit = handleSubmit(async (data) => await mutateAsync(data))
 
   return (
-    <div className="flex w-full max-w-lg animate-in flex-col gap-8 duration-[280ms] ease-out fade-in-0 slide-in-from-bottom-3">
+    <div className="flex w-full max-w-lg animate-in flex-col gap-8 duration-280 ease-out fade-in-0 slide-in-from-bottom-3">
       <div className="flex flex-col gap-2">
         <span className="text-xs font-medium tracking-[0.18em] text-muted-foreground/60 uppercase">
           Paso 2 de 4
@@ -154,7 +153,24 @@ export function StepBarberForm() {
                   aria-invalid={fieldState.invalid}
                   {...field}
                 />
-                <FieldError errors={[errors.name]} />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="type"
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>Tipo</FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  placeholder="Empleado, Sala, Equipo…"
+                  aria-invalid={fieldState.invalid}
+                />
+                <FieldError errors={[fieldState.error]} />
               </Field>
             )}
           />
