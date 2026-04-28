@@ -9,11 +9,21 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
+      prerender: {
+        enabled: true,
+        crawlLinks: true,
+        filter: ({ path }) => !path.startsWith("/dashboard"),
+      },
+      sitemap: {
+        enabled: true,
+        host: "https://wappiz.cantte.com/",
+      },
       pages: [
         {
           path: "/",
           prerender: {
             enabled: true,
+            crawlLinks: true,
           },
         },
       ],
