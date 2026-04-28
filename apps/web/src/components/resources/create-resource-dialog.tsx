@@ -6,7 +6,7 @@ import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -26,6 +26,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
 
 const createResourceSchema = type({
@@ -43,12 +44,17 @@ export function CreateResourceDialog() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
 
-  const form = useForm<CreateResourceFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<CreateResourceFormValues>({
     defaultValues: { name: "", type: "" },
     resolver: arktypeResolver(createResourceSchema),
   })
 
-  const { mutate: createResource, isPending } = useMutation({
+  const { mutateAsync: createResource } = useMutation({
     mutationFn: (values: CreateResourceFormValues) =>
       api.resources.create(values),
     onError: (error) => {
@@ -72,11 +78,11 @@ export function CreateResourceDialog() {
     },
   })
 
-  const onSubmit = form.handleSubmit((values) => createResource(values))
+  const onSubmit = handleSubmit(async (values) => await createResource(values))
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      form.reset()
+      reset()
     }
     setOpen(next)
   }
@@ -100,41 +106,41 @@ export function CreateResourceDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <form id="create-resource-form" onSubmit={onSubmit} noValidate>
+        <form id="create-resource-form" onSubmit={onSubmit}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="name">Nombre</FieldLabel>
-              <Input
-                id="name"
-                placeholder="Ana García"
-                aria-invalid={!!form.formState.errors.name}
-                aria-describedby={
-                  form.formState.errors.name ? "name-error" : undefined
-                }
-                {...form.register("name")}
-              />
-              <FieldError
-                id="name-error"
-                errors={[form.formState.errors.name]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    placeholder="Ana García"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
-            <Field>
-              <FieldLabel htmlFor="type">Tipo</FieldLabel>
-              <Input
-                id="type"
-                placeholder="Empleado, Sala, Equipo…"
-                aria-invalid={!!form.formState.errors.type}
-                aria-describedby={
-                  form.formState.errors.type ? "type-error" : undefined
-                }
-                {...form.register("type")}
-              />
-              <FieldError
-                id="type-error"
-                errors={[form.formState.errors.type]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="type"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Tipo</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    placeholder="Empleado, Sala, Equipo…"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
           </FieldGroup>
         </form>
 
@@ -142,9 +148,10 @@ export function CreateResourceDialog() {
           <Button
             type="submit"
             form="create-resource-form"
-            disabled={isPending}
+            disabled={isSubmitting}
           >
-            {isPending ? "Creando..." : "Agregar recurso"}
+            {isSubmitting && <Spinner />}
+            Agregar recurso
           </Button>
         </DialogFooter>
       </DialogContent>
