@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { PendingActivationsResponse } from "@wappiz/api-client/types/admin"
 import { type } from "arktype"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
+import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/client-api"
 
@@ -39,14 +40,19 @@ type Props = {
 
 export function RejectDialog({ request }: Props) {
   const [open, setOpen] = useState(false)
-  const queryClient = useQueryClient()
 
-  const form = useForm<RejectFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<RejectFormValues>({
     defaultValues: { reason: "" },
     resolver: arktypeResolver(rejectSchema),
   })
 
-  const { mutate: reject, isPending } = useMutation({
+  const queryClient = useQueryClient()
+  const { mutateAsync: reject } = useMutation({
     mutationFn: (values: RejectFormValues) =>
       api.admin.reject(request.tenantId, values),
     onError: () => {
@@ -59,11 +65,11 @@ export function RejectDialog({ request }: Props) {
     },
   })
 
-  const onSubmit = form.handleSubmit((values) => reject(values))
+  const onSubmit = handleSubmit(async (values) => await reject(values))
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      form.reset()
+      reset()
     }
     setOpen(next)
   }
@@ -83,25 +89,27 @@ export function RejectDialog({ request }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <form id="reject-form" onSubmit={onSubmit} noValidate>
+        <form id="reject-form" onSubmit={onSubmit}>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="reason">Motivo de rechazo</FieldLabel>
-              <Textarea
-                id="reason"
-                placeholder="Ej: Información incompleta o incorrecta..."
-                rows={4}
-                aria-invalid={!!form.formState.errors.reason}
-                aria-describedby={
-                  form.formState.errors.reason ? "reason-error" : undefined
-                }
-                {...form.register("reason")}
-              />
-              <FieldError
-                id="reason-error"
-                errors={[form.formState.errors.reason]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="reason"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>
+                    Motivo de rechazo
+                  </FieldLabel>
+                  <Textarea
+                    {...field}
+                    id={field.name}
+                    placeholder="Ej: Información incompleta o incorrecta..."
+                    rows={4}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
           </FieldGroup>
         </form>
 
@@ -110,9 +118,10 @@ export function RejectDialog({ request }: Props) {
             type="submit"
             form="reject-form"
             variant="destructive"
-            disabled={isPending}
+            disabled={isSubmitting}
           >
-            {isPending ? "Rechazando..." : "Rechazar solicitud"}
+            {isSubmitting && <Spinner />}
+            Rechazar solicitud
           </Button>
         </DialogFooter>
       </DialogContent>

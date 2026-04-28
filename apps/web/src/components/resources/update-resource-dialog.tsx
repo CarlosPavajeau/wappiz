@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import { type } from "arktype"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -25,6 +25,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
 
@@ -50,12 +51,17 @@ export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
   const router = useRouter()
   const isMobile = useIsMobile()
 
-  const form = useForm<UpdateResourceFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<UpdateResourceFormValues>({
     defaultValues,
     resolver: arktypeResolver(updateResourceSchema),
   })
 
-  const { mutate: updateResource, isPending } = useMutation({
+  const { mutateAsync: updateResource } = useMutation({
     mutationFn: (values: UpdateResourceFormValues) =>
       api.resources.update(resourceId, values),
     onError: () => {
@@ -69,11 +75,11 @@ export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
     },
   })
 
-  const onSubmit = form.handleSubmit((values) => updateResource(values))
+  const onSubmit = handleSubmit(async (values) => await updateResource(values))
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      form.reset(defaultValues)
+      reset(defaultValues)
     }
     setOpen(next)
   }
@@ -103,48 +109,56 @@ export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
 
         <form id="update-resource-form" onSubmit={onSubmit} noValidate>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="name">Nombre</FieldLabel>
-              <Input
-                id="name"
-                placeholder="Ana García"
-                aria-invalid={!!form.formState.errors.name}
-                aria-describedby={
-                  form.formState.errors.name ? "name-error" : undefined
-                }
-                {...form.register("name")}
-              />
-              <FieldError
-                id="name-error"
-                errors={[form.formState.errors.name]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    placeholder="Ana García"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
-            <Field>
-              <FieldLabel htmlFor="type">Tipo</FieldLabel>
-              <Input
-                id="type"
-                placeholder="Empleado, Sala, Equipo…"
-                aria-invalid={!!form.formState.errors.type}
-                aria-describedby={
-                  form.formState.errors.type ? "type-error" : undefined
-                }
-                {...form.register("type")}
-              />
-              <FieldError
-                id="type-error"
-                errors={[form.formState.errors.type]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="type"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Tipo</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    placeholder="Empleado, Sala, Equipo…"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
-            <Field>
-              <FieldLabel htmlFor="avatarURL">URL de avatar</FieldLabel>
-              <Input
-                id="avatarURL"
-                placeholder="https://ejemplo.com/foto.png"
-                {...form.register("avatarURL")}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="avatarURL"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>URL de avatar</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    placeholder="https://ejemplo.com/foto.png"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
           </FieldGroup>
         </form>
 
@@ -152,9 +166,10 @@ export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
           <Button
             type="submit"
             form="update-resource-form"
-            disabled={isPending}
+            disabled={isSubmitting}
           >
-            {isPending ? "Guardando..." : "Guardar cambios"}
+            {isSubmitting && <Spinner />}
+            Actualizar recurso
           </Button>
         </DialogFooter>
       </DialogContent>

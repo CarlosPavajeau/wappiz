@@ -1,12 +1,17 @@
 "use client"
 
 import { arktypeResolver } from "@hookform/resolvers/arktype"
+import {
+  InformationCircleIcon,
+  PencilEdit01Icon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import type { Service } from "@wappiz/api-client/types/services"
 import { type } from "arktype"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
 import { Button } from "@/components/ui/button"
@@ -26,11 +31,11 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
@@ -57,7 +62,12 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
 
-  const form = useForm<UpdateServiceFormValues>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = useForm<UpdateServiceFormValues>({
     defaultValues: {
       bufferMinutes: service.bufferMinutes,
       description: service.description ?? "",
@@ -68,7 +78,7 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
     resolver: arktypeResolver(updateServiceSchema),
   })
 
-  const { mutate: updateService, isPending } = useMutation({
+  const { mutateAsync: updateService } = useMutation({
     mutationFn: (values: UpdateServiceFormValues) =>
       api.services.update(service.id, values),
     onError: () => {
@@ -83,11 +93,11 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
     },
   })
 
-  const onSubmit = form.handleSubmit((values) => updateService(values))
+  const onSubmit = handleSubmit(async (values) => await updateService(values))
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
-      form.reset()
+      reset()
     }
     setOpen(next)
   }
@@ -103,21 +113,11 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
           />
         }
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
-          <path d="m15 5 4 4" />
-        </svg>
+        <HugeiconsIcon
+          icon={PencilEdit01Icon}
+          strokeWidth={2}
+          data-icon="inline-start"
+        />
         Editar
       </DialogTrigger>
 
@@ -131,149 +131,147 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
 
         <form id="update-service-form" onSubmit={onSubmit} noValidate>
           <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="update-name">Nombre</FieldLabel>
-              <Input
-                id="update-name"
-                placeholder="Corte de cabello"
-                aria-invalid={!!form.formState.errors.name}
-                aria-describedby={
-                  form.formState.errors.name ? "update-name-error" : undefined
-                }
-                {...form.register("name")}
-              />
-              <FieldError
-                id="update-name-error"
-                errors={[form.formState.errors.name]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Nombre</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    placeholder="Corte de cabello"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError
+                    id="update-name-error"
+                    errors={[fieldState.error]}
+                  />
+                </Field>
+              )}
+            />
 
-            <Field>
-              <FieldLabel htmlFor="update-description">
-                Descripción{" "}
-                <span className="font-normal text-muted-foreground">
-                  (opcional)
-                </span>
-              </FieldLabel>
-              <Textarea
-                id="update-description"
-                placeholder="Descripción del servicio"
-                rows={3}
-                aria-invalid={!!form.formState.errors.description}
-                aria-describedby={
-                  form.formState.errors.description
-                    ? "update-description-error"
-                    : undefined
-                }
-                {...form.register("description")}
-              />
-              <FieldError
-                id="update-description-error"
-                errors={[form.formState.errors.description]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="description"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>
+                    Descripción{" "}
+                    <span className="font-normal text-muted-foreground">
+                      (opcional)
+                    </span>
+                  </FieldLabel>
+                  <Textarea
+                    {...field}
+                    id={field.name}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
             <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <FieldLabel htmlFor="update-durationMinutes">
-                  Duración (min)
-                </FieldLabel>
-                <Input
-                  id="update-durationMinutes"
-                  type="number"
-                  min={1}
-                  placeholder="30"
-                  aria-invalid={!!form.formState.errors.durationMinutes}
-                  aria-describedby={
-                    form.formState.errors.durationMinutes
-                      ? "update-durationMinutes-error"
-                      : undefined
-                  }
-                  {...form.register("durationMinutes", { valueAsNumber: true })}
-                />
-                <FieldError
-                  id="update-durationMinutes-error"
-                  errors={[form.formState.errors.durationMinutes]}
-                />
-              </Field>
+              <Controller
+                control={control}
+                name="durationMinutes"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>Duración (min)</FieldLabel>
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type="number"
+                      min={1}
+                      placeholder="30"
+                      aria-invalid={fieldState.invalid}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        field.onChange(val === "" ? "" : Number(val))
+                      }}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
 
-              <Field>
-                <FieldLabel htmlFor="update-bufferMinutes">
-                  Buffer (min)
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger
-                        aria-label="¿Qué es el buffer?"
-                        className="ml-1 inline-flex cursor-default items-center text-muted-foreground hover:text-foreground"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="13"
-                          height="13"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          aria-hidden="true"
+              <Controller
+                control={control}
+                name="bufferMinutes"
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>
+                      Buffer (min)
+                      <Tooltip>
+                        <TooltipTrigger
+                          aria-label="¿Qué es el buffer?"
+                          className="ml-1 inline-flex cursor-default items-center text-muted-foreground hover:text-foreground"
                         >
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 16v-4" />
-                          <path d="M12 8h.01" />
-                        </svg>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        Tiempo de descanso entre citas consecutivas
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </FieldLabel>
-                <Input
-                  id="update-bufferMinutes"
-                  type="number"
-                  min={0}
-                  placeholder="0"
-                  aria-invalid={!!form.formState.errors.bufferMinutes}
-                  aria-describedby={
-                    form.formState.errors.bufferMinutes
-                      ? "update-bufferMinutes-error"
-                      : undefined
-                  }
-                  {...form.register("bufferMinutes", { valueAsNumber: true })}
-                />
-                <FieldError
-                  id="update-bufferMinutes-error"
-                  errors={[form.formState.errors.bufferMinutes]}
-                />
-              </Field>
+                          <HugeiconsIcon
+                            icon={InformationCircleIcon}
+                            strokeWidth={2}
+                            size={13}
+                            className="size-3.25"
+                          />
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          Tiempo de descanso entre citas consecutivas
+                        </TooltipContent>
+                      </Tooltip>
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type="number"
+                      min={0}
+                      placeholder="0"
+                      aria-invalid={fieldState.invalid}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        field.onChange(val === "" ? "" : Number(val))
+                      }}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
             </div>
 
-            <Field>
-              <FieldLabel htmlFor="update-price">Precio</FieldLabel>
-              <Input
-                id="update-price"
-                type="number"
-                min={0}
-                step={0.01}
-                placeholder="0.00"
-                aria-invalid={!!form.formState.errors.price}
-                aria-describedby={
-                  form.formState.errors.price ? "update-price-error" : undefined
-                }
-                {...form.register("price", { valueAsNumber: true })}
-              />
-              <FieldError
-                id="update-price-error"
-                errors={[form.formState.errors.price]}
-              />
-            </Field>
+            <Controller
+              control={control}
+              name="price"
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={field.name}>Precio</FieldLabel>
+                  <Input
+                    {...field}
+                    id={field.name}
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    placeholder="0.00"
+                    aria-invalid={fieldState.invalid}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      field.onChange(val === "" ? "" : Number(val))
+                    }}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
           </FieldGroup>
         </form>
 
         <DialogFooter showCloseButton>
-          <Button type="submit" form="update-service-form" disabled={isPending}>
-            {isPending ? "Guardando..." : "Guardar cambios"}
+          <Button
+            type="submit"
+            form="update-service-form"
+            disabled={isSubmitting}
+          >
+            {isSubmitting && <Spinner />}
+            Actualizar servicio
           </Button>
         </DialogFooter>
       </DialogContent>

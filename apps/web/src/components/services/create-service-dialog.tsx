@@ -170,6 +170,10 @@ export function CreateServiceDialog() {
                       min={1}
                       placeholder="30"
                       aria-invalid={fieldState.invalid}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        field.onChange(val === "" ? "" : Number(val))
+                      }}
                     />
                     <FieldError errors={[fieldState.error]} />
                   </Field>
@@ -207,6 +211,10 @@ export function CreateServiceDialog() {
                       min={0}
                       placeholder="0"
                       aria-invalid={fieldState.invalid}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        field.onChange(val === "" ? "" : Number(val))
+                      }}
                     />
                     <FieldError errors={[fieldState.error]} />
                   </Field>
