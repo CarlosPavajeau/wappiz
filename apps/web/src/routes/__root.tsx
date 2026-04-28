@@ -45,11 +45,20 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         name: "viewport",
       },
       {
-        content: "wappiz, citas, whatsapp, agendamiento",
+        content:
+          "wappiz, citas por WhatsApp, agendar citas, agendamiento, reservar cita, WhatsApp business",
         name: "keywords",
       },
       {
         title: "wappiz",
+      },
+      {
+        content: "es_CO",
+        property: "og:locale",
+      },
+      {
+        content: "wappiz",
+        property: "og:site_name",
       },
     ],
   }),
@@ -62,7 +71,6 @@ function RootDocument() {
         {/* Anti-flash: set correct theme class before CSS/React hydrate */}
         <script
           // intentional anti-flash inline script
-          //
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('cetus-theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`,
           }}

@@ -10,16 +10,59 @@ import { PricingSection } from "@/components/landing/sections/pricing-section"
 export const Route = createFileRoute("/")({
   component: HomeComponent,
   head: () => ({
+    links: [
+      {
+        href: "https://wappiz.cantte.com/",
+        rel: "canonical",
+      },
+    ],
     meta: [
       {
-        description:
-          "Permite que tus clientes agenden citas directamente desde WhatsApp. Gestiona recursos, servicios y disponibilidad en un solo lugar.",
-        title: "wappiz — Citas por WhatsApp",
+        title: "Agenda Citas por WhatsApp — wappiz",
       },
       {
         content:
-          "Permite que tus clientes agenden citas directamente desde WhatsApp. Gestiona recursos, servicios y disponibilidad en un solo lugar.",
+          "Permite que tus clientes reserven citas directamente por WhatsApp. Gestiona servicios, recursos y disponibilidad en un solo lugar. Prueba gratis.",
         name: "description",
+      },
+      {
+        content:
+          "citas por WhatsApp, agendar citas WhatsApp, agendamiento por WhatsApp, reservar cita WhatsApp, sistema de citas, wappiz",
+        name: "keywords",
+      },
+      {
+        content: "index, follow",
+        name: "robots",
+      },
+      {
+        content: "website",
+        property: "og:type",
+      },
+      {
+        content: "Agenda Citas por WhatsApp — wappiz",
+        property: "og:title",
+      },
+      {
+        content:
+          "Permite que tus clientes reserven citas directamente por WhatsApp. Gestiona servicios, recursos y disponibilidad en un solo lugar.",
+        property: "og:description",
+      },
+      {
+        content: "https://wappiz.cantte.com/",
+        property: "og:url",
+      },
+      {
+        content: "summary_large_image",
+        name: "twitter:card",
+      },
+      {
+        content: "Agenda Citas por WhatsApp — wappiz",
+        name: "twitter:title",
+      },
+      {
+        content:
+          "Permite que tus clientes reserven citas directamente por WhatsApp. Gestiona servicios, recursos y disponibilidad.",
+        name: "twitter:description",
       },
     ],
   }),
