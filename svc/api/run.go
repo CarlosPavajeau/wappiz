@@ -23,6 +23,7 @@ import (
 	"wappiz/pkg/mailer"
 	"wappiz/pkg/otel"
 	"wappiz/pkg/prometheus"
+	"wappiz/pkg/prometheus/lazy"
 	"wappiz/pkg/runner"
 	"wappiz/pkg/whatsapp"
 	"wappiz/svc/api/internal/middleware"
@@ -30,6 +31,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	promclient "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/common/version"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
@@ -44,6 +47,12 @@ func Run(ctx context.Context, cfg Config) error {
 	}
 
 	clk := clock.New()
+
+	reg := promclient.NewRegistry()
+	reg.MustRegister(collectors.NewGoCollector())
+	//nolint:exhaustruct
+	reg.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
+	lazy.SetRegistry(reg)
 
 	var err error
 	var shutdownGrafana func(context.Context) error
@@ -76,7 +85,7 @@ func Run(ctx context.Context, cfg Config) error {
 	r.Defer(database.Close)
 
 	if cfg.Observability.Metrics != nil {
-		prom, promErr := prometheus.New()
+		prom, promErr := prometheus.NewWithRegistry(reg)
 		if promErr != nil {
 			return fmt.Errorf("unable to start prometheus: %w", promErr)
 		}
@@ -86,15 +95,9 @@ func Run(ctx context.Context, cfg Config) error {
 			return fmt.Errorf("unable to listen on port %d: %w", cfg.Observability.Metrics.PrometheusPort, listenErr)
 		}
 
-		srv := &http.Server{
-			Handler:      prom,
-			ReadTimeout:  10 * time.Second,
-			WriteTimeout: 10 * time.Second,
-		}
-
-		r.DeferCtx(srv.Shutdown)
+		r.DeferCtx(prom.Shutdown)
 		r.Go(func(ctx context.Context) error {
-			serveErr := srv.Serve(promListener)
+			serveErr := prom.Serve(promListener)
 			if serveErr != nil && !errors.Is(serveErr, context.Canceled) {
 				return fmt.Errorf("prometheus server failed: %w", serveErr)
 			}
