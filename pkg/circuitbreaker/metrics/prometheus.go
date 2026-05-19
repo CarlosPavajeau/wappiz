@@ -1,8 +1,9 @@
 package metrics
 
 import (
+	"wappiz/pkg/prometheus/lazy"
+
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
@@ -11,7 +12,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.CircuitBreakerRequests.WithLabelValues("my_circuit_breaker", "open").Inc()
-	CircuitBreakerRequests = promauto.NewCounterVec(prometheus.CounterOpts{
+	CircuitBreakerRequests = lazy.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "wappiz",
 		Subsystem: "circuitbreaker",
 		Name:      "requests_total",
@@ -23,7 +24,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.CircuitBreakerErrorsTotal.WithLabelValues("database", "timeout").Inc()
-	CircuitBreakerErrorsTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+	CircuitBreakerErrorsTotal = lazy.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "wappiz",
 		Subsystem: "circuitbreaker",
 		Name:      "errors_total",

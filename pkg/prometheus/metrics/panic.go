@@ -1,8 +1,9 @@
 package metrics
 
 import (
+	"wappiz/pkg/prometheus/lazy"
+
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
@@ -16,7 +17,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.PanicsTotal.WithLabelValues("handle", "/v1/tenants").Inc()
-	PanicsTotal = promauto.NewCounterVec(prometheus.CounterOpts{
+	PanicsTotal = lazy.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "wappiz",
 		Subsystem: "internal",
 		Name:      "panics_total",

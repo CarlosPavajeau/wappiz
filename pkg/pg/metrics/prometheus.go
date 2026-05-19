@@ -1,8 +1,9 @@
 package metrics
 
 import (
+	"wappiz/pkg/prometheus/lazy"
+
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // Standard histogram buckets for latency metrics in seconds
@@ -29,7 +30,7 @@ var latencyBuckets = []float64{
 var (
 	// DatabaseOperationsLatency tracks latency in seconds for mysql operations
 	// by replica mode, operation type, and status.
-	DatabaseOperationsLatency = promauto.NewHistogramVec(
+	DatabaseOperationsLatency = lazy.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Namespace: "wappiz",
 			Subsystem: "database",
@@ -42,7 +43,7 @@ var (
 
 	// DatabaseOperationsTotal tracks the total number of mysql operations
 	// by replica mode, operation type, and status.
-	DatabaseOperationsTotal = promauto.NewCounterVec(
+	DatabaseOperationsTotal = lazy.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "database",

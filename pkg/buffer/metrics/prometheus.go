@@ -6,8 +6,9 @@ This file contains buffer-related metrics for tracking buffer usage.
 package metrics
 
 import (
+	"wappiz/pkg/prometheus/lazy"
+
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 var (
@@ -21,7 +22,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.BufferInserts.WithLabelValues(b.String(), "buffered").Inc()
-	BufferState = promauto.NewCounterVec(
+	BufferState = lazy.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "buffer",
@@ -36,7 +37,7 @@ var (
 	//
 	// Example usage:
 	// 	 metrics.BufferSize.WithLabelValues(b.String(), "true").Set(float64(capacity)/float64(maxCapacity))
-	BufferSize = promauto.NewGaugeVec(
+	BufferSize = lazy.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Namespace: "wappiz",
 			Subsystem: "buffer",
@@ -51,7 +52,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.BufferErrorsTotal.WithLabelValues("batch_writer", "write_failed").Inc()
-	BufferErrorsTotal = promauto.NewCounterVec(
+	BufferErrorsTotal = lazy.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "buffer",

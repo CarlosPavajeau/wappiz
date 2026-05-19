@@ -6,8 +6,9 @@ This file contains rate-limiting metrics for tracking performance and behavior o
 package metrics
 
 import (
+	"wappiz/pkg/prometheus/lazy"
+
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 // Standard histogram buckets for latency metrics in seconds
@@ -38,7 +39,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitBuckets.Set(float64(activeBuckets))
-	RatelimitBuckets = promauto.NewGauge(
+	RatelimitBuckets = lazy.NewGauge(
 		prometheus.GaugeOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -52,7 +53,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitWindows.Set(float64(activeWindows))
-	RatelimitWindows = promauto.NewGauge(
+	RatelimitWindows = lazy.NewGauge(
 		prometheus.GaugeOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -66,7 +67,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitBucketsCreated.Inc()
-	RatelimitBucketsCreated = promauto.NewCounter(
+	RatelimitBucketsCreated = lazy.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -80,7 +81,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitBucketsEvicted.Inc()
-	RatelimitBucketsEvicted = promauto.NewCounter(
+	RatelimitBucketsEvicted = lazy.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -94,7 +95,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitWindowsCreated.Inc()
-	RatelimitWindowsCreated = promauto.NewCounter(
+	RatelimitWindowsCreated = lazy.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -108,7 +109,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitWindowsEvicted.Inc()
-	RatelimitWindowsEvicted = promauto.NewCounter(
+	RatelimitWindowsEvicted = lazy.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -124,7 +125,7 @@ var (
 	// Example usage:
 	//   metrics.RatelimitDecisions.WithLabelValues("local", "passed").Inc()
 	//   metrics.RatelimitDecisions.WithLabelValues("origin", "denied").Inc()
-	RatelimitDecision = promauto.NewCounterVec(
+	RatelimitDecision = lazy.NewCounterVec(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -139,7 +140,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitRefreshFromOrigin.Inc()
-	RatelimitRefreshFromOrigin = promauto.NewCounter(
+	RatelimitRefreshFromOrigin = lazy.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -156,7 +157,7 @@ var (
 	//       metrics.RatelimitOriginSyncLatency.Observe(v)
 	//   }))
 	//   defer timer.ObserveDuration()
-	RatelimitOriginSyncLatency = promauto.NewHistogram(
+	RatelimitOriginSyncLatency = lazy.NewHistogram(
 		prometheus.HistogramOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
@@ -171,7 +172,7 @@ var (
 	//
 	// Example usage:
 	//   metrics.RatelimitRefreshFromOriginErrorsTotal.Inc()
-	RatelimitRefreshFromOriginErrorsTotal = promauto.NewCounter(
+	RatelimitRefreshFromOriginErrorsTotal = lazy.NewCounter(
 		prometheus.CounterOpts{
 			Namespace: "wappiz",
 			Subsystem: "ratelimit",
