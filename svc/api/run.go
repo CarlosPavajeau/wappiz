@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"time"
@@ -46,6 +47,12 @@ func Run(ctx context.Context, cfg Config) error {
 			SampleRate:    cfg.Observability.Logging.SampleRate,
 		})
 	}
+
+	logger.AddBaseAttrs(slog.GroupAttrs("instance",
+		slog.String("id", cfg.InstanceID),
+		slog.String("region", cfg.Region),
+		slog.String("version", buildinfo.Version),
+	))
 
 	clk := clock.New()
 
