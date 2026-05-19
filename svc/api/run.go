@@ -14,6 +14,7 @@ import (
 	"wappiz/internal/services/slot_finder"
 	"wappiz/internal/services/state_machine"
 	"wappiz/internal/services/webhook_processor"
+	"wappiz/pkg/buildinfo"
 	"wappiz/pkg/clock"
 	"wappiz/pkg/counter"
 	"wappiz/pkg/crypto"
@@ -53,6 +54,7 @@ func Run(ctx context.Context, cfg Config) error {
 	//nolint:exhaustruct
 	reg.MustRegister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	lazy.SetRegistry(reg)
+	buildinfo.RegisterBuildInfoMetrics("api")
 
 	var err error
 	var shutdownGrafana func(context.Context) error
