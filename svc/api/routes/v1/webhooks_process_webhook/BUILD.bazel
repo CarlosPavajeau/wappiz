@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "webhooks_process_webhook",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/webhooks_process_webhook",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//internal/services/webhook_processor",
+        "//pkg/logger",
+        "@com_github_gin_gonic_gin//:gin",
+    ],
+)

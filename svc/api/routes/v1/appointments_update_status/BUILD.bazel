@@ -1,0 +1,17 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "appointments_update_status",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/appointments_update_status",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/jwt",
+        "//pkg/whatsapp",
+        "@com_github_gin_gonic_gin//:gin",
+        "@com_github_google_uuid//:uuid",
+    ],
+)

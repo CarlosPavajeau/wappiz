@@ -1,0 +1,12 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "metrics",
+    srcs = ["panic.go"],
+    importpath = "wappiz/pkg/prometheus/metrics",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/prometheus/lazy",
+        "@com_github_prometheus_client_golang//prometheus",
+    ],
+)

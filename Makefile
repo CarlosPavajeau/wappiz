@@ -24,3 +24,19 @@ generate:
 	rm ./pkg/db/*_generated.go || true
 	go generate ./...
 	go fmt ./...
+
+.PHONY: fmt
+fmt: ## Format code
+	go fmt ./...
+	cd web && bun run fix
+
+.PHONY: bazel
+bazel: ## Sync BUILD.bazel
+	bazel mod tidy
+	bazel run //:gazelle
+
+.PHONY: build
+build:  ## Build all artifacts (binaries land in ./bin)
+	bazel build //...
+	@mkdir -p bin
+	@cp -f "$$(bazel cquery --ui_event_filters=-info --noshow_progress //:wappiz --output=files)" bin/wappiz && chmod +w bin/wappiz

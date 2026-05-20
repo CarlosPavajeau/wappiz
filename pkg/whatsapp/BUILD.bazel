@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "whatsapp",
+    srcs = [
+        "client.go",
+        "interface.go",
+        "types.go",
+    ],
+    importpath = "wappiz/pkg/whatsapp",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/fault",
+    ],
+)

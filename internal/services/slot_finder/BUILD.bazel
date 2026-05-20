@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "slot_finder",
+    srcs = [
+        "interface.go",
+        "service.go",
+    ],
+    importpath = "wappiz/internal/services/slot_finder",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//pkg/db",
+        "@com_github_google_uuid//:uuid",
+    ],
+)

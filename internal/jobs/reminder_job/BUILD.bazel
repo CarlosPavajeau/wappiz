@@ -1,0 +1,20 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "reminder_job",
+    srcs = [
+        "interface.go",
+        "job.go",
+    ],
+    importpath = "wappiz/internal/jobs/reminder_job",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//pkg/crypto",
+        "//pkg/date_formatter",
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/logger",
+        "//pkg/whatsapp",
+        "@com_github_google_uuid//:uuid",
+    ],
+)

@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tenants_create",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/tenants_create",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/db",
+        "//pkg/fault",
+        "@com_github_gin_gonic_gin//:gin",
+        "@com_github_google_uuid//:uuid",
+    ],
+)

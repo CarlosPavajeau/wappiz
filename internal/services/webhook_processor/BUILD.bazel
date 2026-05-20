@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "webhook_processor",
+    srcs = [
+        "interface.go",
+        "service.go",
+    ],
+    importpath = "wappiz/internal/services/webhook_processor",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/services/state_machine",
+        "//pkg/buffer",
+        "//pkg/crypto",
+        "//pkg/db",
+        "//pkg/logger",
+    ],
+)

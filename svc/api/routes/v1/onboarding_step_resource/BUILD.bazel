@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "onboarding_step_resource",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/onboarding_step_resource",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/jwt",
+        "@com_github_gin_gonic_gin//:gin",
+        "@com_github_google_uuid//:uuid",
+    ],
+)

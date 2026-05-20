@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "middleware",
+    srcs = [
+        "cors.go",
+        "errors.go",
+        "logger.go",
+        "request_id.go",
+        "webhook_signature.go",
+    ],
+    importpath = "wappiz/svc/api/internal/middleware",
+    visibility = ["//svc/api:__subpackages__"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/fault",
+        "//pkg/logger",
+        "//pkg/uid",
+        "//svc/api/openapi",
+        "@com_github_gin_contrib_cors//:cors",
+        "@com_github_gin_gonic_gin//:gin",
+    ],
+)

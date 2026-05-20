@@ -1,0 +1,19 @@
+load("@rules_go//go:def.bzl", "go_binary", "go_library")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+go_library(
+    name = "api_lib",
+    srcs = ["main.go"],
+    importpath = "wappiz/cmd/api",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//pkg/logger",
+        "//svc/api",
+    ],
+)
+
+go_binary(
+    name = "api",
+    embed = [":api_lib"],
+    visibility = ["//visibility:public"],
+)

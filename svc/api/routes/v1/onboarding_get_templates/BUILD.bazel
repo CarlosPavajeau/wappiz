@@ -1,0 +1,12 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "onboarding_get_templates",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/onboarding_get_templates",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/db",
+        "@com_github_gin_gonic_gin//:gin",
+    ],
+)

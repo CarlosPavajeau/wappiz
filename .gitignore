@@ -1,33 +1,52 @@
-# If you prefer the allow list template instead of the deny list, see community template:
-# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
-#
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+.vercel
+
+./**/.env*
+.env*
+!.env.example
+rm
+
+.turbo
+node_modules
 dist
+.next
 
-# Test binary, built with `go test -c`
-*.test
+.tinyb
 
-# Code coverage profiles and other test artifacts
-*.out
-coverage.*
-*.coverprofile
-profile.cov
+# contentlayer
+.contentlayer
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+.DS_Store
+.vscode
+.dev.vars
+.wrangler
+.vitest
+.react-email
+.kiro
 
-# Go workspace file
+.secrets.json
+certs/
+dev/data/*
+dev/config/depot.json
+metald.db
+bin/
+
+
 go.work
 go.work.sum
 
-# env file
-.env
+/wappiz
+/inject
+# Added by goreleaser init:
+dist/
 
-# Editor/IDE
-.idea/
-.vscode/
+.talos
+
+bazel-bin
+bazel-out
+bazel-testlogs
+bazel-wappiz
+# Catch-all for any bazel-* worktree symlinks (e.g. bazel-audit-logs-ch-poc
+# when working in a git worktree under a non-default name).
+bazel-*
+
+.claude/worktrees/

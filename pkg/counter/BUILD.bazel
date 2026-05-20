@@ -1,0 +1,26 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "counter",
+    srcs = [
+        "doc.go",
+        "interface.go",
+        "memory.go",
+    ],
+    importpath = "wappiz/pkg/counter",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/clock",
+        "//pkg/repeat",
+    ],
+)
+
+go_test(
+    name = "counter_test",
+    srcs = ["memory_test.go"],
+    deps = [
+        ":counter",
+        "//pkg/clock",
+        "@com_github_stretchr_testify//require",
+    ],
+)

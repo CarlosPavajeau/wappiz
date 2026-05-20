@@ -1,0 +1,14 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "tenant_flow_fields_list",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/tenant_flow_fields_list",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/jwt",
+        "@com_github_gin_gonic_gin//:gin",
+    ],
+)
