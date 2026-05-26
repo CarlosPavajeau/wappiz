@@ -2,6 +2,7 @@
 
 import {
   Appointment01Icon,
+  ListSettingIcon,
   ResourcesAddIcon,
   ServiceIcon,
   Settings01Icon,
@@ -10,7 +11,6 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Link, useLocation, useRouteContext } from "@tanstack/react-router"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
-import { Rows3Icon } from "lucide-react"
 
 import {
   Sidebar,
@@ -53,7 +53,7 @@ const USER_NAV_ITEMS = [
   },
   {
     href: "/dashboard/flow-fields",
-    icon: () => <Rows3Icon />,
+    icon: () => <HugeiconsIcon icon={ListSettingIcon} strokeWidth={2} />,
     label: "Flujo",
   },
   {
