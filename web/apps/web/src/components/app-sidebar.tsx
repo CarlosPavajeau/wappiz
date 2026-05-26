@@ -10,6 +10,7 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Link, useLocation, useRouteContext } from "@tanstack/react-router"
 import type { Tenant } from "@wappiz/api-client/types/tenants"
+import { Rows3Icon } from "lucide-react"
 
 import {
   Sidebar,
@@ -49,6 +50,11 @@ const USER_NAV_ITEMS = [
     href: "/dashboard/customers",
     icon: () => <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />,
     label: "Clientes",
+  },
+  {
+    href: "/dashboard/flow-fields",
+    icon: () => <Rows3Icon />,
+    label: "Flujo",
   },
   {
     href: "/dashboard/settings",

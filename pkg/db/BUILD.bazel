@@ -81,6 +81,7 @@ go_library(
         "tenant_flow_fields_create_predefined_fields.sql_generated.go",
         "tenant_flow_fields_find_by_tenant.sql_generated.go",
         "tenant_flow_fields_find_enabled.sql_generated.go",
+        "tenant_flow_fields_insert_custom.sql_generated.go",
         "tenant_flow_fields_insert.sql_generated.go",
         "tenant_flow_fields_toggle.sql_generated.go",
         "tenant_flow_fields_update.sql_generated.go",

@@ -78,6 +78,9 @@ function getRouteLabel(routeId: string, loaderData: unknown): string {
     case "/_authed/dashboard/customers": {
       return "Clientes"
     }
+    case "/_authed/dashboard/flow-fields": {
+      return "Flujo"
+    }
     case "/_authed/dashboard/users": {
       return "Usuarios"
     }
