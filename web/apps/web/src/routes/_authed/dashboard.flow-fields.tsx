@@ -67,8 +67,8 @@ const flowFieldSchema = type({
   question: type("string >= 2").configure({
     message: "La pregunta debe tener al menos 2 caracteres",
   }),
-  sortOrder: type("number >= 0").configure({
-    message: "El orden debe ser 0 o mayor",
+  sortOrder: type("integer >= 0").configure({
+    message: "El orden debe ser un numero entero de 0 o mayor",
   }),
 })
 
