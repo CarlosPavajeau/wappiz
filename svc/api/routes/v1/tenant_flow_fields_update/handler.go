@@ -57,14 +57,23 @@ func (h *Handler) Handle(c *gin.Context) {
 		return
 	}
 
-	if err := db.Query.UpdateFlowField(c.Request.Context(), h.DB.Primary(), db.UpdateFlowFieldParams{
+	rowsAffected, err := db.Query.UpdateFlowField(c.Request.Context(), h.DB.Primary(), db.UpdateFlowFieldParams{
 		ID:         id,
 		TenantID:   jwt.TenantIDFromContext(c),
 		Question:   sql.NullString{String: question, Valid: true},
 		IsRequired: *req.IsRequired,
 		SortOrder:  *req.SortOrder,
-	}); err != nil {
+	})
+	if err != nil {
 		c.Error(fault.Wrap(err, fault.Internal("failed to update flow field")))
+		return
+	}
+	if rowsAffected == 0 {
+		c.Error(fault.New("flow field not found",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("flow field not found for tenant"),
+			fault.Public("Campo no encontrado"),
+		))
 		return
 	}
 

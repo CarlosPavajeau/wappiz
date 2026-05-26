@@ -65,7 +65,7 @@ func TestHandle_UpdatesTenantOwnedFlowField(t *testing.T) {
 	require.Equal(t, int32(9), sortOrder)
 }
 
-func TestHandle_DoesNotUpdateOtherTenantFlowField(t *testing.T) {
+func TestHandle_ReturnsNotFoundForOtherTenantFlowField(t *testing.T) {
 	t.Parallel()
 	gin.SetMode(gin.TestMode)
 
@@ -98,7 +98,7 @@ func TestHandle_DoesNotUpdateOtherTenantFlowField(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
-	require.Equal(t, http.StatusNoContent, w.Code, w.Body.String())
+	require.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
 
 	var question string
 	var required bool
@@ -112,6 +112,38 @@ func TestHandle_DoesNotUpdateOtherTenantFlowField(t *testing.T) {
 	require.Equal(t, "Original", question)
 	require.False(t, required)
 	require.Equal(t, int32(1), sortOrder)
+}
+
+func TestHandle_ReturnsNotFoundForMissingFlowField(t *testing.T) {
+	t.Parallel()
+	gin.SetMode(gin.TestMode)
+
+	database := integrationtest.RequireDatabase(t)
+	integrationtest.ResetPublicSchema(t, database)
+
+	tenantID := uuid.New()
+	insertTenant(t, database.Primary(), tenantID, "tenant-flow-update-missing")
+
+	h := &Handler{DB: database}
+	r := gin.New()
+	r.Use(middleware.WithErrorHandling())
+	r.Use(func(c *gin.Context) {
+		c.Set("tenant_id", tenantID)
+		c.Next()
+	})
+	r.PUT("/v1/tenants/flow-fields/:id", h.Handle)
+
+	req := httptest.NewRequest(
+		http.MethodPut,
+		"/v1/tenants/flow-fields/"+uuid.New().String(),
+		strings.NewReader(`{"question":"No debe existir","isRequired":true,"sortOrder":9}`),
+	)
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
 }
 
 func TestHandle_RejectsInvalidUpdateID(t *testing.T) {

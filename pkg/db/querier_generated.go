@@ -1196,7 +1196,7 @@ type Querier interface {
 	//      sort_order  = $5
 	//  WHERE id = $1
 	//    AND tenant_id = $2
-	UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) error
+	UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) (int64, error)
 	//UpdateResource
 	//
 	//  UPDATE resources

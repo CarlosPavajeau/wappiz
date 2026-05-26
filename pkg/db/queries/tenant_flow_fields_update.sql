@@ -1,4 +1,4 @@
--- name: UpdateFlowField :exec
+-- name: UpdateFlowField :execrows
 UPDATE tenant_flow_fields
 SET question    = $3,
     is_required = $4,
