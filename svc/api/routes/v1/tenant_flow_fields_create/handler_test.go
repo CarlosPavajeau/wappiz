@@ -1,5 +1,3 @@
-//go:build integration
-
 package tenant_flow_fields_create
 
 import (
@@ -10,9 +8,9 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"wappiz/internal/testutil/integrationtest"
 	"wappiz/pkg/db"
 	"wappiz/svc/api/internal/middleware"
+	"wappiz/svc/api/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -23,8 +21,7 @@ func TestHandle_CreatesCustomFlowField(t *testing.T) {
 	t.Parallel()
 	gin.SetMode(gin.TestMode)
 
-	database := integrationtest.RequireDatabase(t)
-	integrationtest.ResetPublicSchema(t, database)
+	database := testutil.NewHarness(t).DB
 
 	tenantID := uuid.New()
 	insertTenant(t, database.Primary(), tenantID, "tenant-flow-create")

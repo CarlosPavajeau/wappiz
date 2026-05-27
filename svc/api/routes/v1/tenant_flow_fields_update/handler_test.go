@@ -1,5 +1,3 @@
-//go:build integration
-
 package tenant_flow_fields_update
 
 import (
@@ -9,9 +7,9 @@ import (
 	"strings"
 	"testing"
 	"time"
-	"wappiz/internal/testutil/integrationtest"
 	"wappiz/pkg/db"
 	"wappiz/svc/api/internal/middleware"
+	"wappiz/svc/api/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -22,8 +20,7 @@ func TestHandle_UpdatesTenantOwnedFlowField(t *testing.T) {
 	t.Parallel()
 	gin.SetMode(gin.TestMode)
 
-	database := integrationtest.RequireDatabase(t)
-	integrationtest.ResetPublicSchema(t, database)
+	database := testutil.NewHarness(t).DB
 
 	tenantID := uuid.New()
 	fieldID := uuid.New()
@@ -69,8 +66,7 @@ func TestHandle_ReturnsNotFoundForOtherTenantFlowField(t *testing.T) {
 	t.Parallel()
 	gin.SetMode(gin.TestMode)
 
-	database := integrationtest.RequireDatabase(t)
-	integrationtest.ResetPublicSchema(t, database)
+	database := testutil.NewHarness(t).DB
 
 	tenantID := uuid.New()
 	otherTenantID := uuid.New()
@@ -118,8 +114,7 @@ func TestHandle_ReturnsNotFoundForMissingFlowField(t *testing.T) {
 	t.Parallel()
 	gin.SetMode(gin.TestMode)
 
-	database := integrationtest.RequireDatabase(t)
-	integrationtest.ResetPublicSchema(t, database)
+	database := testutil.NewHarness(t).DB
 
 	tenantID := uuid.New()
 	insertTenant(t, database.Primary(), tenantID, "tenant-flow-update-missing")

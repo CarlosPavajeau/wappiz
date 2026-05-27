@@ -1,4 +1,4 @@
-load("@rules_go//go:def.bzl", "go_library")
+load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "tenant_flow_fields_update",
@@ -12,5 +12,19 @@ go_library(
         "//pkg/jwt",
         "@com_github_gin_gonic_gin//:gin",
         "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "tenant_flow_fields_update_test",
+    srcs = ["handler_test.go"],
+    embed = [":tenant_flow_fields_update"],
+    deps = [
+        "//pkg/db",
+        "//svc/api/internal/middleware",
+        "//svc/api/internal/testutil",
+        "@com_github_gin_gonic_gin//:gin",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//require",
     ],
 )

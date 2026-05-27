@@ -1,5 +1,3 @@
-//go:build integration
-
 package tenants_create
 
 import (
@@ -9,7 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"wappiz/internal/testutil/integrationtest"
+	"wappiz/svc/api/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,11 +16,10 @@ func TestHandle_CreatesTenant_ReturnsCreated(t *testing.T) {
 	t.Parallel()
 	gin.SetMode(gin.TestMode)
 
-	database := integrationtest.RequireDatabase(t)
-	integrationtest.ResetPublicSchema(t, database)
+	database := testutil.NewHarness(t).DB
 
 	userID := "user-int-200"
-	integrationtest.InsertUser(t, database, userID, "Integration User", "user-int-200@example.com")
+	testutil.InsertUser(t, database, userID, "Integration User", "user-int-200@example.com")
 
 	h := &Handler{DB: database}
 
