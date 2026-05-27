@@ -1,7 +1,22 @@
-BEGIN { in_table = 0; n = 0; table = "" }
+BEGIN { in_table = 0; in_type = 0; n = 0; table = ""; type_file = dir "/000_types.sql" }
 
 { sub(/-->.*$/, "") }          # strip inline breakpoint markers
 /^[[:space:]]*$/ { next }      # skip blank lines
+
+/^CREATE TYPE "/ {
+    print $0 >> type_file
+    if ($0 !~ /;[[:space:]]*$/) in_type = 1
+    next
+}
+
+in_type {
+    print $0 >> type_file
+    if (/;[[:space:]]*$/) {
+        print "" >> type_file
+        in_type = 0
+    }
+    next
+}
 
 /^CREATE TABLE "/ {
     s = $0; sub(/^CREATE TABLE "/, "", s); sub(/".*$/, "", s)
