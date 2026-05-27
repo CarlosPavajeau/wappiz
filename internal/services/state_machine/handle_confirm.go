@@ -81,6 +81,10 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return fault.Wrap(err, fault.Internal("insert appointment"))
 		}
 
+		if err := s.recordFlowFieldResponses(ctx, appointmentID, sessionData.FlowFieldAnswers); err != nil {
+			return err
+		}
+
 		if err := db.Query.UpdateTenantAppointmentCount(ctx, s.db.Primary(), db.UpdateTenantAppointmentCountParams{
 			ID:                    tenant.ID,
 			AppointmentsThisMonth: tenant.AppointmentsThisMonth + 1,

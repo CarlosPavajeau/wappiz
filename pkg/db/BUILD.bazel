@@ -14,6 +14,7 @@ filegroup(
 go_library(
     name = "db",
     srcs = [
+        "appointment_field_responses_insert.sql_generated.go",
         "appointment_penalty_events_find_customer_incidents.sql_generated.go",
         "appointment_penalty_events_insert.sql_generated.go",
         "appointment_reminder_events_claim_due.sql_generated.go",

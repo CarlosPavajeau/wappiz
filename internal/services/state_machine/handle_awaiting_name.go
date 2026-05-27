@@ -30,12 +30,5 @@ func (s *service) handleAwaitingName(ctx context.Context, msg IncomingMessage, s
 	}
 
 	sessionData.ConfirmedName = &name
-	session.Step = string(StepConfirm)
-
-	session, err = s.updateSession(ctx, session, sessionData)
-	if err != nil {
-		return fault.Wrap(err, fault.Internal("update session"))
-	}
-
-	return s.sendConfirmation(ctx, msg, session)
+	return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData)
 }

@@ -83,6 +83,9 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 	case StepAwaitingName:
 		return s.handleAwaitingName(ctx, msg, session, customer)
 
+	case StepCaptureField:
+		return s.handleCaptureField(ctx, msg, session)
+
 	case StepConfirm:
 		return s.handleConfirm(ctx, msg, session, customer)
 
