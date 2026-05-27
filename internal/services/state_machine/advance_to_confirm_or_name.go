@@ -9,8 +9,7 @@ import (
 func (s *service) advanceToConfirmOrName(ctx context.Context, msg IncomingMessage, session db.ConversationSession, sessionData SessionData, customer db.FindCustomerByPhoneNumberRow) error {
 	var err error
 	if customer.Name.Valid {
-		confirmedName := customer.Name.String
-		sessionData.ConfirmedName = &confirmedName
+		sessionData.ConfirmedName = new(customer.Name.String)
 		return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData, nil)
 	}
 
