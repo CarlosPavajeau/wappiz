@@ -32,7 +32,7 @@ func (s *service) handleCaptureField(ctx context.Context, msg IncomingMessage, s
 	if answer == "" || strings.EqualFold(answer, "omitir") {
 		if field.IsRequired {
 			if err := s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
-				"Este dato es obligatorio para continuar.\n\n"+flowFieldQuestion(field)); err != nil {
+				"Este dato es obligatorio para continuar.\n\n"+flowFieldQuestion(*field)); err != nil {
 				return fault.Wrap(err, fault.Internal("send required custom field prompt"))
 			}
 			return nil
@@ -49,12 +49,12 @@ func (s *service) handleCaptureField(ctx context.Context, msg IncomingMessage, s
 	return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData, fields)
 }
 
-func findCustomFlowField(fields []db.FindTenantEnabledFlowFieldsRow, fieldKey string) (db.FindTenantEnabledFlowFieldsRow, bool) {
+func findCustomFlowField(fields []db.FindTenantEnabledFlowFieldsRow, fieldKey string) (*db.FindTenantEnabledFlowFieldsRow, bool) {
 	for _, field := range fields {
 		if field.FieldType == db.FlowFieldTypeCustom && field.FieldKey == fieldKey {
-			return field, true
+			return &field, true
 		}
 	}
 
-	return db.FindTenantEnabledFlowFieldsRow{}, false
+	return nil, false
 }
