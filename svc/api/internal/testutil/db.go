@@ -10,15 +10,12 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 	"wappiz/pkg/db"
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 const (
@@ -106,12 +103,7 @@ func requirePostgresServer(t *testing.T, ctx context.Context) postgresServer {
 			postgres.WithDatabase(adminDatabase),
 			postgres.WithUsername(adminUser),
 			postgres.WithPassword(adminPassword),
-			postgres.WithInitScripts(schemaPath),
-			testcontainers.WithWaitStrategy(
-				wait.ForLog("database system is ready to accept connections").
-					WithOccurrence(2).
-					WithStartupTimeout(2*time.Minute),
-			),
+			postgres.BasicWaitStrategies(),
 		)
 		if err != nil {
 			serverErr = err
@@ -120,6 +112,11 @@ func requirePostgresServer(t *testing.T, ctx context.Context) postgresServer {
 
 		containerDSN, err := container.ConnectionString(ctx, "sslmode=disable")
 		if err != nil {
+			serverErr = err
+			return
+		}
+
+		if err := applySchema(ctx, containerDSN, schemaPath); err != nil {
 			serverErr = err
 			return
 		}
@@ -138,6 +135,29 @@ func requirePostgresServer(t *testing.T, ctx context.Context) postgresServer {
 
 	require.NoError(t, serverErr)
 	return server
+}
+
+func applySchema(ctx context.Context, dsn, schemaPath string) error {
+	schema, err := os.ReadFile(schemaPath)
+	if err != nil {
+		return err
+	}
+
+	database, err := sql.Open("pgx", dsn)
+	if err != nil {
+		return err
+	}
+	defer database.Close()
+
+	if err := database.PingContext(ctx); err != nil {
+		return err
+	}
+
+	if _, err := database.ExecContext(ctx, string(schema)); err != nil {
+		return fmt.Errorf("apply schema %s: %w", schemaPath, err)
+	}
+
+	return nil
 }
 
 func openSQL(t *testing.T, dsn string) *sql.DB {
