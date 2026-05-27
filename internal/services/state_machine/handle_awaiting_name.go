@@ -30,5 +30,5 @@ func (s *service) handleAwaitingName(ctx context.Context, msg IncomingMessage, s
 	}
 
 	sessionData.ConfirmedName = &name
-	return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData)
+	return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData, nil)
 }

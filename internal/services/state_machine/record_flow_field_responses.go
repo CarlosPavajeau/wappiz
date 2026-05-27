@@ -10,6 +10,9 @@ import (
 
 func recordFlowFieldResponses(ctx context.Context, txx db.DBTX, appointmentID uuid.UUID, answers map[string]string) error {
 	for fieldKey, response := range answers {
+		if response == "" {
+			continue
+		}
 		if err := db.Query.InsertAppointmentFieldResponse(ctx, txx, db.InsertAppointmentFieldResponseParams{
 			ID:            uuid.New(),
 			AppointmentID: appointmentID,

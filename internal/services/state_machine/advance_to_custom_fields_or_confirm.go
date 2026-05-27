@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *service) advanceToCustomFieldsOrConfirm(ctx context.Context, msg IncomingMessage, session db.ConversationSession, sessionData SessionData) error {
-	nextField, err := s.nextCustomFlowField(ctx, session.TenantID, sessionData)
+func (s *service) advanceToCustomFieldsOrConfirm(ctx context.Context, msg IncomingMessage, session db.ConversationSession, sessionData SessionData, fields []db.FindTenantEnabledFlowFieldsRow) error {
+	nextField, err := s.nextCustomFlowField(ctx, session.TenantID, sessionData, fields)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("find next custom flow field"))
 	}
@@ -35,10 +35,13 @@ func (s *service) advanceToCustomFieldsOrConfirm(ctx context.Context, msg Incomi
 	return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, flowFieldQuestion(*nextField))
 }
 
-func (s *service) nextCustomFlowField(ctx context.Context, tenantID uuid.UUID, sessionData SessionData) (*db.FindTenantEnabledFlowFieldsRow, error) {
-	fields, err := db.Query.FindTenantEnabledFlowFields(ctx, s.db.Primary(), tenantID)
-	if err != nil {
-		return nil, err
+func (s *service) nextCustomFlowField(ctx context.Context, tenantID uuid.UUID, sessionData SessionData, fields []db.FindTenantEnabledFlowFieldsRow) (*db.FindTenantEnabledFlowFieldsRow, error) {
+	if len(fields) == 0 {
+		var err error
+		fields, err = db.Query.FindTenantEnabledFlowFields(ctx, s.db.Primary(), tenantID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	for _, field := range fields {
