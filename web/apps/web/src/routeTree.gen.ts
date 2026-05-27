@@ -26,6 +26,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthedDashboardUsersRouteImport } from './routes/_authed/dashboard.users'
 import { Route as AuthedDashboardSettingsRouteImport } from './routes/_authed/dashboard.settings'
 import { Route as AuthedDashboardServicesRouteImport } from './routes/_authed/dashboard.services'
+import { Route as AuthedDashboardFlowFieldsRouteImport } from './routes/_authed/dashboard.flow-fields'
 import { Route as AuthedDashboardResourcesIndexRouteImport } from './routes/_authed/dashboard.resources.index'
 import { Route as AuthedDashboardCustomersIndexRouteImport } from './routes/_authed/dashboard.customers.index'
 import { Route as AuthedDashboardBillingIndexRouteImport } from './routes/_authed/dashboard.billing.index'
@@ -116,6 +117,12 @@ const AuthedDashboardServicesRoute = AuthedDashboardServicesRouteImport.update({
   path: '/services',
   getParentRoute: () => AuthedDashboardRoute,
 } as any)
+const AuthedDashboardFlowFieldsRoute =
+  AuthedDashboardFlowFieldsRouteImport.update({
+    id: '/flow-fields',
+    path: '/flow-fields',
+    getParentRoute: () => AuthedDashboardRoute,
+  } as any)
 const AuthedDashboardResourcesIndexRoute =
   AuthedDashboardResourcesIndexRouteImport.update({
     id: '/resources/',
@@ -164,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRouteWithChildren
   '/dashboard/services': typeof AuthedDashboardServicesRoute
+  '/dashboard/flow-fields': typeof AuthedDashboardFlowFieldsRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -185,6 +193,7 @@ export interface FileRoutesByTo {
   '/sign-up': typeof AuthSignUpRoute
   '/banned': typeof AuthedBannedRoute
   '/dashboard/services': typeof AuthedDashboardServicesRoute
+  '/dashboard/flow-fields': typeof AuthedDashboardFlowFieldsRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -211,6 +220,7 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRouteWithChildren
   '/_authed/dashboard/services': typeof AuthedDashboardServicesRoute
+  '/_authed/dashboard/flow-fields': typeof AuthedDashboardFlowFieldsRoute
   '/_authed/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/_authed/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -236,6 +246,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/onboarding'
     | '/dashboard/services'
+    | '/dashboard/flow-fields'
     | '/dashboard/settings'
     | '/dashboard/users'
     | '/api/auth/$'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/banned'
     | '/dashboard/services'
+    | '/dashboard/flow-fields'
     | '/dashboard/settings'
     | '/dashboard/users'
     | '/api/auth/$'
@@ -282,6 +294,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/onboarding'
     | '/_authed/dashboard/services'
+    | '/_authed/dashboard/flow-fields'
     | '/_authed/dashboard/settings'
     | '/_authed/dashboard/users'
     | '/api/auth/$'
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardServicesRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
+    '/_authed/dashboard/flow-fields': {
+      id: '/_authed/dashboard/flow-fields'
+      path: '/flow-fields'
+      fullPath: '/dashboard/flow-fields'
+      preLoaderRoute: typeof AuthedDashboardFlowFieldsRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
     '/_authed/dashboard/resources/': {
       id: '/_authed/dashboard/resources/'
       path: '/resources'
@@ -486,6 +506,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthedDashboardRouteChildren {
   AuthedDashboardServicesRoute: typeof AuthedDashboardServicesRoute
+  AuthedDashboardFlowFieldsRoute: typeof AuthedDashboardFlowFieldsRoute
   AuthedDashboardSettingsRoute: typeof AuthedDashboardSettingsRoute
   AuthedDashboardUsersRoute: typeof AuthedDashboardUsersRoute
   AuthedDashboardIndexRoute: typeof AuthedDashboardIndexRoute
@@ -498,6 +519,7 @@ interface AuthedDashboardRouteChildren {
 
 const AuthedDashboardRouteChildren: AuthedDashboardRouteChildren = {
   AuthedDashboardServicesRoute: AuthedDashboardServicesRoute,
+  AuthedDashboardFlowFieldsRoute: AuthedDashboardFlowFieldsRoute,
   AuthedDashboardSettingsRoute: AuthedDashboardSettingsRoute,
   AuthedDashboardUsersRoute: AuthedDashboardUsersRoute,
   AuthedDashboardIndexRoute: AuthedDashboardIndexRoute,

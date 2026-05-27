@@ -1,9 +1,17 @@
+export type FlowFieldType = "predefined" | "custom"
+
 export type TenantFlowField = {
   id: string
   fieldKey: string
-  fieldType: string
+  fieldType: FlowFieldType
   question: string
   isRequired: boolean
   isEnabled: boolean
+  sortOrder: number
+}
+
+export type UpsertTenantFlowFieldRequest = {
+  question: string
+  isRequired: boolean
   sortOrder: number
 }

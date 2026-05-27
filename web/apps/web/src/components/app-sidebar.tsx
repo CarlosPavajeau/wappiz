@@ -2,6 +2,7 @@
 
 import {
   Appointment01Icon,
+  ListSettingIcon,
   ResourcesAddIcon,
   ServiceIcon,
   Settings01Icon,
@@ -49,6 +50,11 @@ const USER_NAV_ITEMS = [
     href: "/dashboard/customers",
     icon: () => <HugeiconsIcon icon={UserGroupIcon} strokeWidth={2} />,
     label: "Clientes",
+  },
+  {
+    href: "/dashboard/flow-fields",
+    icon: () => <HugeiconsIcon icon={ListSettingIcon} strokeWidth={2} />,
+    label: "Flujo",
   },
   {
     href: "/dashboard/settings",

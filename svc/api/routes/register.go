@@ -43,8 +43,10 @@ import (
 	"wappiz/svc/api/routes/v1/services_create"
 	"wappiz/svc/api/routes/v1/services_list"
 	"wappiz/svc/api/routes/v1/services_update"
+	"wappiz/svc/api/routes/v1/tenant_flow_fields_create"
 	"wappiz/svc/api/routes/v1/tenant_flow_fields_list"
 	"wappiz/svc/api/routes/v1/tenant_flow_fields_toggle"
+	"wappiz/svc/api/routes/v1/tenant_flow_fields_update"
 	"wappiz/svc/api/routes/v1/tenants_create"
 	"wappiz/svc/api/routes/v1/tenants_get_by_user"
 	"wappiz/svc/api/routes/v1/tenants_get_current"
@@ -146,8 +148,10 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &tenants_get_current.Handler{DB: svc.Database})
 	RegisterRoute(auth, &tenants_get_by_user.Handler{DB: svc.Database})
 	RegisterRoute(auth, &tenants_update.Handler{DB: svc.Database})
+	RegisterRoute(auth, &tenant_flow_fields_create.Handler{DB: svc.Database})
 	RegisterRoute(auth, &tenant_flow_fields_list.Handler{DB: svc.Database})
 	RegisterRoute(auth, &tenant_flow_fields_toggle.Handler{DB: svc.Database})
+	RegisterRoute(auth, &tenant_flow_fields_update.Handler{DB: svc.Database})
 
 	// v1/services
 	RegisterRoute(auth, &services_create.Handler{DB: svc.Database})

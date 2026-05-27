@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const updateFlowField = `-- name: UpdateFlowField :exec
+const updateFlowField = `-- name: UpdateFlowField :execrows
 UPDATE tenant_flow_fields
 SET question    = $3,
     is_required = $4,
@@ -37,13 +37,16 @@ type UpdateFlowFieldParams struct {
 //	    sort_order  = $5
 //	WHERE id = $1
 //	  AND tenant_id = $2
-func (q *Queries) UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) error {
-	_, err := db.ExecContext(ctx, updateFlowField,
+func (q *Queries) UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) (int64, error) {
+	result, err := db.ExecContext(ctx, updateFlowField,
 		arg.ID,
 		arg.TenantID,
 		arg.Question,
 		arg.IsRequired,
 		arg.SortOrder,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
