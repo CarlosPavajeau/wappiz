@@ -3,7 +3,7 @@ load("@rules_go//go:def.bzl", "go_library")
 go_library(
     name = "testutil",
     srcs = ["db.go"],
-    data = ["//pkg/db:schema.sql"],
+    data = ["//pkg/db:schema"],
     importpath = "wappiz/svc/api/internal/testutil",
     visibility = ["//svc/api:__subpackages__"],
     deps = [

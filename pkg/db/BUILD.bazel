@@ -5,6 +5,12 @@ exports_files(
     visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "schema",
+    srcs = glob(["schema/*.sql"]),
+    visibility = ["//visibility:public"],
+)
+
 go_library(
     name = "db",
     srcs = [

@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -91,7 +92,7 @@ func requirePostgresServer(t *testing.T, ctx context.Context) postgresServer {
 	t.Helper()
 
 	serverOnce.Do(func() {
-		schemaPath, err := findSchemaPath()
+		schemaDir, err := findSchemaDir()
 		if err != nil {
 			serverErr = err
 			return
@@ -116,7 +117,7 @@ func requirePostgresServer(t *testing.T, ctx context.Context) postgresServer {
 			return
 		}
 
-		if err := applySchema(ctx, containerDSN, schemaPath); err != nil {
+		if err := applySchema(ctx, containerDSN, schemaDir); err != nil {
 			serverErr = err
 			return
 		}
@@ -137,12 +138,7 @@ func requirePostgresServer(t *testing.T, ctx context.Context) postgresServer {
 	return server
 }
 
-func applySchema(ctx context.Context, dsn, schemaPath string) error {
-	schema, err := os.ReadFile(schemaPath)
-	if err != nil {
-		return err
-	}
-
+func applySchema(ctx context.Context, dsn, schemaDir string) error {
 	database, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return err
@@ -157,8 +153,15 @@ func applySchema(ctx context.Context, dsn, schemaPath string) error {
 		return fmt.Errorf("create btree_gist extension: %w", err)
 	}
 
-	if _, err := database.ExecContext(ctx, string(schema)); err != nil {
-		return fmt.Errorf("apply schema %s: %w", schemaPath, err)
+	schema, err := loadSchema(schemaDir)
+	if err != nil {
+		return err
+	}
+
+	for _, statement := range schema {
+		if _, err := database.ExecContext(ctx, statement.SQL); err != nil {
+			return fmt.Errorf("apply schema %s: %w", statement.Path, err)
+		}
 	}
 
 	return nil
@@ -197,10 +200,92 @@ func quoteIdent(ident string) string {
 	return `"` + strings.ReplaceAll(ident, `"`, `""`) + `"`
 }
 
-func findSchemaPath() (string, error) {
+type schemaStatement struct {
+	Path string
+	SQL  string
+}
+
+func loadSchema(schemaDir string) ([]schemaStatement, error) {
+	entries, err := os.ReadDir(schemaDir)
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".sql" {
+			continue
+		}
+		paths = append(paths, filepath.Join(schemaDir, entry.Name()))
+	}
+	if len(paths) == 0 {
+		return nil, fmt.Errorf("schema directory %s has no .sql files", schemaDir)
+	}
+	sort.Strings(paths)
+
+	types := make([]schemaStatement, 0)
+	tables := make([]schemaStatement, 0, len(paths))
+	deferred := make([]schemaStatement, 0, len(paths))
+
+	for _, path := range paths {
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, statement := range splitSQLStatements(string(content)) {
+			switch {
+			case strings.HasPrefix(statement, "CREATE TYPE "):
+				types = append(types, schemaStatement{Path: path, SQL: statement})
+			case strings.HasPrefix(statement, "CREATE TABLE "):
+				tables = append(tables, schemaStatement{Path: path, SQL: statement})
+			default:
+				deferred = append(deferred, schemaStatement{Path: path, SQL: statement})
+			}
+		}
+	}
+
+	schema := make([]schemaStatement, 0, len(types)+len(tables)+len(deferred))
+	schema = append(schema, types...)
+	schema = append(schema, tables...)
+	schema = append(schema, deferred...)
+	return schema, nil
+}
+
+func splitSQLStatements(content string) []string {
+	statements := make([]string, 0)
+	start := 0
+	inSingleQuote := false
+
+	for index, char := range content {
+		if char == '\'' {
+			inSingleQuote = !inSingleQuote
+			continue
+		}
+
+		if char != ';' || inSingleQuote {
+			continue
+		}
+
+		statement := strings.TrimSpace(content[start : index+1])
+		if statement != "" {
+			statements = append(statements, statement)
+		}
+		start = index + 1
+	}
+
+	trailing := strings.TrimSpace(content[start:])
+	if trailing != "" {
+		statements = append(statements, trailing)
+	}
+
+	return statements
+}
+
+func findSchemaDir() (string, error) {
 	candidates := []string{
-		filepath.Join("pkg", "db", "schema.sql"),
-		filepath.Join("..", "..", "..", "pkg", "db", "schema.sql"),
+		filepath.Join("pkg", "db", "schema"),
+		filepath.Join("..", "..", "..", "pkg", "db", "schema"),
 	}
 
 	for _, candidate := range candidates {
@@ -208,7 +293,7 @@ func findSchemaPath() (string, error) {
 		if err != nil {
 			return "", err
 		}
-		if _, err := os.Stat(absolute); err == nil {
+		if info, err := os.Stat(absolute); err == nil && info.IsDir() {
 			return absolute, nil
 		}
 	}
@@ -219,14 +304,14 @@ func findSchemaPath() (string, error) {
 	}
 
 	for {
-		candidate := filepath.Join(workingDirectory, "pkg", "db", "schema.sql")
-		if _, err := os.Stat(candidate); err == nil {
+		candidate := filepath.Join(workingDirectory, "pkg", "db", "schema")
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
 			return candidate, nil
 		}
 
 		parent := filepath.Dir(workingDirectory)
 		if parent == workingDirectory {
-			return "", fmt.Errorf("pkg/db/schema.sql not found")
+			return "", fmt.Errorf("pkg/db/schema not found")
 		}
 		workingDirectory = parent
 	}
