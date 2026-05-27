@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *service) recordFlowFieldResponses(ctx context.Context, appointmentID uuid.UUID, answers map[string]string) error {
+func recordFlowFieldResponses(ctx context.Context, txx db.DBTX, appointmentID uuid.UUID, answers map[string]string) error {
 	for fieldKey, response := range answers {
-		if err := db.Query.InsertAppointmentFieldResponse(ctx, s.db.Primary(), db.InsertAppointmentFieldResponseParams{
+		if err := db.Query.InsertAppointmentFieldResponse(ctx, txx, db.InsertAppointmentFieldResponseParams{
 			ID:            uuid.New(),
 			AppointmentID: appointmentID,
 			FieldKey:      fieldKey,
