@@ -153,6 +153,10 @@ func applySchema(ctx context.Context, dsn, schemaPath string) error {
 		return err
 	}
 
+	if _, err := database.ExecContext(ctx, `CREATE EXTENSION IF NOT EXISTS btree_gist`); err != nil {
+		return fmt.Errorf("create btree_gist extension: %w", err)
+	}
+
 	if _, err := database.ExecContext(ctx, string(schema)); err != nil {
 		return fmt.Errorf("apply schema %s: %w", schemaPath, err)
 	}
