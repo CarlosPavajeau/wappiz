@@ -61,31 +61,41 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return s.handleOverlapOnConfirm(ctx, msg, session, sessionData, svc)
 		}
 
-		if err := db.Query.InsertAppointment(ctx, s.db.Primary(), db.InsertAppointmentParams{
-			ID:             appointmentID,
-			TenantID:       tenant.ID,
-			ResourceID:     *sessionData.ResourceID,
-			ServiceID:      *sessionData.ServiceID,
-			CustomerID:     session.CustomerID,
-			StartsAt:       startsAt,
-			EndsAt:         endsAt,
-			PriceAtBooking: svc.Price,
-		}); err != nil {
-			// The DB exclusion constraints are the authoritative source for overlap checks.
+		err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
+			if err := db.Query.InsertAppointment(ctx, txx, db.InsertAppointmentParams{
+				ID:             appointmentID,
+				TenantID:       tenant.ID,
+				ResourceID:     *sessionData.ResourceID,
+				ServiceID:      *sessionData.ServiceID,
+				CustomerID:     session.CustomerID,
+				StartsAt:       startsAt,
+				EndsAt:         endsAt,
+				PriceAtBooking: svc.Price,
+			}); err != nil {
+				return err
+			}
+
+			if err := recordFlowFieldResponses(ctx, txx, appointmentID, sessionData.FlowFieldAnswers); err != nil {
+				return err
+			}
+
+			if err := db.Query.UpdateTenantAppointmentCount(ctx, txx, db.UpdateTenantAppointmentCountParams{
+				ID:                    tenant.ID,
+				AppointmentsThisMonth: tenant.AppointmentsThisMonth + 1,
+			}); err != nil {
+				return err
+			}
+
+			return nil
+		})
+		if err != nil {
 			if isAppointmentOverlapConstraintError(err) {
 				logger.Warn("[scheduling] appointment overlap detected on confirm, informing customer",
 					"session_id", session.ID,
 					"err", err)
 				return s.handleOverlapOnConfirm(ctx, msg, session, sessionData, svc)
 			}
-			return fault.Wrap(err, fault.Internal("insert appointment"))
-		}
-
-		if err := db.Query.UpdateTenantAppointmentCount(ctx, s.db.Primary(), db.UpdateTenantAppointmentCountParams{
-			ID:                    tenant.ID,
-			AppointmentsThisMonth: tenant.AppointmentsThisMonth + 1,
-		}); err != nil {
-			return fault.Wrap(err, fault.Internal("update tenant appointment count"))
+			return fault.Wrap(err, fault.Internal("confirm appointment transaction"))
 		}
 
 		if err := db.Query.DeleteConversationSession(ctx, s.db.Primary(), session.ID); err != nil {

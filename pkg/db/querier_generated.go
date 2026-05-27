@@ -795,6 +795,23 @@ type Querier interface {
 	//      $8
 	//  )
 	InsertAppointment(ctx context.Context, db DBTX, arg InsertAppointmentParams) error
+	//InsertAppointmentFieldResponse
+	//
+	//  INSERT INTO appointment_field_responses (
+	//      id,
+	//      appointment_id,
+	//      field_key,
+	//      response
+	//  )
+	//  VALUES (
+	//      $1,
+	//      $2,
+	//      $3,
+	//      $4
+	//  )
+	//  ON CONFLICT (appointment_id, field_key) DO UPDATE
+	//  SET response = EXCLUDED.response
+	InsertAppointmentFieldResponse(ctx context.Context, db DBTX, arg InsertAppointmentFieldResponseParams) error
 	//InsertAppointmentPenaltyEvent
 	//
 	//  INSERT INTO appointment_penalty_events(
