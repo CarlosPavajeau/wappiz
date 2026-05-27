@@ -184,6 +184,14 @@ type Appointment struct {
 	CompletedAt       sql.NullTime      `db:"completed_at"`
 }
 
+type AppointmentFieldResponse struct {
+	ID            uuid.UUID `db:"id"`
+	AppointmentID uuid.UUID `db:"appointment_id"`
+	FieldKey      string    `db:"field_key"`
+	Response      string    `db:"response"`
+	CreatedAt     time.Time `db:"created_at"`
+}
+
 type AppointmentPenaltyEvent struct {
 	ID            uuid.UUID `db:"id"`
 	AppointmentID uuid.UUID `db:"appointment_id"`

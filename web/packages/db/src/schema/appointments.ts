@@ -206,3 +206,22 @@ export const appointmentReminderEvents = pgTable(
     ),
   ]
 )
+
+export const appointmentFieldResponses = pgTable(
+  "appointment_field_responses",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    appointmentId: uuid("appointment_id")
+      .notNull()
+      .references(() => appointments.id, { onDelete: "cascade" }),
+    fieldKey: varchar("field_key", { length: 50 }).notNull(),
+    response: text("response").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+  },
+  (table) => [
+    unique("uq_appointment_field").on(table.appointmentId, table.fieldKey),
+    index("idx_field_responses_appointment").on(table.appointmentId),
+  ]
+)
