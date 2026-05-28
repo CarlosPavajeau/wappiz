@@ -1,5 +1,4 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import { PlusIcon, PencilIcon, Rows3Icon } from "lucide-react"
 import { useMutation } from "@tanstack/react-query"
 import { createFileRoute, useRouter } from "@tanstack/react-router"
 import type {
@@ -7,6 +6,7 @@ import type {
   UpsertTenantFlowFieldRequest,
 } from "@wappiz/api-client/types/tenant-flow-fields"
 import { type } from "arktype"
+import { PlusIcon, PencilIcon, Rows3Icon } from "lucide-react"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -56,7 +56,9 @@ export const Route = createFileRoute("/_authed/dashboard/flow-fields")({
   loader: async () => {
     const fields = await api.tenantFlowFields.list()
     return {
-      fields: [...fields].sort((left, right) => left.sortOrder - right.sortOrder),
+      fields: [...fields].toSorted(
+        (left, right) => left.sortOrder - right.sortOrder
+      ),
     }
   },
   pendingComponent: PendingComponent,
@@ -78,7 +80,9 @@ type FlowFieldDialogProps = {
   field?: TenantFlowField
 }
 
-function defaultValuesFor(field: TenantFlowField | undefined): FlowFieldFormValues {
+function defaultValuesFor(
+  field: TenantFlowField | undefined
+): FlowFieldFormValues {
   return {
     isRequired: field?.isRequired ?? false,
     question: field?.question ?? "",
@@ -119,7 +123,9 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
       return api.tenantFlowFields.update(field.id, request)
     },
     onError: () => {
-      toast.error("No se pudo guardar el campo. Revisa los datos e intenta de nuevo.")
+      toast.error(
+        "No se pudo guardar el campo. Revisa los datos e intenta de nuevo."
+      )
     },
     onSuccess: () => {
       setOpen(false)
@@ -209,7 +215,7 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                       min={0}
                       aria-invalid={fieldState.invalid}
                       onChange={(event) => {
-                        const value = event.target.value
+                        const {value} = event.target
                         formField.onChange(value === "" ? "" : Number(value))
                       }}
                     />
@@ -227,7 +233,9 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                     className="w-fit self-end"
                     data-invalid={fieldState.invalid}
                   >
-                    <FieldLabel htmlFor={formField.name}>Obligatorio</FieldLabel>
+                    <FieldLabel htmlFor={formField.name}>
+                      Obligatorio
+                    </FieldLabel>
                     <Switch
                       id={formField.name}
                       name={formField.name}
@@ -278,7 +286,9 @@ function FlowFieldEnabledSwitch({ field }: { field: TenantFlowField }) {
 function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
   return (
     <Table>
-      <TableCaption className="sr-only">Campos del flujo de WhatsApp</TableCaption>
+      <TableCaption className="sr-only">
+        Campos del flujo de WhatsApp
+      </TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead>Pregunta</TableHead>
@@ -294,16 +304,22 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
           <TableRow key={field.id}>
             <TableCell>
               <div className="flex min-w-0 flex-col">
-                <span className="font-medium">{field.question || field.fieldKey}</span>
-                <span className="text-xs text-muted-foreground">{field.fieldKey}</span>
+                <span className="font-medium">
+                  {field.question || field.fieldKey}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {field.fieldKey}
+                </span>
               </div>
             </TableCell>
             <TableCell>
-              <Badge variant={field.fieldType === "custom" ? "default" : "secondary"}>
+              <Badge
+                variant={field.fieldType === "custom" ? "default" : "secondary"}
+              >
                 {field.fieldType === "custom" ? "Personalizado" : "Predefinido"}
               </Badge>
             </TableCell>
-            <TableCell className="tabular-nums text-muted-foreground">
+            <TableCell className="text-muted-foreground tabular-nums">
               {field.sortOrder}
             </TableCell>
             <TableCell>{field.isRequired ? "Si" : "No"}</TableCell>
@@ -327,9 +343,12 @@ function RouteComponent() {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-start justify-between gap-4 sm:items-center">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Campos del flujo</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Campos del flujo
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Configura los datos que el bot puede pedir antes de confirmar una cita.
+            Configura los datos que el bot puede pedir antes de confirmar una
+            cita.
           </p>
         </div>
         <FlowFieldDialog />

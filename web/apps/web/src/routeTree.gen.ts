@@ -170,8 +170,8 @@ export interface FileRoutesByFullPath {
   '/banned': typeof AuthedBannedRoute
   '/dashboard': typeof AuthedDashboardRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRouteWithChildren
-  '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/flow-fields': typeof AuthedDashboardFlowFieldsRoute
+  '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -192,8 +192,8 @@ export interface FileRoutesByTo {
   '/sign-in': typeof AuthSignInRoute
   '/sign-up': typeof AuthSignUpRoute
   '/banned': typeof AuthedBannedRoute
-  '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/flow-fields': typeof AuthedDashboardFlowFieldsRoute
+  '/dashboard/services': typeof AuthedDashboardServicesRoute
   '/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -219,8 +219,8 @@ export interface FileRoutesById {
   '/_authed/banned': typeof AuthedBannedRoute
   '/_authed/dashboard': typeof AuthedDashboardRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRouteWithChildren
-  '/_authed/dashboard/services': typeof AuthedDashboardServicesRoute
   '/_authed/dashboard/flow-fields': typeof AuthedDashboardFlowFieldsRoute
+  '/_authed/dashboard/services': typeof AuthedDashboardServicesRoute
   '/_authed/dashboard/settings': typeof AuthedDashboardSettingsRoute
   '/_authed/dashboard/users': typeof AuthedDashboardUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -245,8 +245,8 @@ export interface FileRouteTypes {
     | '/banned'
     | '/dashboard'
     | '/onboarding'
-    | '/dashboard/services'
     | '/dashboard/flow-fields'
+    | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/users'
     | '/api/auth/$'
@@ -267,8 +267,8 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/banned'
-    | '/dashboard/services'
     | '/dashboard/flow-fields'
+    | '/dashboard/services'
     | '/dashboard/settings'
     | '/dashboard/users'
     | '/api/auth/$'
@@ -293,8 +293,8 @@ export interface FileRouteTypes {
     | '/_authed/banned'
     | '/_authed/dashboard'
     | '/_authed/onboarding'
-    | '/_authed/dashboard/services'
     | '/_authed/dashboard/flow-fields'
+    | '/_authed/dashboard/services'
     | '/_authed/dashboard/settings'
     | '/_authed/dashboard/users'
     | '/api/auth/$'
@@ -505,8 +505,8 @@ const AuthRouteChildren: AuthRouteChildren = {
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
 interface AuthedDashboardRouteChildren {
-  AuthedDashboardServicesRoute: typeof AuthedDashboardServicesRoute
   AuthedDashboardFlowFieldsRoute: typeof AuthedDashboardFlowFieldsRoute
+  AuthedDashboardServicesRoute: typeof AuthedDashboardServicesRoute
   AuthedDashboardSettingsRoute: typeof AuthedDashboardSettingsRoute
   AuthedDashboardUsersRoute: typeof AuthedDashboardUsersRoute
   AuthedDashboardIndexRoute: typeof AuthedDashboardIndexRoute
@@ -518,8 +518,8 @@ interface AuthedDashboardRouteChildren {
 }
 
 const AuthedDashboardRouteChildren: AuthedDashboardRouteChildren = {
-  AuthedDashboardServicesRoute: AuthedDashboardServicesRoute,
   AuthedDashboardFlowFieldsRoute: AuthedDashboardFlowFieldsRoute,
+  AuthedDashboardServicesRoute: AuthedDashboardServicesRoute,
   AuthedDashboardSettingsRoute: AuthedDashboardSettingsRoute,
   AuthedDashboardUsersRoute: AuthedDashboardUsersRoute,
   AuthedDashboardIndexRoute: AuthedDashboardIndexRoute,
