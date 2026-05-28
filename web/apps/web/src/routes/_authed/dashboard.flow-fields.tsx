@@ -115,12 +115,13 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
   })
 
   const { mutateAsync: saveField } = useMutation({
-    mutationFn: (values: FlowFieldFormValues) => {
+    mutationFn: async (values: FlowFieldFormValues) => {
       const request = toRequest(values)
       if (field === undefined) {
-        return api.tenantFlowFields.create(request)
+        await api.tenantFlowFields.create(request)
+        return
       }
-      return api.tenantFlowFields.update(field.id, request)
+      await api.tenantFlowFields.update(field.id, request)
     },
     onError: () => {
       toast.error(
