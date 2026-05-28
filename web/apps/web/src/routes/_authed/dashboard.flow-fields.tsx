@@ -215,7 +215,7 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                       min={0}
                       aria-invalid={fieldState.invalid}
                       onChange={(event) => {
-                        const {value} = event.target
+                        const { value } = event.target
                         formField.onChange(value === "" ? "" : Number(value))
                       }}
                     />
