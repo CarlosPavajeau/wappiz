@@ -18,6 +18,13 @@ export type Appointment = {
   endsAt: string
   status: AppointmentStatus
   priceAtBooking: number
+  fieldResponses: AppointmentFieldResponse[]
+}
+
+export type AppointmentFieldResponse = {
+  fieldKey: string
+  question: string
+  response: string
 }
 
 export type UpdateAppointmentStatusRequest = {

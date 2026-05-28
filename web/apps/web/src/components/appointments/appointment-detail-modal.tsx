@@ -36,6 +36,40 @@ type Props = {
   appointment: Appointment
 }
 
+function AppointmentFieldResponses({ appointment }: Props) {
+  if (appointment.fieldResponses.length === 0) {
+    return null
+  }
+
+  return (
+    <>
+      <Separator />
+
+      <section aria-labelledby="captured-data-heading">
+        <h3
+          id="captured-data-heading"
+          className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+        >
+          Datos capturados
+        </h3>
+
+        <dl className="flex flex-col gap-3">
+          {appointment.fieldResponses.map((field) => (
+            <div key={field.fieldKey} className="flex min-w-0 flex-col gap-0.5">
+              <dt className="text-xs text-muted-foreground">
+                {field.question}
+              </dt>
+              <dd className="text-sm font-medium wrap-break-word whitespace-pre-wrap">
+                {field.response}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </>
+  )
+}
+
 function AppointmentDetailContent({ appointment }: Props) {
   const start = new Date(appointment.startsAt)
   const end = new Date(appointment.endsAt)
@@ -68,6 +102,8 @@ function AppointmentDetailContent({ appointment }: Props) {
         />
         <DetailRow label="Precio" value={formattedPrice} />
       </dl>
+
+      <AppointmentFieldResponses appointment={appointment} />
 
       <Separator />
 

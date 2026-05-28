@@ -1,6 +1,7 @@
 package appointments_search
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -15,14 +16,21 @@ import (
 )
 
 type Response struct {
-	ID             uuid.UUID `json:"id"`
-	ResourceName   string    `json:"resourceName"`
-	ServiceName    string    `json:"serviceName"`
-	CustomerName   string    `json:"customerName"`
-	StartsAt       time.Time `json:"startsAt"`
-	EndsAt         time.Time `json:"endsAt"`
-	Status         string    `json:"status"`
-	PriceAtBooking float64   `json:"priceAtBooking"`
+	ID             uuid.UUID       `json:"id"`
+	ResourceName   string          `json:"resourceName"`
+	ServiceName    string          `json:"serviceName"`
+	CustomerName   string          `json:"customerName"`
+	StartsAt       time.Time       `json:"startsAt"`
+	EndsAt         time.Time       `json:"endsAt"`
+	Status         string          `json:"status"`
+	PriceAtBooking float64         `json:"priceAtBooking"`
+	FieldResponses []FieldResponse `json:"fieldResponses"`
+}
+
+type FieldResponse struct {
+	FieldKey string `json:"fieldKey"`
+	Question string `json:"question"`
+	Response string `json:"response"`
 }
 
 type Handler struct {
@@ -165,7 +173,22 @@ func (h *Handler) Handle(c *gin.Context) {
 		SELECT a.id, a.starts_at, a.ends_at, a.status, a.price_at_booking,
 		       r.name AS resource_name,
 		       s.name AS service_name,
-		       COALESCE(c.name, c.phone_number) AS customer_name
+		       COALESCE(c.name, c.phone_number) AS customer_name,
+		       COALESCE((
+		         SELECT json_agg(
+		           json_build_object(
+		             'fieldKey', afr.field_key,
+		             'question', COALESCE(tff.question, afr.field_key),
+		             'response', afr.response
+		           )
+		           ORDER BY COALESCE(tff.sort_order, 2147483647), afr.created_at
+		         )
+		         FROM appointment_field_responses afr
+		         LEFT JOIN tenant_flow_fields tff
+		           ON tff.tenant_id = a.tenant_id
+		          AND tff.field_key = afr.field_key
+		         WHERE afr.appointment_id = a.id
+		       ), '[]'::json) AS field_responses
 		FROM appointments a
 		JOIN resources r ON r.id = a.resource_id
 		JOIN services  s ON s.id = a.service_id
@@ -190,11 +213,16 @@ func (h *Handler) Handle(c *gin.Context) {
 	for rows.Next() {
 		var r Response
 		var priceAtBooking float64
+		var fieldResponsesJSON []byte
 		if err := rows.Scan(
 			&r.ID, &r.StartsAt, &r.EndsAt, &r.Status, &priceAtBooking,
-			&r.ResourceName, &r.ServiceName, &r.CustomerName,
+			&r.ResourceName, &r.ServiceName, &r.CustomerName, &fieldResponsesJSON,
 		); err != nil {
 			c.Error(fault.Wrap(err, fault.Internal("failed to scan appointment row")))
+			return
+		}
+		if err := json.Unmarshal(fieldResponsesJSON, &r.FieldResponses); err != nil {
+			c.Error(fault.Wrap(err, fault.Internal("failed to parse appointment field responses")))
 			return
 		}
 		r.PriceAtBooking = priceAtBooking
