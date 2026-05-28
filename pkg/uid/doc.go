@@ -1,4 +1,4 @@
-// Package uid generates prefixed random identifiers for Unkey resources.
+// Package uid generates prefixed random identifiers for Wappiz resources.
 //
 // The package provides two main functions for generating random strings:
 // [New] for prefixed identifiers and [DNS1035] for DNS-compliant labels.
