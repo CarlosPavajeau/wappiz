@@ -29,9 +29,16 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.tenants.id,
     }),
   },
+  appointmentFieldResponses: {
+    appointment: r.one.appointments({
+      from: r.appointmentFieldResponses.appointmentId,
+      to: r.appointments.id,
+    }),
+  },
   appointments: {
     appointmentPenaltyEvents: r.many.appointmentPenaltyEvents(),
     appointmentReminderEvents: r.many.appointmentReminderEvents(),
+    appointmentFieldResponses: r.many.appointmentFieldResponses(),
     users: r.many.users({
       from: r.appointments.id.through(r.appointmentStatusHistory.appointmentId),
       to: r.users.id.through(r.appointmentStatusHistory.changedBy),
