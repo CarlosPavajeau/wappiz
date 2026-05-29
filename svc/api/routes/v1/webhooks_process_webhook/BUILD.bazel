@@ -6,9 +6,8 @@ go_library(
     importpath = "wappiz/svc/api/routes/v1/webhooks_process_webhook",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/server",
         "//internal/services/webhook_processor",
-        "//pkg/logger",
+        "//pkg/server",
         "@com_github_gin_gonic_gin//:gin",
     ],
 )

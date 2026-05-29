@@ -6,6 +6,7 @@ go_library(
         "handler.go",
         "middleware_cors.go",
         "middleware_logger.go",
+        "middleware_ratelimit.go",
         "middleware_request_id.go",
         "request_util.go",
         "route.go",
@@ -14,6 +15,7 @@ go_library(
     importpath = "wappiz/pkg/server",
     visibility = ["//visibility:public"],
     deps = [
+        "//internal/services/ratelimit",
         "//pkg/codes",
         "//pkg/fault",
         "//pkg/logger",

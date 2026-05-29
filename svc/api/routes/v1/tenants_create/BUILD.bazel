@@ -6,10 +6,9 @@ go_library(
     importpath = "wappiz/svc/api/routes/v1/tenants_create",
     visibility = ["//visibility:public"],
     deps = [
-        "//pkg/server",
-        "//pkg/codes",
         "//pkg/db",
         "//pkg/fault",
+        "//pkg/server",
         "@com_github_gin_gonic_gin//:gin",
         "@com_github_google_uuid//:uuid",
     ],
@@ -20,6 +19,7 @@ go_test(
     srcs = ["handler_201_test.go"],
     embed = [":tenants_create"],
     deps = [
+        "//pkg/server",
         "//svc/api/internal/testutil",
         "@com_github_gin_gonic_gin//:gin",
     ],
