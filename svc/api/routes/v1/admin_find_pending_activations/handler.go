@@ -31,11 +31,11 @@ func (h *Handler) Path() string {
 	return "/v1/admin/activations"
 }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	activations, err := db.Query.FindTenantPendingActivations(c.Request.Context(), h.DB.Primary())
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch activations")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch activations"))
+
 	}
 
 	response := make([]Response, len(activations))
@@ -51,4 +51,5 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+	return nil
 }

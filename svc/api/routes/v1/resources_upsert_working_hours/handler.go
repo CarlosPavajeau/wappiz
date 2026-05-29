@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 type Request struct {
@@ -33,64 +34,58 @@ func parseTime(s string) (time.Time, error) {
 	return time.Parse("15:04", s)
 }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid resource id"),
 			fault.Public("Id del recurso inválido"),
-		))
-		return
-	}
+		)
 
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err,
-			fault.Code(codes.ErrorsBadRequest),
-			fault.Internal("invalid request body"),
-			fault.Public("Los datos enviados son inválidos"),
-		))
-		return
+	}
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
 
 	r, err := db.Query.FindResourceById(c.Request.Context(), h.DB.Primary(), id)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource not found"),
 			fault.Public("El recurso no existe"),
-		))
-		return
+		)
+
 	}
 	if r.TenantID != tenantID {
-		c.Error(fault.New("resource not found",
+		return fault.New("resource not found",
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource belongs to a different tenant"),
 			fault.Public("El recurso no existe"),
-		))
-		return
+		)
+
 	}
 
 	startTime, err := parseTime(req.StartTime)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid startTime format"),
 			fault.Public("El campo 'startTime' debe tener formato HH:MM o HH:MM:SS"),
-		))
-		return
+		)
+
 	}
 	endTime, err := parseTime(req.EndTime)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid endTime format"),
 			fault.Public("El campo 'endTime' debe tener formato HH:MM o HH:MM:SS"),
-		))
-		return
+		)
+
 	}
 
 	if err := db.Query.UpsertWorkingHours(c.Request.Context(), h.DB.Primary(), db.UpsertWorkingHoursParams{
@@ -101,9 +96,10 @@ func (h *Handler) Handle(c *gin.Context) {
 		EndTime:    endTime,
 		IsActive:   req.IsActive,
 	}); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to upsert working hours")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to upsert working hours"))
+
 	}
 
 	c.Status(http.StatusNoContent)
+	return nil
 }

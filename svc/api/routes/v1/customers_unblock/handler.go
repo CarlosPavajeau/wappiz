@@ -18,15 +18,15 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPost }
 func (h *Handler) Path() string   { return "/v1/customers/:id/unblock" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid customer id"),
 			fault.Public("Id del cliente inválido"),
-		))
-		return
+		)
+
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
@@ -35,9 +35,10 @@ func (h *Handler) Handle(c *gin.Context) {
 		ID:       id,
 		TenantID: tenantID,
 	}); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to unblock customer")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to unblock customer"))
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "customer unblocked"})
+	return nil
 }

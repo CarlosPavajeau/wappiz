@@ -26,13 +26,13 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/tenants/flow-fields" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	tenantID := jwt.TenantIDFromContext(c)
 
 	fields, err := db.Query.FindAllTenantFlowFields(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to retrieve flow fields")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to retrieve flow fields"))
+
 	}
 
 	response := make([]Response, len(fields))
@@ -49,4 +49,5 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+	return nil
 }

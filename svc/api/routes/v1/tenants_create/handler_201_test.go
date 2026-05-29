@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/testutil"
 
 	"github.com/gin-gonic/gin"
@@ -28,7 +29,7 @@ func TestHandle_CreatesTenant_ReturnsCreated(t *testing.T) {
 		c.Set("user_id", userID)
 		c.Next()
 	})
-	r.POST("/v1/tenants", h.Handle)
+	r.POST("/v1/tenants", server.ToGinHandler(h))
 
 	req := httptest.NewRequest(http.MethodPost, "/v1/tenants", strings.NewReader(`{"name":"Barber Hub"}`))
 	req.Header.Set("Content-Type", "application/json")

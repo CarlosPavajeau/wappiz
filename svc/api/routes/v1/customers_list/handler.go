@@ -47,13 +47,13 @@ func toResponse(c db.FindCustomersByTenantRow) Response {
 	}
 }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	tenantID := jwt.TenantIDFromContext(c)
 
 	customers, err := db.Query.FindCustomersByTenant(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch customers")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch customers"))
+
 	}
 
 	result := make([]Response, len(customers))
@@ -62,4 +62,5 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+	return nil
 }

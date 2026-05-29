@@ -29,16 +29,14 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/appointments/:id/history" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(
-			fault.Wrap(err,
-				fault.Code(codes.ErrorsBadRequest),
-				fault.Internal("invalid appointment id"), fault.Public("Id de cita inválido"),
-			),
+		return fault.Wrap(err,
+			fault.Code(codes.ErrorsBadRequest),
+			fault.Internal("invalid appointment id"), fault.Public("Id de cita inválido"),
 		)
-		return
+
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
@@ -46,13 +44,11 @@ func (h *Handler) Handle(c *gin.Context) {
 		ID:       id,
 		TenantID: tenantID,
 	}); err != nil {
-		c.Error(
-			fault.Wrap(err,
-				fault.Code(codes.ErrorsNotFound),
-				fault.Internal("appointment not found"), fault.Public("La cita no existe"),
-			),
+		return fault.Wrap(err,
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("appointment not found"), fault.Public("La cita no existe"),
 		)
-		return
+
 	}
 
 	history, err := db.Query.FindAppointmentStatusHistory(c.Request.Context(), h.DB.Primary(), db.FindAppointmentStatusHistoryParams{
@@ -60,8 +56,8 @@ func (h *Handler) Handle(c *gin.Context) {
 		TenantID:      tenantID,
 	})
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch history")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch history"))
+
 	}
 
 	result := make([]Response, len(history))
@@ -82,4 +78,5 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+	return nil
 }

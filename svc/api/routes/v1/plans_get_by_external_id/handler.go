@@ -28,18 +28,18 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/plans/by-external-id/:externalId" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	plan, err := db.Query.FindPlanByExternalId(c.Request.Context(), h.DB.Primary(), db.FindPlanByExternalIdParams{
 		ExternalID:  c.Param("externalId"),
 		Environment: h.Environment,
 	})
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("plan not found by external id"),
 			fault.Public("El plan no existe"),
-		))
-		return
+		)
+
 	}
 
 	c.JSON(http.StatusOK, Response{
@@ -51,4 +51,5 @@ func (h *Handler) Handle(c *gin.Context) {
 		Currency:    plan.Currency,
 		Interval:    plan.Interval.String,
 	})
+	return nil
 }

@@ -37,21 +37,21 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/resources" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	tenantID := jwt.TenantIDFromContext(c)
 
 	resources, err := db.Query.FindResourcesByTenant(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch resources")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch resources"))
+
 	}
 
 	response := make([]Response, len(resources))
 	for i, r := range resources {
 		whs, err := db.Query.FindResourceWorkingHours(c.Request.Context(), h.DB.Primary(), r.ID)
 		if err != nil {
-			c.Error(fault.Wrap(err, fault.Internal("failed to fetch working hours")))
-			return
+			return fault.Wrap(err, fault.Internal("failed to fetch working hours"))
+
 		}
 
 		whResponse := make([]WorkingHoursResponse, len(whs))
@@ -77,4 +77,5 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+	return nil
 }

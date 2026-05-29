@@ -3,7 +3,7 @@ package webhooks_process_webhook
 import (
 	"net/http"
 	"wappiz/internal/services/webhook_processor"
-	"wappiz/pkg/logger"
+	"wappiz/pkg/server"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,21 +20,19 @@ func (h *Handler) Path() string {
 	return "/webhook"
 }
 
-func (h *Handler) Handle(c *gin.Context) {
-	var req webhook_processor.Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		logger.Error("webhook: failed to parse payload",
-			"err", err)
-		c.Status(http.StatusOK)
-		return
+func (h *Handler) Handle(c *gin.Context) error {
+	req, err := server.BindBody[webhook_processor.Request](c)
+	if err != nil {
+		return err
 	}
 
 	if req.Object != "whatsapp_business_account" {
 		c.Status(http.StatusOK)
-		return
+		return nil
 	}
 
 	c.Status(http.StatusOK)
 
 	h.Processor.Enqueue(req)
+	return nil
 }

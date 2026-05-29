@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 	"wappiz/pkg/db"
+	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
 	"wappiz/svc/api/internal/testutil"
 
@@ -34,7 +35,7 @@ func TestHandle_UpdatesTenantOwnedFlowField(t *testing.T) {
 		c.Set("tenant_id", tenantID)
 		c.Next()
 	})
-	r.PUT("/v1/tenants/flow-fields/:id", h.Handle)
+	r.PUT("/v1/tenants/flow-fields/:id", server.ToGinHandler(h))
 
 	req := httptest.NewRequest(
 		http.MethodPut,
@@ -82,7 +83,7 @@ func TestHandle_ReturnsNotFoundForOtherTenantFlowField(t *testing.T) {
 		c.Set("tenant_id", tenantID)
 		c.Next()
 	})
-	r.PUT("/v1/tenants/flow-fields/:id", h.Handle)
+	r.PUT("/v1/tenants/flow-fields/:id", server.ToGinHandler(h))
 
 	req := httptest.NewRequest(
 		http.MethodPut,
@@ -126,7 +127,7 @@ func TestHandle_ReturnsNotFoundForMissingFlowField(t *testing.T) {
 		c.Set("tenant_id", tenantID)
 		c.Next()
 	})
-	r.PUT("/v1/tenants/flow-fields/:id", h.Handle)
+	r.PUT("/v1/tenants/flow-fields/:id", server.ToGinHandler(h))
 
 	req := httptest.NewRequest(
 		http.MethodPut,
@@ -148,7 +149,7 @@ func TestHandle_RejectsInvalidUpdateID(t *testing.T) {
 	h := &Handler{}
 	r := gin.New()
 	r.Use(middleware.WithErrorHandling())
-	r.PUT("/v1/tenants/flow-fields/:id", h.Handle)
+	r.PUT("/v1/tenants/flow-fields/:id", server.ToGinHandler(h))
 
 	req := httptest.NewRequest(
 		http.MethodPut,

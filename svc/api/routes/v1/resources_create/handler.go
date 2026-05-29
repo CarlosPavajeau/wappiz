@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 const (
@@ -33,11 +34,10 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPost }
 func (h *Handler) Path() string   { return "/v1/resources" }
 
-func (h *Handler) Handle(c *gin.Context) {
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err, fault.Code(codes.ErrorsBadRequest), fault.Public(err.Error())))
-		return
+func (h *Handler) Handle(c *gin.Context) error {
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
@@ -45,18 +45,16 @@ func (h *Handler) Handle(c *gin.Context) {
 
 	limited, err := h.isResourceLimitReached(ctx, tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to check resource limit")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to check resource limit"))
+
 	}
 	if limited {
-		c.Error(
-			fault.New("resource quota exceeded",
-				fault.Code(codes.ErrorsForbiddenResourceQuotaExceeded),
-				fault.Internal(fmt.Sprintf("tenant %s has reached the resource limit for their plan", tenantID)),
-				fault.Public("Se ha alcanzado el límite de recursos de tu plan. Actualiza tu plan para añadir más recursos."),
-			),
+		return fault.New("resource quota exceeded",
+			fault.Code(codes.ErrorsForbiddenResourceQuotaExceeded),
+			fault.Internal(fmt.Sprintf("tenant %s has reached the resource limit for their plan", tenantID)),
+			fault.Public("Se ha alcanzado el límite de recursos de tu plan. Actualiza tu plan para añadir más recursos."),
 		)
-		return
+
 	}
 
 	if err := db.Query.InsertResource(ctx, h.DB.Primary(), db.InsertResourceParams{
@@ -67,11 +65,12 @@ func (h *Handler) Handle(c *gin.Context) {
 		AvatarUrl: sql.NullString{String: req.AvatarURL, Valid: req.AvatarURL != ""},
 		SortOrder: 1,
 	}); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to create resource")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to create resource"))
+
 	}
 
 	c.Status(http.StatusCreated)
+	return nil
 }
 
 func (h *Handler) isResourceLimitReached(ctx context.Context, tenantID uuid.UUID) (bool, error) {

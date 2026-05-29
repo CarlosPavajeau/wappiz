@@ -7,6 +7,7 @@ import (
 	"wappiz/internal/services/ratelimit"
 	"wappiz/pkg/jwt"
 	"wappiz/pkg/logger"
+	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
 	"wappiz/svc/api/openapi"
 	"wappiz/svc/api/routes/v1/admin_activate_tenant"
@@ -224,6 +225,6 @@ func Register(g *gin.Engine, svc *Services) {
 // It delegates to [gin.IRoutes.Handle] using the method and path reported by
 // the route itself, so each handler is self-describing and no central routing
 // table is needed.
-func RegisterRoute(g gin.IRoutes, route Route) {
-	g.Handle(route.Method(), route.Path(), route.Handle)
+func RegisterRoute(g gin.IRoutes, route server.Route) {
+	server.RegisterRoute(g, route)
 }

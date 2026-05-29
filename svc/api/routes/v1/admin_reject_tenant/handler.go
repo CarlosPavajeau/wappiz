@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 const (
@@ -40,27 +41,18 @@ func (h *Handler) Path() string {
 	return "/v1/admin/activations/:id/reject"
 }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	tenantID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(
-			fault.Wrap(err,
-				fault.Code(codes.ErrorsBadRequest),
-				fault.Internal("invalid tenant id"), fault.Public("Id del tenant inválido"),
-			),
+		return fault.Wrap(err,
+			fault.Code(codes.ErrorsBadRequest),
+			fault.Internal("invalid tenant id"), fault.Public("Id del tenant inválido"),
 		)
-		return
-	}
 
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(
-			fault.Wrap(err,
-				fault.Code(codes.ErrorsBadRequest),
-				fault.Internal("invalid json body"), fault.Public("Campos inválidos en la solicitud"),
-			),
-		)
-		return
+	}
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	ctx := c.Request.Context()
@@ -100,19 +92,15 @@ func (h *Handler) Handle(c *gin.Context) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			c.Error(
-				fault.Wrap(err,
-					fault.Code(codes.ErrorsNotFound),
-					fault.Internal("Tenant not found"), fault.Public("Tenant no encontrado"),
-				),
+			return fault.Wrap(err,
+				fault.Code(codes.ErrorsNotFound),
+				fault.Internal("Tenant not found"), fault.Public("Tenant no encontrado"),
 			)
-			return
-		}
 
-		c.Error(fault.Wrap(err,
-			fault.Internal("failed to reject tenant")),
-		)
-		return
+		}
+		return fault.Wrap(err,
+			fault.Internal("failed to reject tenant"))
+
 	}
 
 	if result != nil {
@@ -120,6 +108,7 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "tenant rejected successfully"})
+	return nil
 }
 
 func scheduleRejectionEmail(m mailer.Mailer, to, tenantName, reason string) {

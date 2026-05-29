@@ -15,6 +15,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 var validTransitions = map[string][]string{
@@ -40,25 +41,26 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPut }
 func (h *Handler) Path() string   { return "/v1/appointments/:id/status" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid appointment id"),
 			fault.Public("Id de cita inválido"),
-		))
-		return
-	}
+		)
 
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil || req.Status == "" {
-		c.Error(fault.New("missing status field",
+	}
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
+	}
+	if req.Status == "" {
+		return fault.New("missing status field",
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("status field is required"),
 			fault.Public("El campo 'status' es requerido"),
-		))
-		return
+		)
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
@@ -71,12 +73,12 @@ func (h *Handler) Handle(c *gin.Context) {
 		TenantID: tenantID,
 	})
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("appointment not found"),
 			fault.Public("La cita no existe"),
-		))
-		return
+		)
+
 	}
 
 	allowed := validTransitions[string(appt.Status)]
@@ -88,12 +90,12 @@ func (h *Handler) Handle(c *gin.Context) {
 		}
 	}
 	if !validTransition {
-		c.Error(fault.New("invalid status transition",
+		return fault.New("invalid status transition",
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal(fmt.Sprintf("invalid transition from %s to %s", appt.Status, req.Status)),
 			fault.Public("La transición de estado no es válida"),
-		))
-		return
+		)
+
 	}
 
 	err = db.Tx(c.Request.Context(), h.DB.Primary(), func(ctx context.Context, tx db.DBTX) error {
@@ -130,8 +132,8 @@ func (h *Handler) Handle(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.Error(err)
-		return
+		return err
+
 	}
 
 	if req.Status == "cancelled" && role != "customer" {
@@ -139,6 +141,7 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+	return nil
 }
 
 func (h *Handler) sendCancellationNotification(appt db.FindAppointmentByIDRow) {

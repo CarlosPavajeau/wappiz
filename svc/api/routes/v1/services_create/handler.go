@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"wappiz/pkg/codes"
+
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/jwt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 type Request struct {
@@ -28,15 +29,10 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPost }
 func (h *Handler) Path() string   { return "/v1/services" }
 
-func (h *Handler) Handle(c *gin.Context) {
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err,
-			fault.Code(codes.ErrorsBadRequest),
-			fault.Internal("invalid request body"),
-			fault.Public("Los datos enviados son inválidos"),
-		))
-		return
+func (h *Handler) Handle(c *gin.Context) error {
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
@@ -51,9 +47,10 @@ func (h *Handler) Handle(c *gin.Context) {
 		Price:           fmt.Sprint(req.Price),
 		SortOrder:       1,
 	}); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to create service")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to create service"))
+
 	}
 
 	c.Status(http.StatusCreated)
+	return nil
 }

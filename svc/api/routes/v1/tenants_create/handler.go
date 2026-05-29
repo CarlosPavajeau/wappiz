@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"strings"
 	"time"
-	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
+	"wappiz/pkg/server"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -38,15 +38,10 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPost }
 func (h *Handler) Path() string   { return "/v1/tenants" }
 
-func (h *Handler) Handle(c *gin.Context) {
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err,
-			fault.Code(codes.ErrorsBadRequest),
-			fault.Internal("invalid request body"),
-			fault.Public("Los datos enviados son inválidos"),
-		))
-		return
+func (h *Handler) Handle(c *gin.Context) error {
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	userID := c.MustGet("user_id").(string)
@@ -109,11 +104,11 @@ func (h *Handler) Handle(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to create tenant")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to create tenant"))
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"tenant_id": tenantID.String()})
+	return nil
 }
 
 const slugAlphabet = "abcdefghijklmnopqrstuvwxyz0123456789"

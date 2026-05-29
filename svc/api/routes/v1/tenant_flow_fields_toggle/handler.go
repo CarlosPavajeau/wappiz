@@ -18,15 +18,15 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPatch }
 func (h *Handler) Path() string   { return "/v1/tenants/flow-fields/:id/toggle" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id := c.Param("id")
 	flowFieldID, err := uuid.Parse(id)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("Failed parsing id"), fault.Public("Identificador del campo inválido"),
-		))
-		return
+		)
+
 	}
 
 	tenantId := jwt.TenantIDFromContext(c)
@@ -37,9 +37,10 @@ func (h *Handler) Handle(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed toggling flow field")))
-		return
+		return fault.Wrap(err, fault.Internal("failed toggling flow field"))
+
 	}
 
 	c.Status(http.StatusOK)
+	return nil
 }

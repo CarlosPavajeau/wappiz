@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 type Request struct {
@@ -42,55 +43,49 @@ func nullTime(s *string) sql.NullString {
 	return sql.NullString{String: t.Format("15:04:05"), Valid: true}
 }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid resource id"),
 			fault.Public("Id del recurso inválido"),
-		))
-		return
-	}
+		)
 
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err,
-			fault.Code(codes.ErrorsBadRequest),
-			fault.Internal("invalid request body"),
-			fault.Public("Los datos enviados son inválidos"),
-		))
-		return
+	}
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	date, err := time.Parse("2006-01-02", req.Date)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid date format"),
 			fault.Public("El campo 'date' debe tener formato YYYY-MM-DD"),
-		))
-		return
+		)
+
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
 
 	r, err := db.Query.FindResourceById(c.Request.Context(), h.DB.Primary(), id)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource not found"),
 			fault.Public("El recurso no existe"),
-		))
-		return
+		)
+
 	}
 	if r.TenantID != tenantID {
-		c.Error(fault.New("resource not found",
+		return fault.New("resource not found",
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource belongs to a different tenant"),
 			fault.Public("El recurso no existe"),
-		))
-		return
+		)
+
 	}
 
 	if err := db.Query.InsertScheduleOverride(c.Request.Context(), h.DB.Primary(), db.InsertScheduleOverrideParams{
@@ -102,9 +97,10 @@ func (h *Handler) Handle(c *gin.Context) {
 		EndTime:    nullTime(req.EndTime),
 		Reason:     sql.NullString{String: req.Reason, Valid: req.Reason != ""},
 	}); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to create schedule override")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to create schedule override"))
+
 	}
 
 	c.Status(http.StatusCreated)
+	return nil
 }

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 type Request struct {
@@ -29,25 +30,19 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPut }
 func (h *Handler) Path() string   { return "/v1/services/:id" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid service id"),
 			fault.Public("Id del servicio inválido"),
-		))
-		return
-	}
+		)
 
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err,
-			fault.Code(codes.ErrorsBadRequest),
-			fault.Internal("invalid request body"),
-			fault.Public("Los datos enviados son inválidos"),
-		))
-		return
+	}
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
@@ -63,9 +58,10 @@ func (h *Handler) Handle(c *gin.Context) {
 		IsActive:        req.IsActive,
 		TenantID:        tenantID,
 	}); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to update service")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to update service"))
+
 	}
 
 	c.Status(http.StatusNoContent)
+	return nil
 }

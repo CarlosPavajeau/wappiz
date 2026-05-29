@@ -27,11 +27,11 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/plans" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	plans, err := db.Query.ListActivePlans(c.Request.Context(), h.DB.Primary(), h.Environment)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch plans")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch plans"))
+
 	}
 
 	response := make([]Response, len(plans))
@@ -48,4 +48,5 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 	"wappiz/pkg/db"
+	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
 	"wappiz/svc/api/internal/testutil"
 
@@ -33,7 +34,7 @@ func TestHandle_CreatesCustomFlowField(t *testing.T) {
 		c.Set("tenant_id", tenantID)
 		c.Next()
 	})
-	r.POST("/v1/tenants/flow-fields", h.Handle)
+	r.POST("/v1/tenants/flow-fields", server.ToGinHandler(h))
 
 	req := httptest.NewRequest(
 		http.MethodPost,
@@ -79,7 +80,7 @@ func TestHandle_RejectsInvalidCreatePayload(t *testing.T) {
 		c.Set("tenant_id", uuid.New())
 		c.Next()
 	})
-	r.POST("/v1/tenants/flow-fields", h.Handle)
+	r.POST("/v1/tenants/flow-fields", server.ToGinHandler(h))
 
 	req := httptest.NewRequest(
 		http.MethodPost,

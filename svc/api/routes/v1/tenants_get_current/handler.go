@@ -28,23 +28,23 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/tenants/me" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	tenantID := jwt.TenantIDFromContext(c)
 
 	tenant, err := db.Query.FindTenantByID(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("tenant not found"),
 			fault.Public("La cuenta no fue encontrada"),
-		))
-		return
+		)
+
 	}
 
 	var settings db.TenantSettings
 	if err := json.Unmarshal(tenant.Settings, &settings); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to parse tenant settings")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to parse tenant settings"))
+
 	}
 
 	c.JSON(http.StatusOK, Response{
@@ -55,4 +55,5 @@ func (h *Handler) Handle(c *gin.Context) {
 		Currency: tenant.Currency,
 		Settings: settings,
 	})
+	return nil
 }

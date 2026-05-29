@@ -29,35 +29,35 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/customers/:id" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	id, err := uuid.Parse(c.Param("id"))
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid customer id"),
 			fault.Public("Id del cliente inválido"),
-		))
-		return
+		)
+
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
 
 	customer, err := db.Query.FindCustomerByID(c.Request.Context(), h.DB.Primary(), id)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("customer not found"),
 			fault.Public("El cliente no existe"),
-		))
-		return
+		)
+
 	}
 	if customer.TenantID != tenantID {
-		c.Error(fault.New("customer not found",
+		return fault.New("customer not found",
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("customer belongs to a different tenant"),
 			fault.Public("El cliente no existe"),
-		))
-		return
+		)
+
 	}
 
 	var name *string
@@ -79,4 +79,5 @@ func (h *Handler) Handle(c *gin.Context) {
 		LateCancelCount:  customer.LateCancelCount,
 		AppointmentCount: customer.AppointmentCount,
 	})
+	return nil
 }

@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 const (
@@ -41,50 +42,45 @@ func parseTime(s string) (time.Time, error) {
 	return time.Parse("15:04", s)
 }
 
-func (h *Handler) Handle(c *gin.Context) {
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err,
-			fault.Code(codes.ErrorsBadRequest),
-			fault.Internal("invalid request body"),
-			fault.Public("Los datos enviados son inválidos"),
-		))
-		return
+func (h *Handler) Handle(c *gin.Context) error {
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
 
 	progress, err := db.Query.FindOnboardingProgressByTenant(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch onboarding progress")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch onboarding progress"))
+
 	}
 	if progress.CurrentStep < stepResource {
-		c.Error(fault.New("onboarding step not available",
+		return fault.New("onboarding step not available",
 			fault.Code(codes.ErrorsForbidden),
 			fault.Internal("step not available yet"),
 			fault.Public("Este paso aún no está disponible"),
-		))
-		return
+		)
+
 	}
 
 	startTime, err := parseTime(req.StartTime)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid startTime format"),
 			fault.Public("El campo 'startTime' debe tener formato HH:MM o HH:MM:SS"),
-		))
-		return
+		)
+
 	}
 	endTime, err := parseTime(req.EndTime)
 	if err != nil {
-		c.Error(fault.Wrap(err,
+		return fault.Wrap(err,
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid endTime format"),
 			fault.Public("El campo 'endTime' debe tener formato HH:MM o HH:MM:SS"),
-		))
-		return
+		)
+
 	}
 
 	err = db.Tx(c.Request.Context(), h.DB.Primary(), func(ctx context.Context, txx db.DBTX) error {
@@ -124,9 +120,10 @@ func (h *Handler) Handle(c *gin.Context) {
 	})
 
 	if err != nil {
-		c.Error(err)
-		return
+		return err
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{"nextStep": stepResource + 1})
+	return nil
 }

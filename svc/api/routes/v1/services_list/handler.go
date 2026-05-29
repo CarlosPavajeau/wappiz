@@ -30,13 +30,13 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodGet }
 func (h *Handler) Path() string   { return "/v1/services" }
 
-func (h *Handler) Handle(c *gin.Context) {
+func (h *Handler) Handle(c *gin.Context) error {
 	tenantID := jwt.TenantIDFromContext(c)
 
 	services, err := db.Query.FindServicesByTenantID(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch services")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch services"))
+
 	}
 
 	response := make([]Response, len(services))
@@ -57,4 +57,5 @@ func (h *Handler) Handle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+	return nil
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"wappiz/pkg/server"
 )
 
 const (
@@ -35,45 +36,40 @@ type Handler struct {
 func (h *Handler) Method() string { return http.MethodPost }
 func (h *Handler) Path() string   { return "/v1/onboarding/step/3" }
 
-func (h *Handler) Handle(c *gin.Context) {
-	var req Request
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(fault.Wrap(err,
-			fault.Code(codes.ErrorsBadRequest),
-			fault.Internal("invalid request body"),
-			fault.Public("Los datos enviados son inválidos"),
-		))
-		return
+func (h *Handler) Handle(c *gin.Context) error {
+	req, err := server.BindBody[Request](c)
+	if err != nil {
+		return err
 	}
 
 	tenantID := jwt.TenantIDFromContext(c)
 
 	progress, err := db.Query.FindOnboardingProgressByTenant(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch onboarding progress")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch onboarding progress"))
+
 	}
 	if progress.CurrentStep < stepServices {
-		c.Error(fault.New("onboarding step not available",
+		return fault.New("onboarding step not available",
 			fault.Code(codes.ErrorsForbidden),
 			fault.Internal("step not available yet"),
 			fault.Public("Este paso aún no está disponible"),
-		))
-		return
+		)
+
 	}
 
 	resources, err := db.Query.FindResourcesByTenant(c.Request.Context(), h.DB.Primary(), tenantID)
 	if err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to fetch resources")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to fetch resources"))
+
 	}
 	if len(resources) == 0 {
-		c.Error(fault.New("no resources found",
+		return fault.New("no resources found",
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("no resources found for tenant"),
 			fault.Public("Primero debes completar el paso del barbero"),
-		))
-		return
+		)
+
 	}
 
 	firstResourceID := resources[0].ID
@@ -89,16 +85,16 @@ func (h *Handler) Handle(c *gin.Context) {
 			Price:           fmt.Sprintf("%g", item.Price),
 			SortOrder:       int32(i + 1),
 		}); err != nil {
-			c.Error(fault.Wrap(err, fault.Internal("failed to create service")))
-			return
+			return fault.Wrap(err, fault.Internal("failed to create service"))
+
 		}
 
 		if err := db.Query.InsertResourceService(c.Request.Context(), h.DB.Primary(), db.InsertResourceServiceParams{
 			ResourceID: firstResourceID,
 			ServiceID:  serviceID,
 		}); err != nil {
-			c.Error(fault.Wrap(err, fault.Internal("failed to assign service to resource")))
-			return
+			return fault.Wrap(err, fault.Internal("failed to assign service to resource"))
+
 		}
 	}
 
@@ -106,9 +102,10 @@ func (h *Handler) Handle(c *gin.Context) {
 		TenantID:    tenantID,
 		CurrentStep: stepWhatsApp,
 	}); err != nil {
-		c.Error(fault.Wrap(err, fault.Internal("failed to advance onboarding step")))
-		return
+		return fault.Wrap(err, fault.Internal("failed to advance onboarding step"))
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{"nextStep": stepServices + 1})
+	return nil
 }
