@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"strings"
 	"time"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/crypto"
@@ -15,9 +16,10 @@ import (
 	"wappiz/pkg/logger"
 	"wappiz/pkg/mailer"
 
+	"wappiz/pkg/server"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"wappiz/pkg/server"
 )
 
 const (
@@ -160,11 +162,13 @@ func buildActivationEmail(tenantName, phoneNumber string) string {
 }
 
 func sanitizePhone(phone string) string {
-	result := ""
+	var result strings.Builder
+
 	for _, ch := range phone {
 		if ch >= '0' && ch <= '9' {
-			result += string(ch)
+			result.WriteString(string(ch))
 		}
 	}
-	return result
+
+	return result.String()
 }
