@@ -1,9 +1,0 @@
-load("@rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "date_parser",
-    srcs = ["parser.go"],
-    importpath = "wappiz/pkg/date_parser",
-    visibility = ["//visibility:public"],
-    deps = ["//pkg/errors"],
-)

@@ -3,7 +3,7 @@ package state_machine
 import (
 	"context"
 	"fmt"
-	"wappiz/pkg/date_formatter"
+	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
 	"wappiz/pkg/whatsapp"
 )
@@ -27,7 +27,7 @@ func (s *service) handleCancelFlow(ctx context.Context, msg IncomingMessage, cus
 	for _, a := range appt {
 		rows = append(rows, whatsapp.ListRow{
 			ID:          "cancel_" + a.ID.String(),
-			Title:       date_formatter.FormatTime(a.StartsAt, "02/01 03:04 PM"),
+			Title:       datetime.FormatTime(a.StartsAt, "02/01 03:04 PM"),
 			Description: fmt.Sprintf("%s · %s", a.ResourceName, a.ServiceName),
 		})
 	}

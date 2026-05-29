@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"wappiz/pkg/date_formatter"
+	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
 	"wappiz/pkg/logger"
 	"wappiz/pkg/whatsapp"
@@ -70,7 +70,7 @@ func (s *service) handleCancelConfirm(ctx context.Context, msg IncomingMessage, 
 			"📅 %s\n\n"+
 			"Esta acción no se puede deshacer.",
 		svc.Name, rsc.Name,
-		date_formatter.FormatTime(appointment.StartsAt, "02/01/2006 03:04 PM"),
+		datetime.FormatTime(appointment.StartsAt, "02/01/2006 03:04 PM"),
 	)
 	buttons := []whatsapp.Button{
 		{Type: "reply", Reply: whatsapp.ButtonReply{ID: "confirm_cancel_" + appointmentID.String(), Title: "✅ Sí, cancelar"}},

@@ -3,7 +3,7 @@ package state_machine
 import (
 	"context"
 	"fmt"
-	"wappiz/pkg/date_formatter"
+	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/whatsapp"
@@ -37,8 +37,8 @@ func (s *service) handleMyAppointments(ctx context.Context, msg IncomingMessage,
 
 	text := fmt.Sprintf("¡Hola, %s! 👋 Aquí están tus próximas citas:\n", customerName)
 	for i, a := range appt {
-		date := date_formatter.FormatTime(a.StartsAt, "Monday 02 Jan")
-		timeStr := date_formatter.FormatTime(a.StartsAt, "03:04 PM")
+		date := datetime.FormatTime(a.StartsAt, "Monday 02 Jan")
+		timeStr := datetime.FormatTime(a.StartsAt, "03:04 PM")
 
 		text += fmt.Sprintf("\n*%d.* 📌 *%s*\n", i+1, a.ServiceName)
 		text += fmt.Sprintf("   🗓️ %s a las %s\n", date, timeStr)

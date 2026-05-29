@@ -3,7 +3,7 @@ package state_machine
 import (
 	"context"
 	"fmt"
-	"wappiz/pkg/date_formatter"
+	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
 
 	"github.com/google/uuid"
@@ -43,7 +43,7 @@ func (s *service) sendAppointmentConfirmed(ctx context.Context, msg IncomingMess
 		customerName,
 		svc.Name,
 		rsc.Name,
-		date_formatter.FormatTime(appt.StartsAt, "02/01/2006 03:04 PM"),
+		datetime.FormatTime(appt.StartsAt, "02/01/2006 03:04 PM"),
 	)
 
 	return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, body)

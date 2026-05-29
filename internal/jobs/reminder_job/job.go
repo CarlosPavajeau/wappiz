@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 	"wappiz/pkg/crypto"
-	"wappiz/pkg/date_formatter"
+	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
@@ -144,7 +144,7 @@ func (j *job) sendReminder(
 			"📅 %s\n"+
 			"Si necesitas cancelar escríbenos aquí.",
 		timeLabel,
-		date_formatter.FormatTime(reminder.StartsAt, "Monday, 02 de January de 2006 a las 3:04 PM"),
+		datetime.FormatTime(reminder.StartsAt, "Monday, 02 de January de 2006 a las 3:04 PM"),
 	)
 
 	decrypted, err := j.decryptedTokenForTenant(waConfig.TenantID, waConfig.AccessToken.String, decryptedByTenant, decryptErrByTenant)

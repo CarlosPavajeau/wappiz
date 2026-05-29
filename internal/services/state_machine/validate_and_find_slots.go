@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 	"wappiz/internal/services/slot_finder"
-	"wappiz/pkg/date_parser"
+	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
 	apperrors "wappiz/pkg/errors"
 	"wappiz/pkg/fault"
@@ -12,7 +12,7 @@ import (
 
 func (s *service) validateAndFindSlots(ctx context.Context, input, timezone string, session db.ConversationSession) (*DateValidationResult, error) {
 	loc, _ := time.LoadLocation(timezone)
-	t, err := date_parser.ParseDateTime(input, loc)
+	t, err := datetime.ParseDateTime(input, loc)
 	if err != nil {
 		return nil, err
 	}

@@ -10,7 +10,7 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//pkg/crypto",
-        "//pkg/date_formatter",
+        "//pkg/datetime",
         "//pkg/db",
         "//pkg/fault",
         "//pkg/logger",

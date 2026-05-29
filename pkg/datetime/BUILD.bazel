@@ -1,0 +1,13 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "datetime",
+    srcs = [
+        "doc.go",
+        "formatter.go",
+        "parser.go",
+    ],
+    importpath = "wappiz/pkg/datetime",
+    visibility = ["//visibility:public"],
+    deps = ["//pkg/errors"],
+)

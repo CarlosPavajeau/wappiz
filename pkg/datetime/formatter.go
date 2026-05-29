@@ -1,14 +1,4 @@
-// Package date_formatter provides utilities for formatting [time.Time] values
-// in Spanish, anchored to the America/Bogota timezone (UTC-5).
-//
-// The only public entry point is [FormatTime], which accepts any Go time layout
-// string and returns the formatted result with English weekday and month names
-// replaced by their Spanish equivalents.
-//
-// Example output for layout "Monday, 02 de January de 2006 a las 3:04 PM":
-//
-//	"Martes, 15 de Abril de 2025 a las 2:30 PM"
-package date_formatter
+package datetime
 
 import (
 	"strings"
@@ -39,9 +29,8 @@ var esWeekdays = map[string]string{
 // esMonths maps English month names to their Spanish equivalents.
 // Full names and the four abbreviations that differ between the two languages
 // are included. Abbreviations that are identical in Spanish (Feb, Mar, Jun,
-// Jul, Sep, Oct, Nov) are omitted — they need no replacement.
+// Jul, Sep, Oct, Nov) are omitted.
 var esMonths = map[string]string{
-	// Full names
 	"January":   "Enero",
 	"February":  "Febrero",
 	"March":     "Marzo",
@@ -54,11 +43,10 @@ var esMonths = map[string]string{
 	"October":   "Octubre",
 	"November":  "Noviembre",
 	"December":  "Diciembre",
-	// Abbreviated — only entries where the Spanish form differs from English
-	"Jan": "Ene",
-	"Apr": "Abr",
-	"Aug": "Ago",
-	"Dec": "Dic",
+	"Jan":       "Ene",
+	"Apr":       "Abr",
+	"Aug":       "Ago",
+	"Dec":       "Dic",
 }
 
 // FormatTime formats t using the given Go time layout, converted to the

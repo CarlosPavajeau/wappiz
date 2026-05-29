@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"wappiz/pkg/date_formatter"
+	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/whatsapp"
@@ -47,7 +47,7 @@ func (s *service) sendConfirmation(ctx context.Context, msg IncomingMessage, ses
 		svc.Name,
 		svc.DurationMinutes,
 		rsc.Name,
-		date_formatter.FormatTime(*sessionData.StartsAt, "02/01/2006 03:04 PM"),
+		datetime.FormatTime(*sessionData.StartsAt, "02/01/2006 03:04 PM"),
 		svc.Price,
 	)
 

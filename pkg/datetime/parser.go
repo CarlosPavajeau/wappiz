@@ -1,29 +1,10 @@
-// Package date_parser provides utilities for parsing user-supplied date/time
-// strings into [time.Time] values relative to a given timezone.
-//
-// It is designed for conversational input where users type dates without an
-// explicit year (e.g. "25/12 03:00 PM"). The package infers the current year
-// and automatically advances the result by one year when the parsed date has
-// already passed, so the returned value always represents a future moment.
-//
-// Supported input formats (day/month hour:minute AM|PM):
-//
-//	25/12 03:04 PM
-//	25/12 3:04 PM
-//	25/12 03:04PM
-//	25/12 3:04PM
-//	25/12 03:04 AM
-//	25/12 3:04 AM
-//
-// Input is normalised before parsing: leading/trailing whitespace is trimmed,
-// consecutive spaces are collapsed, and the string is upper-cased, so
-// variations like "25/12  3:04 pm" are accepted.
-package date_parser
+package datetime
 
 import (
 	"fmt"
 	"strings"
 	"time"
+
 	apperrors "wappiz/pkg/errors"
 )
 

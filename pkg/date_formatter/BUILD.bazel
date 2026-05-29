@@ -1,8 +1,0 @@
-load("@rules_go//go:def.bzl", "go_library")
-
-go_library(
-    name = "date_formatter",
-    srcs = ["formatter.go"],
-    importpath = "wappiz/pkg/date_formatter",
-    visibility = ["//visibility:public"],
-)
