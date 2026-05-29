@@ -14,61 +14,67 @@ func WithErrorHandling() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next()
 
-		if len(c.Errors) > 0 {
-			err := c.Errors.Last().Err
-			urn, ok := fault.GetCode(err)
+		if len(c.Errors) == 0 {
+			return
+		}
 
-			if !ok {
-				urn = "unknown"
-			}
+		if c.Writer.Written() {
+			return
+		}
 
-			meta := openapi.Meta{RequestId: c.GetString("request_id")}
-			detail := fault.UserFacingMessage(err)
-			t := string(urn)
+		err := c.Errors.Last().Err
+		urn, ok := fault.GetCode(err)
 
-			switch urn {
-			case codes.ErrorsNotFound:
-				c.AbortWithStatusJSON(http.StatusNotFound, openapi.NotFoundErrorResponse{
-					Meta:  meta,
-					Error: openapi.BaseError{Title: "Not Found", Type: t, Detail: detail, Status: http.StatusNotFound},
-				})
+		if !ok {
+			urn = "unknown"
+		}
 
-			case codes.ErrorsUnauthorized:
-				c.AbortWithStatusJSON(http.StatusUnauthorized, openapi.UnauthorizedErrorResponse{
-					Meta:  meta,
-					Error: openapi.BaseError{Title: "Unauthorized", Type: t, Detail: detail, Status: http.StatusUnauthorized},
-				})
+		meta := openapi.Meta{RequestId: c.GetString("request_id")}
+		detail := fault.UserFacingMessage(err)
+		t := string(urn)
 
-			case codes.ErrorsForbidden, codes.ErrorsForbiddenResourceQuotaExceeded:
-				c.AbortWithStatusJSON(http.StatusForbidden, openapi.ForbiddenErrorResponse{
-					Meta:  meta,
-					Error: openapi.BaseError{Title: "Forbidden", Type: t, Detail: detail, Status: http.StatusForbidden},
-				})
+		switch urn {
+		case codes.ErrorsNotFound:
+			c.AbortWithStatusJSON(http.StatusNotFound, openapi.NotFoundErrorResponse{
+				Meta:  meta,
+				Error: openapi.BaseError{Title: "Not Found", Type: t, Detail: detail, Status: http.StatusNotFound},
+			})
 
-			case codes.ErrorsConflict:
-				c.AbortWithStatusJSON(http.StatusConflict, openapi.ConflictErrorResponse{
-					Meta:  meta,
-					Error: openapi.BaseError{Title: "Conflict", Type: t, Detail: detail, Status: http.StatusConflict},
-				})
+		case codes.ErrorsUnauthorized:
+			c.AbortWithStatusJSON(http.StatusUnauthorized, openapi.UnauthorizedErrorResponse{
+				Meta:  meta,
+				Error: openapi.BaseError{Title: "Unauthorized", Type: t, Detail: detail, Status: http.StatusUnauthorized},
+			})
 
-			case codes.ErrorsTooManyRequests:
-				c.AbortWithStatusJSON(http.StatusTooManyRequests, openapi.TooManyRequestsErrorResponse{
-					Meta:  meta,
-					Error: openapi.BaseError{Title: "Too Many Requests", Type: t, Detail: detail, Status: http.StatusTooManyRequests},
-				})
+		case codes.ErrorsForbidden, codes.ErrorsForbiddenResourceQuotaExceeded:
+			c.AbortWithStatusJSON(http.StatusForbidden, openapi.ForbiddenErrorResponse{
+				Meta:  meta,
+				Error: openapi.BaseError{Title: "Forbidden", Type: t, Detail: detail, Status: http.StatusForbidden},
+			})
 
-			case codes.ErrorsBadRequest:
-				c.AbortWithStatusJSON(http.StatusBadRequest, openapi.BadRequestErrorResponse{
-					Meta:  meta,
-					Error: openapi.BaseError{Title: "Bad Request", Type: t, Detail: detail, Status: http.StatusBadRequest},
-				})
+		case codes.ErrorsConflict:
+			c.AbortWithStatusJSON(http.StatusConflict, openapi.ConflictErrorResponse{
+				Meta:  meta,
+				Error: openapi.BaseError{Title: "Conflict", Type: t, Detail: detail, Status: http.StatusConflict},
+			})
 
-			default:
-				c.AbortWithStatusJSON(http.StatusInternalServerError, openapi.InternalServerErrorResponse{
-					Meta:  meta,
-					Error: openapi.BaseError{Title: "Internal Server Error", Type: t, Detail: detail, Status: http.StatusInternalServerError},
-				})
-			}
+		case codes.ErrorsTooManyRequests:
+			c.AbortWithStatusJSON(http.StatusTooManyRequests, openapi.TooManyRequestsErrorResponse{
+				Meta:  meta,
+				Error: openapi.BaseError{Title: "Too Many Requests", Type: t, Detail: detail, Status: http.StatusTooManyRequests},
+			})
+
+		case codes.ErrorsBadRequest:
+			c.AbortWithStatusJSON(http.StatusBadRequest, openapi.BadRequestErrorResponse{
+				Meta:  meta,
+				Error: openapi.BaseError{Title: "Bad Request", Type: t, Detail: detail, Status: http.StatusBadRequest},
+			})
+
+		default:
+			c.AbortWithStatusJSON(http.StatusInternalServerError, openapi.InternalServerErrorResponse{
+				Meta:  meta,
+				Error: openapi.BaseError{Title: "Internal Server Error", Type: t, Detail: detail, Status: http.StatusInternalServerError},
+			})
 		}
 	}
 }
