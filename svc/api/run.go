@@ -8,13 +8,11 @@ import (
 	"net"
 	"net/http"
 	"time"
-	"wappiz/internal/jobs/cleanup_sessions_job"
-	"wappiz/internal/jobs/no_show_tracker_job"
-	"wappiz/internal/jobs/reminder_job"
+	"wappiz/internal/jobs"
 	"wappiz/internal/services/ratelimit"
-	"wappiz/internal/services/slot_finder"
-	"wappiz/internal/services/state_machine"
-	"wappiz/internal/services/webhook_processor"
+	"wappiz/internal/services/slotfinder"
+	"wappiz/internal/services/statemachine"
+	"wappiz/internal/services/webhookprocessor"
 	"wappiz/pkg/buildinfo"
 	"wappiz/pkg/clock"
 	"wappiz/pkg/counter"
@@ -140,8 +138,8 @@ func Run(ctx context.Context, cfg Config) error {
 		BaseURL:    cfg.WhatsappBaseURL,
 		ApiVersion: cfg.WhatsappAPIVersion,
 	})
-	slotFinder := slot_finder.New(database)
-	stateMachineSvc := state_machine.New(state_machine.Config{
+	slotFinder := slotfinder.New(database)
+	stateMachineSvc := statemachine.New(statemachine.Config{
 		DB:          database,
 		Whatsapp:    waSvc,
 		SlotFinder:  slotFinder,
@@ -160,7 +158,7 @@ func Run(ctx context.Context, cfg Config) error {
 
 	r.Defer(rlSvc.Close)
 
-	webhookProcessorSvc := webhook_processor.New(webhook_processor.Config{
+	webhookProcessorSvc := webhookprocessor.New(webhookprocessor.Config{
 		DB:           database,
 		StateMachine: stateMachineSvc,
 		Crypto:       cryptoSvc,
@@ -192,19 +190,19 @@ func Run(ctx context.Context, cfg Config) error {
 		Environment:      cfg.Environment,
 	})
 
-	reminderJob := reminder_job.New(reminder_job.Config{
+	reminderJob := jobs.NewReminder(jobs.ReminderConfig{
 		DB:       database,
 		Whatsapp: waSvc,
 		Crypto:   cryptoSvc,
 	})
 
-	nowShowTrackerJob := no_show_tracker_job.New(no_show_tracker_job.Config{
+	nowShowTrackerJob := jobs.NewNoShowTracker(jobs.NoShowTrackerConfig{
 		DB:       database,
 		Whatsapp: waSvc,
 		Crypto:   cryptoSvc,
 	})
 
-	cleanupSessionJob := cleanup_sessions_job.New(database)
+	cleanupSessionJob := jobs.NewCleanupSessions(database)
 
 	r.Go(func(ctx context.Context) error {
 		reminderJob.Run(ctx)

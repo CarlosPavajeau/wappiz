@@ -10,8 +10,8 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//internal/services/ratelimit",
-        "//internal/services/state_machine",
-        "//internal/services/webhook_processor",
+        "//internal/services/statemachine",
+        "//internal/services/webhookprocessor",
         "//pkg/crypto",
         "//pkg/db",
         "//pkg/jwt",

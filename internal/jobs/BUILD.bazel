@@ -1,0 +1,28 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "jobs",
+    srcs = [
+        "cleanup_sessions.go",
+        "interface.go",
+        "no_show_tracker.go",
+        "reminder.go",
+    ],
+    importpath = "wappiz/internal/jobs",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//pkg/crypto",
+        "//pkg/datetime",
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/logger",
+        "//pkg/whatsapp",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "jobs_test",
+    srcs = ["no_show_tracker_test.go"],
+    embed = [":jobs"],
+)

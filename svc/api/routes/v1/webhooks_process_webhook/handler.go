@@ -2,14 +2,14 @@ package webhooks_process_webhook
 
 import (
 	"net/http"
-	"wappiz/internal/services/webhook_processor"
+	"wappiz/internal/services/webhookprocessor"
 	"wappiz/pkg/server"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	Processor webhook_processor.Service
+	Processor webhookprocessor.Service
 }
 
 func (h *Handler) Method() string {
@@ -21,7 +21,7 @@ func (h *Handler) Path() string {
 }
 
 func (h *Handler) Handle(c *gin.Context) error {
-	req, err := server.BindBody[webhook_processor.Request](c)
+	req, err := server.BindBody[webhookprocessor.Request](c)
 	if err != nil {
 		return err
 	}

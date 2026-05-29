@@ -2,8 +2,8 @@ package routes
 
 import (
 	"wappiz/internal/services/ratelimit"
-	"wappiz/internal/services/state_machine"
-	"wappiz/internal/services/webhook_processor"
+	"wappiz/internal/services/statemachine"
+	"wappiz/internal/services/webhookprocessor"
 	"wappiz/pkg/crypto"
 	"wappiz/pkg/db"
 	"wappiz/pkg/mailer"
@@ -28,10 +28,10 @@ type Services struct {
 	Whatsapp whatsapp.Client
 
 	// StateMachine handles conversation state machine for WhatsApp booking flows.
-	StateMachine state_machine.StateMachineService
+	StateMachine statemachine.StateMachineService
 
 	// WebhookProcessor handles buffered processing of incoming WhatsApp webhook payloads.
-	WebhookProcessor webhook_processor.Service
+	WebhookProcessor webhookprocessor.Service
 
 	// AdminEmail is the destination address for internal admin notifications.
 	AdminEmail string
