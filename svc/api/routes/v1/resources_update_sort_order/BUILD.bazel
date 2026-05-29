@@ -6,6 +6,7 @@ go_library(
     importpath = "wappiz/svc/api/routes/v1/resources_update_sort_order",
     visibility = ["//visibility:public"],
     deps = [
+        "//pkg/server",
         "//pkg/codes",
         "//pkg/db",
         "//pkg/fault",

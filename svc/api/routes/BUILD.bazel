@@ -4,7 +4,6 @@ go_library(
     name = "routes",
     srcs = [
         "register.go",
-        "route.go",
         "services.go",
     ],
     importpath = "wappiz/svc/api/routes",
@@ -18,6 +17,7 @@ go_library(
         "//pkg/jwt",
         "//pkg/logger",
         "//pkg/mailer",
+        "//pkg/server",
         "//pkg/whatsapp",
         "//svc/api/internal/middleware",
         "//svc/api/openapi",

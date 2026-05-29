@@ -6,6 +6,7 @@ go_library(
     importpath = "wappiz/svc/api/routes/v1/onboarding_step_whatsapp",
     visibility = ["//visibility:public"],
     deps = [
+        "//pkg/server",
         "//pkg/codes",
         "//pkg/db",
         "//pkg/fault",

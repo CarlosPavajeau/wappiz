@@ -27,6 +27,7 @@ import (
 	"wappiz/pkg/prometheus"
 	"wappiz/pkg/prometheus/lazy"
 	"wappiz/pkg/runner"
+	"wappiz/pkg/server"
 	"wappiz/pkg/whatsapp"
 	"wappiz/svc/api/internal/middleware"
 	"wappiz/svc/api/routes"
@@ -172,8 +173,8 @@ func Run(ctx context.Context, cfg Config) error {
 
 	g.Use(
 		gin.Recovery(),
-		middleware.WithLogging(),
-		middleware.WithRequestID(),
+		server.WithLogging(),
+		server.WithRequestID(),
 		middleware.WithErrorHandling(),
 		otelgin.Middleware("api"),
 	)

@@ -75,7 +75,7 @@ import (
 // handler logic.
 func Register(g *gin.Engine, svc *Services) {
 	// CORS must be global so OPTIONS preflight requests are handled before route matching
-	g.Use(middleware.WithCors())
+	g.Use(server.WithCors())
 
 	// Ratelimit middleware
 	rate := func(c *gin.Context) {
