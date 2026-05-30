@@ -27,6 +27,17 @@ export type AppointmentFieldResponse = {
   response: string
 }
 
+export type CreateAppointmentRequest = {
+  resourceId: string
+  serviceId: string
+  customerId: string
+  startsAt: string
+}
+
+export type CreateAppointmentResponse = {
+  id: string
+}
+
 export type UpdateAppointmentStatusRequest = {
   status: AppointmentStatus
   reason?: string | null

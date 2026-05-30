@@ -47,5 +47,6 @@ go_library(
         "//pkg/logger",
         "//pkg/whatsapp",
         "@com_github_google_uuid//:uuid",
+        "@com_github_jackc_pgx_v5//pgconn",
     ],
 )

@@ -9,6 +9,7 @@ import (
 	"wappiz/svc/api/routes/v1/admin_activate_tenant"
 	"wappiz/svc/api/routes/v1/admin_find_pending_activations"
 	"wappiz/svc/api/routes/v1/admin_reject_tenant"
+	"wappiz/svc/api/routes/v1/appointments_create"
 	"wappiz/svc/api/routes/v1/appointments_get_status_history"
 	"wappiz/svc/api/routes/v1/appointments_search"
 	"wappiz/svc/api/routes/v1/appointments_update_status"
@@ -99,6 +100,7 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &services_update.Handler{DB: svc.Database})
 
 	// v1/appointments
+	RegisterRoute(auth, &appointments_create.Handler{DB: svc.Database, Environment: svc.Environment})
 	RegisterRoute(auth, &appointments_search.Handler{DB: svc.Database})
 	RegisterRoute(auth, &appointments_get_status_history.Handler{DB: svc.Database})
 	RegisterRoute(auth, &appointments_update_status.Handler{DB: svc.Database, Whatsapp: svc.Whatsapp})

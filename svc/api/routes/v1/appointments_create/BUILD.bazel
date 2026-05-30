@@ -1,0 +1,18 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "appointments_create",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/appointments_create",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/jwt",
+        "//pkg/server",
+        "@com_github_gin_gonic_gin//:gin",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_jackc_pgx_v5//pgconn",
+    ],
+)
