@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"time"
+	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
-	apperrors "wappiz/pkg/errors"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
 
@@ -36,9 +36,13 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 		if err != nil {
 			return fault.Wrap(err, fault.Internal("check appointment limit"))
 		}
+
 		if limited {
 			// TODO: Send limit reached notification
-			return apperrors.ErrPlanLimitReached
+			return fault.New("plan limit reached",
+				fault.Code(codes.AppErrorsPlanLimitReached),
+				fault.Internal("plan limit reached"), fault.Public("Límite de citas alcanzado"),
+			)
 		}
 
 		svc, err := db.Query.FindServiceByID(ctx, s.db.Primary(), *sessionData.ServiceID)

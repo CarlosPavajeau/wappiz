@@ -20,4 +20,6 @@ const (
 	AppErrorsInternalUnexpectedError URN = "err:application:unexpected_error"
 	// ServiceUnavailable indicates a service is temporarily unavailable.
 	AppErrorsInternalServiceUnavailable URN = "err:application:service_unavailable"
+	// PlanLimitReached indicates the tenant has reached their plan limit for the requested operation.
+	AppErrorsPlanLimitReached URN = "err:application:plan_limit_reached"
 )
