@@ -63,6 +63,9 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	customer, err := db.Query.FindCustomerByID(ctx, h.DB.Primary(), req.CustomerID)
 	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fault.Wrap(err, fault.Internal("find customer by id"))
+		}
 		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("customer not found for tenant"),
@@ -86,6 +89,9 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	svc, err := db.Query.FindServiceByID(ctx, h.DB.Primary(), req.ServiceID)
 	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fault.Wrap(err, fault.Internal("find service by id"))
+		}
 		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("service not found for tenant"),
@@ -102,6 +108,9 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	resource, err := db.Query.FindResourceById(ctx, h.DB.Primary(), req.ResourceID)
 	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return fault.Wrap(err, fault.Internal("find resource by id"))
+		}
 		return fault.Wrap(err,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource not found for tenant"),
