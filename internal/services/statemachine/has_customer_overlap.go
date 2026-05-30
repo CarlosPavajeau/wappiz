@@ -2,11 +2,17 @@ package statemachine
 
 import (
 	"context"
-	"strings"
+	"errors"
 	"time"
 	"wappiz/pkg/db"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
+)
+
+const (
+	customerOverlapConstraint = "no_customer_overlap"
+	resourceOverlapConstraint = "no_overlap"
 )
 
 func (s *service) hasCustomerOverlap(
@@ -25,14 +31,11 @@ func (s *service) hasCustomerOverlap(
 }
 
 func isAppointmentOverlapConstraintError(err error) bool {
-	if err == nil {
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) {
 		return false
 	}
 
-	msg := err.Error()
-
-	// Handle both legacy resource overlap and customer overlap constraints.
-	return strings.Contains(msg, "no_overlap") ||
-		strings.Contains(msg, "no_customer_overlap") ||
-		strings.Contains(msg, "exclusion constraint")
+	return pgErr.ConstraintName == customerOverlapConstraint ||
+		pgErr.ConstraintName == resourceOverlapConstraint
 }

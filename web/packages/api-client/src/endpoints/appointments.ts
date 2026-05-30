@@ -3,10 +3,21 @@ import type { EndpointDefinition } from "../core/types"
 import type {
   Appointment,
   AppointmentStatusHistory,
+  CreateAppointmentRequest,
+  CreateAppointmentResponse,
   UpdateAppointmentStatusRequest,
 } from "../types/appointments"
 
+const createDefinition: EndpointDefinition<
+  CreateAppointmentResponse,
+  CreateAppointmentRequest
+> = {
+  method: "POST",
+  path: "/appointments",
+}
+
 const definitions = {
+  create: createDefinition,
   history: {
     method: "GET",
     path: (id: string) => `/appointments/${id}/history`,

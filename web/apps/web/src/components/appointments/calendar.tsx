@@ -33,6 +33,7 @@ import { CalendarSidebar } from "@/components/appointments/calendar-sidebar"
 import { CalendarSkeleton } from "@/components/appointments/calendar-skeleton"
 import { CalendarWeekView } from "@/components/appointments/calendar-week-view"
 import { FilterSelect } from "@/components/appointments/filter-select"
+import { ScheduleAppointmentDialog } from "@/components/appointments/schedule-appointment-dialog"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Separator } from "@/components/ui/separator"
@@ -174,6 +175,14 @@ export function AppointmentsCalendar() {
         </div>
 
         <div className="flex items-center justify-between gap-1">
+          <ScheduleAppointmentDialog
+            defaultDate={selectedDate}
+            isLoadingResources={isLoadingResources}
+            isLoadingServices={isLoadingServices}
+            resources={resources}
+            services={services}
+          />
+
           <CalendarMobileFilters
             filterCount={resourceIds.length + serviceIds.length}
             isLoadingResources={isLoadingResources}

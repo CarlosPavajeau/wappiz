@@ -46,13 +46,17 @@ func WithErrorHandling() gin.HandlerFunc {
 				Error: openapi.BaseError{Title: "Unauthorized", Type: t, Detail: detail, Status: http.StatusUnauthorized},
 			})
 
-		case codes.ErrorsForbidden, codes.ErrorsForbiddenResourceQuotaExceeded:
+		case codes.ErrorsForbidden,
+			codes.ErrorsForbiddenResourceQuotaExceeded,
+			codes.AppErrorsClientBlocked,
+			codes.AppErrorsPlanLimitReached:
 			c.AbortWithStatusJSON(http.StatusForbidden, openapi.ForbiddenErrorResponse{
 				Meta:  meta,
 				Error: openapi.BaseError{Title: "Forbidden", Type: t, Detail: detail, Status: http.StatusForbidden},
 			})
 
-		case codes.ErrorsConflict:
+		case codes.ErrorsConflict,
+			codes.AppErrorsAppointmentOverlap:
 			c.AbortWithStatusJSON(http.StatusConflict, openapi.ConflictErrorResponse{
 				Meta:  meta,
 				Error: openapi.BaseError{Title: "Conflict", Type: t, Detail: detail, Status: http.StatusConflict},
@@ -64,7 +68,8 @@ func WithErrorHandling() gin.HandlerFunc {
 				Error: openapi.BaseError{Title: "Too Many Requests", Type: t, Detail: detail, Status: http.StatusTooManyRequests},
 			})
 
-		case codes.ErrorsBadRequest:
+		case codes.ErrorsBadRequest,
+			codes.AppErrorsDateInPast:
 			c.AbortWithStatusJSON(http.StatusBadRequest, openapi.BadRequestErrorResponse{
 				Meta:  meta,
 				Error: openapi.BaseError{Title: "Bad Request", Type: t, Detail: detail, Status: http.StatusBadRequest},

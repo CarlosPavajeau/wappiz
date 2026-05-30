@@ -22,6 +22,7 @@ go_library(
         "//svc/api/routes/v1/admin_activate_tenant",
         "//svc/api/routes/v1/admin_find_pending_activations",
         "//svc/api/routes/v1/admin_reject_tenant",
+        "//svc/api/routes/v1/appointments_create",
         "//svc/api/routes/v1/appointments_get_status_history",
         "//svc/api/routes/v1/appointments_search",
         "//svc/api/routes/v1/appointments_update_status",
