@@ -771,6 +771,17 @@ type Querier interface {
 	//  WHERE c.id = updates.customer_id
 	//    AND c.tenant_id = updates.tenant_id
 	IncrementCustomersNoShowsBatch(ctx context.Context, db DBTX, arg IncrementCustomersNoShowsBatchParams) error
+	//IncrementTenantAppointmentCount
+	//
+	//  UPDATE tenants
+	//  SET appointments_this_month = appointments_this_month + 1,
+	//      updated_at              = NOW()
+	//  WHERE id = $1
+	//    AND (
+	//      $2::int IS NULL
+	//          OR appointments_this_month < $2::int
+	//      )
+	IncrementTenantAppointmentCount(ctx context.Context, db DBTX, arg IncrementTenantAppointmentCountParams) (int64, error)
 	//InsertAppointment
 	//
 	//  INSERT INTO appointments(
@@ -1246,13 +1257,6 @@ type Querier interface {
 	//      updated_at = NOW()
 	//  WHERE id = $4
 	UpdateTenant(ctx context.Context, db DBTX, arg UpdateTenantParams) error
-	//UpdateTenantAppointmentCount
-	//
-	//  UPDATE tenants
-	//  SET appointments_this_month = $2,
-	//      updated_at              = NOW()
-	//  WHERE id = $1
-	UpdateTenantAppointmentCount(ctx context.Context, db DBTX, arg UpdateTenantAppointmentCountParams) error
 	//UpdateTenantWhatsappConfig
 	//
 	//  UPDATE tenant_whatsapp_configs

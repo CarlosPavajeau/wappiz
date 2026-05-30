@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"math"
 	"time"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
@@ -32,17 +33,9 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return fault.Wrap(err, fault.Internal("find tenant by id"))
 		}
 
-		limited, err := s.isAppointmentLimitReached(ctx, tenant.ID, tenant.AppointmentsThisMonth)
+		appointmentLimit, err := s.findAppointmentLimit(ctx, tenant.ID)
 		if err != nil {
-			return fault.Wrap(err, fault.Internal("check appointment limit"))
-		}
-
-		if limited {
-			// TODO: Send limit reached notification
-			return fault.New("plan limit reached",
-				fault.Code(codes.AppErrorsPlanLimitReached),
-				fault.Internal("plan limit reached"), fault.Public("Límite de citas alcanzado"),
-			)
+			return fault.Wrap(err, fault.Internal("find appointment limit"))
 		}
 
 		svc, err := db.Query.FindServiceByID(ctx, s.db.Primary(), *sessionData.ServiceID)
@@ -83,11 +76,20 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 				return err
 			}
 
-			if err := db.Query.UpdateTenantAppointmentCount(ctx, txx, db.UpdateTenantAppointmentCountParams{
-				ID:                    tenant.ID,
-				AppointmentsThisMonth: tenant.AppointmentsThisMonth + 1,
-			}); err != nil {
+			updated, err := db.Query.IncrementTenantAppointmentCount(ctx, txx, db.IncrementTenantAppointmentCountParams{
+				ID:                      tenant.ID,
+				MaxAppointmentsPerMonth: appointmentLimit,
+			})
+
+			if err != nil {
 				return err
+			}
+
+			if updated == 0 {
+				return fault.New("plan limit reached",
+					fault.Code(codes.AppErrorsPlanLimitReached),
+					fault.Internal("plan limit reached"), fault.Public("Límite de citas alcanzado"),
+				)
 			}
 
 			return nil
@@ -142,31 +144,47 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 	return s.sendConfirmation(ctx, msg, session)
 }
 
-func (s *service) isAppointmentLimitReached(ctx context.Context, tenantID uuid.UUID, appointmentsThisMonth int32) (bool, error) {
+func (s *service) findAppointmentLimit(ctx context.Context, tenantID uuid.UUID) (sql.NullInt32, error) {
 	plan, err := db.Query.FindActivePlanByTenant(ctx, s.db.Primary(), db.FindActivePlanByTenantParams{
 		TenantID:    tenantID,
 		Environment: s.environment,
 	})
 
-	var limit int32 = freePlanLimit
+	limit, limitErr := appointmentLimitFromInt(freePlanLimit)
+	if limitErr != nil {
+		return sql.NullInt32{}, limitErr
+	}
 
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
-			return false, fault.Wrap(err, fault.Internal("find active plan by tenant"))
+			return sql.NullInt32{}, fault.Wrap(err, fault.Internal("find active plan by tenant"))
 		}
 		// No active plan — apply free plan limit.
 	} else {
 		features, err := db.UnmarshalNullableJSONTo[db.PlanFeatures]([]byte(plan.Features))
 		if err != nil {
-			return false, fault.Wrap(err, fault.Internal("unmarshal plan features"))
+			return sql.NullInt32{}, fault.Wrap(err, fault.Internal("unmarshal plan features"))
 		}
 
 		if features.MaxAppointmentsPerMonth == nil {
-			return false, nil
+			return sql.NullInt32{}, nil
 		}
 
-		limit = int32(*features.MaxAppointmentsPerMonth)
+		limit, limitErr = appointmentLimitFromInt(*features.MaxAppointmentsPerMonth)
+		if limitErr != nil {
+			return sql.NullInt32{}, limitErr
+		}
 	}
 
-	return appointmentsThisMonth >= limit, nil
+	return limit, nil
+}
+
+func appointmentLimitFromInt(limit int) (sql.NullInt32, error) {
+	if limit < 0 || limit > math.MaxInt32 {
+		return sql.NullInt32{}, fault.New("invalid appointment limit",
+			fault.Internal("appointment limit outside int32 range"),
+		)
+	}
+
+	return sql.NullInt32{Int32: int32(limit), Valid: true}, nil
 }
