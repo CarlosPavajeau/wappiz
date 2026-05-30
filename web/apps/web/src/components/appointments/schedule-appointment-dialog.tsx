@@ -2,6 +2,7 @@ import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { PlusSignIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { ApiError } from "@wappiz/api-client"
 import type { Customer } from "@wappiz/api-client/types/customers"
 import type { Resource } from "@wappiz/api-client/types/resources"
 import type { Service } from "@wappiz/api-client/types/services"
@@ -107,9 +108,11 @@ export function ScheduleAppointmentDialog({
         startsAt: startsAt.toISOString(),
       })
     },
-    onError: () => {
+    onError: (error) => {
       toast.error(
-        "No se pudo crear la cita. Revisa el horario e intenta de nuevo."
+        error instanceof ApiError
+          ? error.message
+          : "No se pudo crear la cita. Revisa el horario e intenta de nuevo."
       )
     },
     onSuccess: () => {
