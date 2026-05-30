@@ -124,6 +124,13 @@ func (h *Handler) Handle(c *gin.Context) error {
 			fault.Public("El recurso no existe"),
 		)
 	}
+	if !resource.IsActive {
+		return fault.New("resource not found for tenant",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("resource is inactive"),
+			fault.Public("El recurso no existe"),
+		)
+	}
 
 	resourceSupportsService, err := h.resourceSupportsService(ctx, tenantID, req.ResourceID, req.ServiceID)
 	if err != nil {
