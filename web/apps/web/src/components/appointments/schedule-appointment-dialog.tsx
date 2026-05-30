@@ -1,5 +1,5 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import { PlusSignIcon } from "@hugeicons/core-free-icons"
+import { PlusSignIcon, Refresh03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ApiError } from "@wappiz/api-client"
@@ -77,12 +77,19 @@ export function ScheduleAppointmentDialog({
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
 
-  const { data: customers, isLoading: isLoadingCustomers } = useQuery({
+  const {
+    data: customers,
+    isError: isCustomersError,
+    isFetching: isFetchingCustomers,
+    isLoading: isLoadingCustomers,
+    refetch: refetchCustomers,
+  } = useQuery({
     enabled: open,
     queryFn: () => api.customers.list(),
     queryKey: ["customers"],
     staleTime: 5 * 60 * 1000,
   })
+  const customersLoaded = customers !== undefined && !isCustomersError
 
   const {
     control,
@@ -162,12 +169,13 @@ export function ScheduleAppointmentDialog({
                 )
 
                 return (
-                  <Field data-invalid={fieldState.invalid}>
+                  <Field data-invalid={fieldState.invalid || isCustomersError}>
                     <FieldLabel>Cliente</FieldLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger
                         className="w-full"
-                        aria-invalid={fieldState.invalid}
+                        aria-invalid={fieldState.invalid || isCustomersError}
+                        disabled={isLoadingCustomers || isCustomersError}
                       >
                         <SelectValue>
                           {selectedCustomer?.displayName ??
@@ -187,6 +195,31 @@ export function ScheduleAppointmentDialog({
                       <p className="text-xs text-muted-foreground">
                         Cargando clientes...
                       </p>
+                    )}
+                    {isCustomersError && (
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-destructive/25 bg-destructive/5 px-3 py-2">
+                        <p className="text-xs text-destructive">
+                          No se pudieron cargar los clientes.
+                        </p>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={isFetchingCustomers}
+                          onClick={() => refetchCustomers()}
+                        >
+                          {isFetchingCustomers ? (
+                            <Spinner />
+                          ) : (
+                            <HugeiconsIcon
+                              icon={Refresh03Icon}
+                              strokeWidth={2}
+                              data-icon="inline-start"
+                            />
+                          )}
+                          Reintentar
+                        </Button>
+                      </div>
                     )}
                   </Field>
                 )
@@ -314,7 +347,7 @@ export function ScheduleAppointmentDialog({
           <Button
             type="submit"
             form="schedule-appointment-form"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !customersLoaded}
           >
             {isSubmitting && <Spinner />}
             Agendar
