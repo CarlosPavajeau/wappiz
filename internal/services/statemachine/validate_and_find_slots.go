@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 	"wappiz/internal/services/slotfinder"
+	"wappiz/pkg/codes"
 	"wappiz/pkg/datetime"
 	"wappiz/pkg/db"
-	apperrors "wappiz/pkg/errors"
 	"wappiz/pkg/fault"
 )
 
@@ -18,7 +18,7 @@ func (s *service) validateAndFindSlots(ctx context.Context, input, timezone stri
 	}
 
 	if t.Before(time.Now()) {
-		return nil, apperrors.ErrDateInPast
+		return nil, fault.New("date is in the past", fault.Code(codes.AppErrorsDateInPast))
 	}
 
 	sessionData, err := db.UnmarshalNullableJSONTo[SessionData]([]byte(session.Data))
@@ -55,7 +55,7 @@ func (s *service) validateAndFindSlots(ctx context.Context, input, timezone stri
 		}
 
 		if len(slots) == 0 {
-			return nil, apperrors.ErrDayOff
+			return nil, fault.New("day off", fault.Code(codes.AppErrorsDayOff))
 		}
 
 		if !customerConflict {

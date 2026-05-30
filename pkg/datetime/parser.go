@@ -5,7 +5,8 @@ import (
 	"strings"
 	"time"
 
-	apperrors "wappiz/pkg/errors"
+	"wappiz/pkg/codes"
+	"wappiz/pkg/fault"
 )
 
 // formats lists the time layouts tried in order when parsing user input.
@@ -28,7 +29,7 @@ var formats = []string{
 // today in loc, the date is advanced by one year so the result always
 // represents a future appointment slot.
 //
-// It returns [apperrors.ErrInvalidFormat] when the input does not match any of
+// It returns a [codes.AppErrorsInvalidFormat] fault when the input does not match any of
 // the supported layouts.
 func ParseDateTime(input string, loc *time.Location) (time.Time, error) {
 	input = strings.TrimSpace(input)
@@ -54,5 +55,5 @@ func ParseDateTime(input string, loc *time.Location) (time.Time, error) {
 		return t, nil
 	}
 
-	return time.Time{}, apperrors.ErrInvalidFormat
+	return time.Time{}, fault.New("invalid date/time format", fault.Code(codes.AppErrorsInvalidFormat))
 }

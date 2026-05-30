@@ -40,9 +40,9 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//internal/services/slotfinder",
+        "//pkg/codes",
         "//pkg/datetime",
         "//pkg/db",
-        "//pkg/errors",
         "//pkg/fault",
         "//pkg/logger",
         "//pkg/whatsapp",

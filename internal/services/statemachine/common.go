@@ -1,11 +1,11 @@
 package statemachine
 
 import (
-	"errors"
 	"fmt"
 	"time"
 	"wappiz/internal/services/slotfinder"
-	apperrors "wappiz/pkg/errors"
+	"wappiz/pkg/codes"
+	"wappiz/pkg/fault"
 )
 
 const (
@@ -34,20 +34,25 @@ func appointmentStatusLabel(status string) string {
 }
 
 func buildErrorMessage(err error, input string, suggestions []slotfinder.TimeSlot) string {
-	switch {
-	case errors.Is(err, apperrors.ErrInvalidFormat):
+	code, ok := fault.GetCode(err)
+	if !ok {
+		return "Ocurrió un error inesperado. Por favor intenta de nuevo."
+	}
+
+	switch code {
+	case codes.AppErrorsInvalidFormat:
 		return fmt.Sprintf(
 			"No pude entender *%s* como una fecha válida 😅\n\n"+
 				"Usa este formato:\n*DD/MM HH:mm AM/PM*\n\nEjemplo: *02/03 09:00 AM*", input)
-	case errors.Is(err, apperrors.ErrDateInPast):
+	case codes.AppErrorsDateInPast:
 		return "Esa fecha ya pasó 📅 Por favor elige una fecha futura."
-	case errors.Is(err, apperrors.ErrDayOff):
+	case codes.AppErrorsDayOff:
 		return "Ese día no atendemos. Trabajamos de *lunes a sábado*.\nPor favor elige otro día."
-	case errors.Is(err, apperrors.ErrOutsideHours):
+	case codes.AppErrorsOutsideHours:
 		return "Ese horario está fuera de nuestro horario de atención (*9:00 AM – 7:00 PM*)."
-	case errors.Is(err, apperrors.ErrPlanLimitReached):
+	case codes.AppErrorsPlanLimitReached:
 		return "Lo sentimos, esta barbería ha alcanzado su límite de citas del mes 😔"
-	case errors.Is(err, apperrors.ErrOverlap):
+	case codes.AppErrorsAppointmentOverlap:
 		if len(suggestions) == 0 {
 			return "Ese horario ya no está disponible 😔 Por favor intenta con otra fecha."
 		}

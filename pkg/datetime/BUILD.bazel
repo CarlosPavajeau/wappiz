@@ -9,5 +9,8 @@ go_library(
     ],
     importpath = "wappiz/pkg/datetime",
     visibility = ["//visibility:public"],
-    deps = ["//pkg/errors"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/fault",
+    ],
 )
