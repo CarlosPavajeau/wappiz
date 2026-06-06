@@ -133,9 +133,7 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 		dispatchErr := j.dispatcher.Dispatch(ctx, event)
 
 		if markErr := j.mark(ctx, row.ID, dispatchErr); markErr != nil {
-			logger.Error("[event_dispatcher_job] failed to mark event",
-				"event_id", row.ID,
-				"err", markErr)
+			return fault.Wrap(markErr, fault.Internal("mark domain event"))
 		}
 	}
 
