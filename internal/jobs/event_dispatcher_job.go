@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"wappiz/internal/events"
 	"wappiz/pkg/db"
+	eventsmetrics "wappiz/pkg/events/metrics"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
 )
@@ -91,9 +92,11 @@ func (j *eventDispatcherJob) listen(ctx context.Context, notifyCh chan<- struct{
 		}
 
 		logger.Info("[event_dispatcher_job] listener connected")
+		eventsmetrics.ListenerUp.Set(1)
 
 		for ctx.Err() == nil {
 			if _, err := conn.WaitForNotification(ctx); err != nil {
+				eventsmetrics.ListenerUp.Set(0)
 				if ctx.Err() != nil {
 					conn.Close(ctx)
 					return
@@ -125,6 +128,8 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 		return err
 	}
 
+	eventsmetrics.EventsClaimedTotal.Add(float64(len(claimed)))
+
 	// Phase 2: dispatch each event and mark it in its own short transaction.
 	// External I/O (HTTP, mailer) happens outside any DB transaction.
 	for _, row := range claimed {
@@ -138,8 +143,16 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 
 		dispatchErr := j.dispatcher.Dispatch(ctx, event)
 
+		if dispatchErr != nil {
+			eventsmetrics.EventsFailedTotal.WithLabelValues(string(event.EventType)).Inc()
+		}
+
 		if markErr := j.mark(ctx, row.ID, dispatchErr); markErr != nil {
 			return fault.Wrap(markErr, fault.Internal("mark domain event"))
+		}
+
+		if dispatchErr == nil {
+			eventsmetrics.EventsProcessedTotal.WithLabelValues(string(event.EventType)).Inc()
 		}
 	}
 
