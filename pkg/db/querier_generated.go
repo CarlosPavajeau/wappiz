@@ -638,7 +638,7 @@ type Querier interface {
 	//  FROM tenant_users tu
 	//           JOIN users u ON u.id = tu.user_id
 	//  WHERE tu.tenant_id = $1
-	//    AND tu.role = 'admin'
+	//  ORDER BY u.created_at
 	//  LIMIT 1
 	FindTenantOwnerEmail(ctx context.Context, db DBTX, tenantID uuid.UUID) (string, error)
 	//FindTenantPendingActivations

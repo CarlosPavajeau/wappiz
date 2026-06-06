@@ -16,8 +16,7 @@ SELECT u.email
 FROM tenant_users tu
          JOIN users u ON u.id = tu.user_id
 WHERE tu.tenant_id = $1
-  AND tu.role = 'admin'
-ORDER BY tu.user_id
+ORDER BY u.created_at
 LIMIT 1
 `
 
@@ -27,8 +26,7 @@ LIMIT 1
 //	FROM tenant_users tu
 //	         JOIN users u ON u.id = tu.user_id
 //	WHERE tu.tenant_id = $1
-//	  AND tu.role = 'admin'
-//	ORDER BY tu.user_id
+//	ORDER BY u.created_at
 //	LIMIT 1
 func (q *Queries) FindTenantOwnerEmail(ctx context.Context, db DBTX, tenantID uuid.UUID) (string, error) {
 	row := db.QueryRowContext(ctx, findTenantOwnerEmail, tenantID)
