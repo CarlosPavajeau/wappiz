@@ -4,6 +4,7 @@ go_library(
     name = "jobs",
     srcs = [
         "cleanup_sessions.go",
+        "event_dispatcher_job.go",
         "interface.go",
         "no_show_tracker.go",
         "reminder.go",
@@ -11,6 +12,7 @@ go_library(
     importpath = "wappiz/internal/jobs",
     visibility = ["//:__subpackages__"],
     deps = [
+        "//internal/events",
         "//pkg/crypto",
         "//pkg/datetime",
         "//pkg/db",
@@ -18,6 +20,7 @@ go_library(
         "//pkg/logger",
         "//pkg/whatsapp",
         "@com_github_google_uuid//:uuid",
+        "@com_github_jackc_pgx_v5//:pgx",
     ],
 )
 

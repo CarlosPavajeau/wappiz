@@ -39,6 +39,7 @@ go_library(
     importpath = "wappiz/internal/services/statemachine",
     visibility = ["//:__subpackages__"],
     deps = [
+        "//internal/events",
         "//internal/services/slotfinder",
         "//pkg/codes",
         "//pkg/datetime",
