@@ -81,6 +81,12 @@ func (j *eventDispatcherJob) listen(ctx context.Context, notifyCh chan<- struct{
 
 		if _, err := conn.Exec(ctx, "LISTEN domain_events"); err != nil {
 			conn.Close(ctx)
+			logger.Warn("[event_dispatcher_job] LISTEN failed, retrying in 5s", "err", err)
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(5 * time.Second):
+			}
 			continue
 		}
 
