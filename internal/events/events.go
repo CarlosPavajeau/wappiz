@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
+	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
+
+	"github.com/google/uuid"
 )
 
 // Type identifies a domain event kind.
@@ -55,7 +57,9 @@ func (d *Dispatcher) Dispatch(ctx context.Context, event Event) error {
 		logger.Warn("[events] no handlers registered",
 			"event_type", string(event.EventType),
 			"event_id", event.ID)
-		return nil
+		return fault.New(
+			fmt.Sprintf("no handlers for event %s", string(event.EventType)),
+		)
 	}
 
 	var errs []error
