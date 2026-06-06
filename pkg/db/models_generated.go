@@ -253,6 +253,18 @@ type Customer struct {
 	Address         sql.NullString `db:"address"`
 }
 
+type DomainEvent struct {
+	ID          uuid.UUID       `db:"id"`
+	TenantID    uuid.UUID       `db:"tenant_id"`
+	EventType   string          `db:"event_type"`
+	Payload     json.RawMessage `db:"payload"`
+	Attempts    int32           `db:"attempts"`
+	ProcessedAt sql.NullTime    `db:"processed_at"`
+	FailedAt    sql.NullTime    `db:"failed_at"`
+	LastError   sql.NullString  `db:"last_error"`
+	CreatedAt   time.Time       `db:"created_at"`
+}
+
 type Jwk struct {
 	CreatedAt  time.Time    `db:"created_at"`
 	ExpiresAt  sql.NullTime `db:"expires_at"`

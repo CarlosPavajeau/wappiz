@@ -76,6 +76,7 @@ export const relations = defineRelations(schema, (r) => ({
     appointments: r.many.appointments(),
     conversationSessions: r.many.conversationSessions(),
     customers: r.many.customers(),
+    domainEvents: r.many.domainEvents(),
     onboardingProgresses: r.many.onboardingProgress(),
     resources: r.many.resources(),
     services: r.many.services(),
@@ -86,6 +87,12 @@ export const relations = defineRelations(schema, (r) => ({
       to: r.users.id.through(r.tenantUsers.userId),
     }),
     tenantWhatsappConfigs: r.many.tenantWhatsappConfigs(),
+  },
+  domainEvents: {
+    tenant: r.one.tenants({
+      from: r.domainEvents.tenantId,
+      to: r.tenants.id,
+    }),
   },
   appointmentReminderEvents: {
     appointment: r.one.appointments({
