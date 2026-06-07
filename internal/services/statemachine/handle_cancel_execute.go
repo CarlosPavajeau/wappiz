@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"wappiz/internal/events"
 	"wappiz/pkg/db"
+	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
 
 	"github.com/google/uuid"
@@ -42,6 +44,19 @@ func (s *service) handleCancelExecute(ctx context.Context, msg IncomingMessage, 
 			"No encontramos esa cita. Por favor intenta de nuevo.")
 	}
 
+	evt, evtErr := events.NewAppointmentCanceled(events.AppointmentCanceledPayload{
+		AppointmentID: appointment.ID,
+		TenantID:      appointment.TenantID,
+		CustomerID:    appointment.CustomerID,
+		ServiceID:     appointment.ServiceID,
+		ResourceID:    appointment.ResourceID,
+		StartsAt:      appointment.StartsAt,
+		EndsAt:        appointment.EndsAt,
+	})
+	if evtErr != nil {
+		return fault.Wrap(evtErr, fault.Internal("build appointment.canceled event"))
+	}
+
 	err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
 		if err := db.Query.UpdateAppointment(ctx, txx, db.UpdateAppointmentParams{
 			Status:       db.AppointmentStatusCancelled,
@@ -65,8 +80,11 @@ func (s *service) handleCancelExecute(ctx context.Context, msg IncomingMessage, 
 			return err
 		}
 
-		return nil
+		return s.publisher.Publish(ctx, txx, evt)
 	})
+	if err == nil {
+		s.publisher.Notify(ctx, s.db.Primary())
+	}
 
 	if err != nil {
 		logger.Warn("[scheduling] failed to update appointment status to cancelled",

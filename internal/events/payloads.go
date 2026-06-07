@@ -19,6 +19,17 @@ type AppointmentCreatedPayload struct {
 	EndsAt        time.Time `json:"ends_at"`
 }
 
+// AppointmentCanceledPayload is the structured payload for TypeAppointmentCanceled.
+type AppointmentCanceledPayload struct {
+	AppointmentID uuid.UUID `json:"appointment_id"`
+	TenantID      uuid.UUID `json:"tenant_id"`
+	CustomerID    uuid.UUID `json:"customer_id"`
+	ServiceID     uuid.UUID `json:"service_id"`
+	ResourceID    uuid.UUID `json:"resource_id"`
+	StartsAt      time.Time `json:"starts_at"`
+	EndsAt        time.Time `json:"ends_at"`
+}
+
 // NewAppointmentCreated constructs an Event with the payload serialised to JSON.
 func NewAppointmentCreated(p AppointmentCreatedPayload) (Event, error) {
 	raw, err := json.Marshal(p)
@@ -28,6 +39,19 @@ func NewAppointmentCreated(p AppointmentCreatedPayload) (Event, error) {
 	return Event{
 		TenantID:  p.TenantID,
 		EventType: TypeAppointmentCreated,
+		Payload:   raw,
+	}, nil
+}
+
+// NewAppointmentCanceled constructs an Event with the payload serialised to JSON.
+func NewAppointmentCanceled(p AppointmentCanceledPayload) (Event, error) {
+	raw, err := json.Marshal(p)
+	if err != nil {
+		return Event{}, fault.Wrap(err, fault.Internal("marshal appointment.canceled payload"))
+	}
+	return Event{
+		TenantID:  p.TenantID,
+		EventType: TypeAppointmentCanceled,
 		Payload:   raw,
 	}, nil
 }

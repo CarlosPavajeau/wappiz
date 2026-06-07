@@ -2,7 +2,10 @@ load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "handlers",
-    srcs = ["appointment_created_email.go"],
+    srcs = [
+        "appointment_canceled_email.go",
+        "appointment_created_email.go",
+    ],
     importpath = "wappiz/internal/events/handlers",
     visibility = ["//:__subpackages__"],
     deps = [
@@ -15,7 +18,10 @@ go_library(
 
 go_test(
     name = "handlers_test",
-    srcs = ["appointment_created_email_test.go"],
+    srcs = [
+        "appointment_canceled_email_test.go",
+        "appointment_created_email_test.go",
+    ],
     embed = [":handlers"],
     deps = ["@com_github_stretchr_testify//require"],
 )
