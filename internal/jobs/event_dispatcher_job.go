@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -137,6 +138,9 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 
 	// Phase 2: dispatch each event and mark it in its own short transaction.
 	// External I/O (HTTP, mailer) happens outside any DB transaction.
+	// All events are processed regardless of individual mark failures so that
+	// no claimed event is stranded waiting for the 10-minute stale-claim timeout.
+	var markErrs []error
 	for _, row := range claimed {
 		event := events.Event{
 			ID:        row.ID,
@@ -153,7 +157,8 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 		}
 
 		if markErr := j.mark(ctx, row.ID, dispatchErr); markErr != nil {
-			return fault.Wrap(markErr, fault.Internal("mark domain event"))
+			markErrs = append(markErrs, fault.Wrap(markErr, fault.Internal("mark domain event")))
+			continue
 		}
 
 		if dispatchErr == nil {
@@ -161,7 +166,7 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 		}
 	}
 
-	return nil
+	return errors.Join(markErrs...)
 }
 
 func (j *eventDispatcherJob) mark(ctx context.Context, id uuid.UUID, dispatchErr error) error {
