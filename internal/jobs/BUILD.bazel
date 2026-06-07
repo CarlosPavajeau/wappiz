@@ -27,6 +27,9 @@ go_library(
 
 go_test(
     name = "jobs_test",
-    srcs = ["no_show_tracker_test.go"],
+    srcs = [
+        "event_dispatcher_job_test.go",
+        "no_show_tracker_test.go",
+    ],
     embed = [":jobs"],
 )

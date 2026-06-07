@@ -28,7 +28,10 @@ type eventDispatcherJob struct {
 	dispatcher *events.Dispatcher
 }
 
-const claimRenewInterval = 3 * time.Minute
+const (
+	eventDispatchFallbackInterval = 10 * time.Second
+	claimRenewInterval            = 3 * time.Minute
+)
 
 func NewEventDispatcher(cfg EventDispatcherConfig) Job {
 	return &eventDispatcherJob{
@@ -39,7 +42,7 @@ func NewEventDispatcher(cfg EventDispatcherConfig) Job {
 }
 
 func (j *eventDispatcherJob) Run(ctx context.Context) {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(eventDispatchFallbackInterval)
 	defer ticker.Stop()
 
 	logger.Info("[event_dispatcher_job] started")
@@ -47,6 +50,7 @@ func (j *eventDispatcherJob) Run(ctx context.Context) {
 	// notifyCh receives a signal whenever pg_notify fires on "domain_events".
 	notifyCh := make(chan struct{}, 1)
 	go j.listen(ctx, notifyCh)
+	signalProcess(notifyCh)
 
 	for {
 		select {
@@ -96,6 +100,7 @@ func (j *eventDispatcherJob) listen(ctx context.Context, notifyCh chan<- struct{
 
 		logger.Info("[event_dispatcher_job] listener connected")
 		eventsmetrics.ListenerUp.Set(1)
+		signalProcess(notifyCh)
 
 		for ctx.Err() == nil {
 			if _, err := conn.WaitForNotification(ctx); err != nil {
@@ -114,11 +119,15 @@ func (j *eventDispatcherJob) listen(ctx context.Context, notifyCh chan<- struct{
 				break
 			}
 
-			select {
-			case notifyCh <- struct{}{}:
-			default: // already a pending signal; no need to queue another
-			}
+			signalProcess(notifyCh)
 		}
+	}
+}
+
+func signalProcess(notifyCh chan<- struct{}) {
+	select {
+	case notifyCh <- struct{}{}:
+	default:
 	}
 }
 

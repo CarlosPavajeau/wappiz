@@ -82,10 +82,6 @@ func (s *service) handleCancelExecute(ctx context.Context, msg IncomingMessage, 
 
 		return s.publisher.Publish(ctx, txx, evt)
 	})
-	if err == nil {
-		s.publisher.Notify(ctx, s.db.Primary())
-	}
-
 	if err != nil {
 		logger.Warn("[scheduling] failed to update appointment status to cancelled",
 			"appointment_id", appointmentID,

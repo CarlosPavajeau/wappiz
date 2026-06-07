@@ -108,9 +108,6 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 
 			return s.publisher.Publish(ctx, txx, evt)
 		})
-		if err == nil {
-			s.publisher.Notify(ctx, s.db.Primary())
-		}
 		if err != nil {
 			if isAppointmentOverlapConstraintError(err) {
 				logger.Warn("[scheduling] appointment overlap detected on confirm, informing customer",
