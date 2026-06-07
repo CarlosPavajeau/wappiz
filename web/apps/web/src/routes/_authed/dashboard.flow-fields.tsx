@@ -1,4 +1,10 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
+import {
+  ListSettingIcon,
+  PencilEdit01Icon,
+  PlusSignIcon,
+} from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { createFileRoute, useRouter } from "@tanstack/react-router"
 import type {
@@ -6,7 +12,6 @@ import type {
   UpsertTenantFlowFieldRequest,
 } from "@wappiz/api-client/types/tenant-flow-fields"
 import { type } from "arktype"
-import { PlusIcon, PencilIcon, Rows3Icon } from "lucide-react"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -32,12 +37,15 @@ import {
 } from "@/components/ui/empty"
 import {
   Field,
+  FieldContent,
+  FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import {
   Table,
@@ -140,12 +148,12 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
   })
 
   const onSubmit = handleSubmit(async (values) => {
-    const question = values.question.trim()
-    if (question.length < 2) {
+    const submittedQuestion = values.question.trim()
+    if (submittedQuestion.length < 2) {
       toast.error("La pregunta debe tener al menos 2 caracteres.")
       return
     }
-    await saveField({ ...values, question })
+    await saveField({ ...values, question: submittedQuestion })
   })
 
   const handleOpenChange = (next: boolean) => {
@@ -167,22 +175,34 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
       >
         {isEdit ? (
           <>
-            <PencilIcon aria-hidden="true" />
+            <HugeiconsIcon
+              icon={PencilEdit01Icon}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
             <span className="sr-only">Editar campo</span>
           </>
         ) : (
           <>
-            <PlusIcon data-icon="inline-start" aria-hidden="true" />
+            <HugeiconsIcon
+              icon={PlusSignIcon}
+              strokeWidth={2}
+              data-icon="inline-start"
+              aria-hidden="true"
+            />
             Nuevo campo
           </>
         )}
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="gap-5 sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar campo" : "Nuevo campo"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Editar campo del flujo" : "Nuevo campo del flujo"}
+          </DialogTitle>
           <DialogDescription>
-            Define la pregunta que el bot usara durante el flujo de reserva.
+            Controla que dato pide el bot, cuando lo pide y si puede continuar
+            sin respuesta.
           </DialogDescription>
         </DialogHeader>
 
@@ -194,10 +214,15 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
               render={({ field: formField, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={formField.name}>Pregunta</FieldLabel>
+                  <FieldDescription>
+                    Escribe la pregunta tal como la recibira el cliente en
+                    WhatsApp.
+                  </FieldDescription>
                   <Textarea
                     {...formField}
                     id={formField.name}
-                    placeholder="Cual es tu correo electronico?"
+                    placeholder="¿Cuál es tu correo electrónico?"
+                    className="min-h-24 resize-none"
                     aria-invalid={fieldState.invalid}
                   />
                   <FieldError errors={[fieldState.error]} />
@@ -205,81 +230,96 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
               )}
             />
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <Controller
-                control={control}
-                name="sortOrder"
-                render={({ field: formField, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={formField.name}>Orden</FieldLabel>
-                    <Input
-                      {...formField}
-                      id={formField.name}
-                      type="number"
-                      min={0}
-                      aria-invalid={fieldState.invalid}
-                      onChange={(event) => {
-                        const { value } = event.target
-                        formField.onChange(value === "" ? "" : Number(value))
-                      }}
-                    />
-                    <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+            <Controller
+              control={control}
+              name="sortOrder"
+              render={({ field: formField, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={formField.name}>Orden</FieldLabel>
+                  <FieldDescription>
+                    Los numeros menores se preguntan primero.
+                  </FieldDescription>
+                  <Input
+                    {...formField}
+                    id={formField.name}
+                    type="number"
+                    min={0}
+                    aria-invalid={fieldState.invalid}
+                    onChange={(event) => {
+                      const { value } = event.target
+                      formField.onChange(value === "" ? "" : Number(value))
+                    }}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
 
-              <Controller
-                control={control}
-                name="isRequired"
-                render={({ field: formField, fieldState }) => (
-                  <Field
-                    orientation="horizontal"
-                    className="w-fit self-end"
-                    data-invalid={fieldState.invalid}
-                  >
+            <Controller
+              control={control}
+              name="isRequired"
+              render={({ field: formField, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  className="rounded-lg border bg-muted/20 p-3"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldContent>
                     <FieldLabel htmlFor={formField.name}>
-                      Obligatorio
+                      Respuesta obligatoria
                     </FieldLabel>
-                    <Switch
-                      id={formField.name}
-                      name={formField.name}
-                      aria-invalid={fieldState.invalid}
-                      checked={formField.value}
-                      onCheckedChange={formField.onChange}
-                    />
+                    <FieldDescription>
+                      El flujo espera este dato antes de confirmar la cita.
+                    </FieldDescription>
                     <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
+                  </FieldContent>
+                  <Switch
+                    id={formField.name}
+                    name={formField.name}
+                    aria-invalid={fieldState.invalid}
+                    checked={formField.value}
+                    onCheckedChange={formField.onChange}
+                  />
+                </Field>
+              )}
+            />
 
-              <Controller
-                control={control}
-                name="isOneTime"
-                render={({ field: formField, fieldState }) => (
-                  <Field
-                    orientation="horizontal"
-                    className="w-fit self-end"
-                    data-invalid={fieldState.invalid}
-                  >
-                    <FieldLabel htmlFor={formField.name}>Una vez</FieldLabel>
-                    <Switch
-                      id={formField.name}
-                      name={formField.name}
-                      aria-invalid={fieldState.invalid}
-                      checked={formField.value}
-                      onCheckedChange={formField.onChange}
-                    />
+            <Controller
+              control={control}
+              name="isOneTime"
+              render={({ field: formField, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  className="rounded-lg border bg-muted/20 p-3"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor={formField.name}>
+                      Pedir solo una vez
+                    </FieldLabel>
+                    <FieldDescription>
+                      Si el cliente ya respondio, no se repite en futuras
+                      reservas.
+                    </FieldDescription>
                     <FieldError errors={[fieldState.error]} />
-                  </Field>
-                )}
-              />
-            </div>
+                  </FieldContent>
+                  <Switch
+                    id={formField.name}
+                    name={formField.name}
+                    aria-invalid={fieldState.invalid}
+                    checked={formField.value}
+                    onCheckedChange={formField.onChange}
+                  />
+                </Field>
+              )}
+            />
           </FieldGroup>
         </form>
 
         <DialogFooter showCloseButton>
           <Button type="submit" form={formId} disabled={isSubmitting}>
-            Guardar
+            {isSubmitting && <Spinner />}
+            {isEdit ? "Guardar cambios" : "Crear campo"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -386,7 +426,11 @@ function RouteComponent() {
         <Empty className="border py-20">
           <EmptyHeader>
             <EmptyMedia variant="icon">
-              <Rows3Icon aria-hidden="true" />
+              <HugeiconsIcon
+                icon={ListSettingIcon}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </EmptyMedia>
             <EmptyTitle>Sin campos</EmptyTitle>
           </EmptyHeader>
