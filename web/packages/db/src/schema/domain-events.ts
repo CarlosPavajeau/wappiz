@@ -22,6 +22,7 @@ export const domainEvents = pgTable(
     eventType: varchar("event_type", { length: 100 }).notNull(),
     payload: jsonb().default({}).notNull(),
     attempts: integer().default(0).notNull(),
+    claimedAt: timestamp("claimed_at", { withTimezone: true }),
     processedAt: timestamp("processed_at", { withTimezone: true }),
     failedAt: timestamp("failed_at", { withTimezone: true }),
     lastError: text("last_error"),
@@ -32,6 +33,6 @@ export const domainEvents = pgTable(
   (table) => [
     index("idx_domain_events_pending")
       .using("btree", table.attempts.asc().nullsLast(), table.createdAt.asc().nullsLast())
-      .where(sql`(processed_at IS NULL AND failed_at IS NULL)`),
+      .where(sql`(processed_at IS NULL AND failed_at IS NULL AND claimed_at IS NULL)`),
   ]
 )

@@ -14,14 +14,20 @@ import (
 )
 
 const claimPendingDomainEvents = `-- name: ClaimPendingDomainEvents :many
-SELECT id, tenant_id, event_type, payload, attempts, created_at
-FROM domain_events
-WHERE processed_at IS NULL
-  AND failed_at IS NULL
-  AND attempts < 5
-ORDER BY created_at
-LIMIT 100
-FOR UPDATE SKIP LOCKED
+UPDATE domain_events
+SET claimed_at = NOW()
+WHERE id IN (
+    SELECT id
+    FROM domain_events
+    WHERE processed_at IS NULL
+      AND failed_at IS NULL
+      AND (claimed_at IS NULL OR claimed_at < NOW() - INTERVAL '10 minutes')
+      AND attempts < 5
+    ORDER BY created_at
+    LIMIT 100
+    FOR UPDATE SKIP LOCKED
+)
+RETURNING id, tenant_id, event_type, payload, attempts, created_at
 `
 
 type ClaimPendingDomainEventsRow struct {
@@ -35,14 +41,20 @@ type ClaimPendingDomainEventsRow struct {
 
 // ClaimPendingDomainEvents
 //
-//	SELECT id, tenant_id, event_type, payload, attempts, created_at
-//	FROM domain_events
-//	WHERE processed_at IS NULL
-//	  AND failed_at IS NULL
-//	  AND attempts < 5
-//	ORDER BY created_at
-//	LIMIT 100
-//	FOR UPDATE SKIP LOCKED
+//	UPDATE domain_events
+//	SET claimed_at = NOW()
+//	WHERE id IN (
+//	    SELECT id
+//	    FROM domain_events
+//	    WHERE processed_at IS NULL
+//	      AND failed_at IS NULL
+//	      AND (claimed_at IS NULL OR claimed_at < NOW() - INTERVAL '10 minutes')
+//	      AND attempts < 5
+//	    ORDER BY created_at
+//	    LIMIT 100
+//	    FOR UPDATE SKIP LOCKED
+//	)
+//	RETURNING id, tenant_id, event_type, payload, attempts, created_at
 func (q *Queries) ClaimPendingDomainEvents(ctx context.Context, db DBTX) ([]ClaimPendingDomainEventsRow, error) {
 	rows, err := db.QueryContext(ctx, claimPendingDomainEvents)
 	if err != nil {

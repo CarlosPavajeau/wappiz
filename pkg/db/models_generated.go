@@ -259,6 +259,7 @@ type DomainEvent struct {
 	EventType   string          `db:"event_type"`
 	Payload     json.RawMessage `db:"payload"`
 	Attempts    int32           `db:"attempts"`
+	ClaimedAt   sql.NullTime    `db:"claimed_at"`
 	ProcessedAt sql.NullTime    `db:"processed_at"`
 	FailedAt    sql.NullTime    `db:"failed_at"`
 	LastError   sql.NullString  `db:"last_error"`
