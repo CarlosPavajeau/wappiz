@@ -2,7 +2,6 @@ package events
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -14,6 +13,9 @@ import (
 
 // Type identifies a domain event kind.
 type Type string
+
+// HandlerID is a stable identifier used to persist handler completion.
+type HandlerID string
 
 const (
 	TypeAppointmentCreated Type = "appointment.created"
@@ -28,10 +30,17 @@ type Event struct {
 	CreatedAt time.Time
 }
 
-// Handler processes events of a specific type.
+// Handler processes events of a specific type. HandlerID must remain stable
+// across deployments. Handle must be idempotent for a given event ID.
 type Handler interface {
+	HandlerID() HandlerID
 	EventType() Type
 	Handle(ctx context.Context, event Event) error
+}
+
+type HandlerResult struct {
+	HandlerID HandlerID
+	Err       error
 }
 
 // Dispatcher fans out events to all registered handlers for the event type.
@@ -46,32 +55,57 @@ func NewDispatcher() *Dispatcher {
 
 func (d *Dispatcher) Register(h Handler) {
 	t := h.EventType()
+	id := h.HandlerID()
+	if id == "" {
+		panic("events: handler ID must not be empty")
+	}
+	for _, registered := range d.handlers[t] {
+		if registered.HandlerID() == id {
+			panic(fmt.Sprintf("events: duplicate handler ID %q for event type %q", id, t))
+		}
+	}
 	d.handlers[t] = append(d.handlers[t], h)
 }
 
 // Dispatch calls every registered handler for event.EventType in order.
-// All handlers are called even if one fails; errors are joined and returned.
-func (d *Dispatcher) Dispatch(ctx context.Context, event Event) error {
+// Already completed handlers are skipped. All pending handlers are called even
+// if one fails, and panics are converted to errors.
+func (d *Dispatcher) Dispatch(ctx context.Context, event Event, completed map[HandlerID]struct{}) ([]HandlerResult, error) {
 	handlers := d.handlers[event.EventType]
 	if len(handlers) == 0 {
 		logger.Warn("[events] no handlers registered",
 			"event_type", string(event.EventType),
 			"event_id", event.ID)
-		return fault.New(
+		return nil, fault.New(
 			fmt.Sprintf("no handlers for event %s", string(event.EventType)),
 		)
 	}
 
-	var errs []error
+	results := make([]HandlerResult, 0, len(handlers))
 	for _, h := range handlers {
-		if err := h.Handle(ctx, event); err != nil {
+		id := h.HandlerID()
+		if _, ok := completed[id]; ok {
+			continue
+		}
+
+		err := callHandler(ctx, h, event)
+		if err != nil {
 			logger.Warn("[events] handler error",
 				"event_type", string(event.EventType),
 				"event_id", event.ID,
 				"handler", fmt.Sprintf("%T", h),
 				"err", err)
-			errs = append(errs, err)
 		}
+		results = append(results, HandlerResult{HandlerID: id, Err: err})
 	}
-	return errors.Join(errs...)
+	return results, nil
+}
+
+func callHandler(ctx context.Context, handler Handler, event Event) (err error) {
+	defer func() {
+		if recovered := recover(); recovered != nil {
+			err = fmt.Errorf("handler %q panicked: %v", handler.HandlerID(), recovered)
+		}
+	}()
+	return handler.Handle(ctx, event)
 }

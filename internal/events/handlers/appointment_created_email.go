@@ -19,8 +19,14 @@ type AppointmentCreatedEmailHandler struct {
 	mailer mailer.Mailer
 }
 
+const appointmentCreatedEmailHandlerID events.HandlerID = "appointment-created-email-v1"
+
 func NewAppointmentCreatedEmailHandler(database db.Database, m mailer.Mailer) *AppointmentCreatedEmailHandler {
 	return &AppointmentCreatedEmailHandler{db: database, mailer: m}
+}
+
+func (h *AppointmentCreatedEmailHandler) HandlerID() events.HandlerID {
+	return appointmentCreatedEmailHandlerID
 }
 
 func (h *AppointmentCreatedEmailHandler) EventType() events.Type {
@@ -39,9 +45,10 @@ func (h *AppointmentCreatedEmailHandler) Handle(ctx context.Context, event event
 	}
 
 	return h.mailer.Send(ctx, mailer.Email{
-		To:      ownerEmail,
-		Subject: "Nueva cita confirmada",
-		Body:    buildAppointmentCreatedEmail(payload),
+		To:             ownerEmail,
+		Subject:        "Nueva cita confirmada",
+		Body:           buildAppointmentCreatedEmail(payload),
+		IdempotencyKey: fmt.Sprintf("domain-event/%s/%s", event.ID.String(), h.HandlerID()),
 	})
 }
 

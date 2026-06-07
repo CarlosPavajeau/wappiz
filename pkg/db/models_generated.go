@@ -260,10 +260,17 @@ type DomainEvent struct {
 	Payload     json.RawMessage `db:"payload"`
 	Attempts    int32           `db:"attempts"`
 	ClaimedAt   sql.NullTime    `db:"claimed_at"`
+	ClaimID     uuid.NullUUID   `db:"claim_id"`
 	ProcessedAt sql.NullTime    `db:"processed_at"`
 	FailedAt    sql.NullTime    `db:"failed_at"`
 	LastError   sql.NullString  `db:"last_error"`
 	CreatedAt   time.Time       `db:"created_at"`
+}
+
+type DomainEventHandlerCompletion struct {
+	EventID     uuid.UUID `db:"event_id"`
+	HandlerID   string    `db:"handler_id"`
+	CompletedAt time.Time `db:"completed_at"`
 }
 
 type Jwk struct {

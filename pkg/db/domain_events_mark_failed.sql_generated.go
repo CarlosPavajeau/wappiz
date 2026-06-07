@@ -12,19 +12,22 @@ import (
 	"github.com/google/uuid"
 )
 
-const markDomainEventFailed = `-- name: MarkDomainEventFailed :exec
+const markDomainEventFailed = `-- name: MarkDomainEventFailed :execrows
 UPDATE domain_events
 SET attempts   = attempts + 1,
     claimed_at = NULL,
-    last_error = $2,
+    claim_id    = NULL,
+    last_error = $1,
     failed_at  = CASE WHEN attempts + 1 >= 5 THEN NOW() ELSE NULL END
-WHERE id = $1
+WHERE id = $2
+  AND claim_id = $3::uuid
   AND processed_at IS NULL
 `
 
 type MarkDomainEventFailedParams struct {
-	ID        uuid.UUID      `db:"id"`
 	LastError sql.NullString `db:"last_error"`
+	ID        uuid.UUID      `db:"id"`
+	ClaimID   uuid.UUID      `db:"claim_id"`
 }
 
 // MarkDomainEventFailed
@@ -32,11 +35,16 @@ type MarkDomainEventFailedParams struct {
 //	UPDATE domain_events
 //	SET attempts   = attempts + 1,
 //	    claimed_at = NULL,
-//	    last_error = $2,
+//	    claim_id    = NULL,
+//	    last_error = $1,
 //	    failed_at  = CASE WHEN attempts + 1 >= 5 THEN NOW() ELSE NULL END
-//	WHERE id = $1
+//	WHERE id = $2
+//	  AND claim_id = $3::uuid
 //	  AND processed_at IS NULL
-func (q *Queries) MarkDomainEventFailed(ctx context.Context, db DBTX, arg MarkDomainEventFailedParams) error {
-	_, err := db.ExecContext(ctx, markDomainEventFailed, arg.ID, arg.LastError)
-	return err
+func (q *Queries) MarkDomainEventFailed(ctx context.Context, db DBTX, arg MarkDomainEventFailedParams) (int64, error) {
+	result, err := db.ExecContext(ctx, markDomainEventFailed, arg.LastError, arg.ID, arg.ClaimID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

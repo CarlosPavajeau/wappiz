@@ -11,9 +11,10 @@ type Config struct {
 
 // Email represents a single outgoing message.
 type Email struct {
-	To      string // Recipient email address.
-	Subject string // Email subject line.
-	Body    string // HTML body of the email.
+	To             string // Recipient email address.
+	Subject        string // Email subject line.
+	Body           string // HTML body of the email.
+	IdempotencyKey string // Optional stable key used to deduplicate retries.
 }
 
 // Mailer is the interface for sending transactional emails.

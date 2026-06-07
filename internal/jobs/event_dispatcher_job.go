@@ -28,6 +28,8 @@ type eventDispatcherJob struct {
 	dispatcher *events.Dispatcher
 }
 
+const claimRenewInterval = 3 * time.Minute
+
 func NewEventDispatcher(cfg EventDispatcherConfig) Job {
 	return &eventDispatcherJob{
 		db:         cfg.DB,
@@ -121,26 +123,44 @@ func (j *eventDispatcherJob) listen(ctx context.Context, notifyCh chan<- struct{
 }
 
 func (j *eventDispatcherJob) process(ctx context.Context) error {
-	// Phase 1: claim rows and commit immediately to release FOR UPDATE locks.
-	// No I/O beyond the DB query happens here.
-	claimed, err := db.TxWithResult(ctx, j.db.Primary(), func(ctx context.Context, txx db.DBTX) ([]db.ClaimPendingDomainEventsRow, error) {
-		rows, err := db.Query.ClaimPendingDomainEvents(ctx, txx)
+	seen := make([]uuid.UUID, 0)
+	var processErrs []error
+
+	for ctx.Err() == nil {
+		claimID := uuid.New()
+		claimed, err := db.TxWithResult(ctx, j.db.Primary(), func(ctx context.Context, txx db.DBTX) ([]db.ClaimPendingDomainEventsRow, error) {
+			rows, err := db.Query.ClaimPendingDomainEvents(ctx, txx, db.ClaimPendingDomainEventsParams{
+				ClaimID:     claimID,
+				ExcludedIds: seen,
+			})
+			if err != nil {
+				return nil, fault.Wrap(err, fault.Internal("claim pending domain events"))
+			}
+			return rows, nil
+		})
 		if err != nil {
-			return nil, fault.Wrap(err, fault.Internal("claim pending domain events"))
+			return errors.Join(append(processErrs, err)...)
 		}
-		return rows, nil
-	})
-	if err != nil {
-		return err
+		if len(claimed) == 0 {
+			return errors.Join(processErrs...)
+		}
+
+		eventsmetrics.EventsClaimedTotal.Add(float64(len(claimed)))
+		for _, row := range claimed {
+			seen = append(seen, row.ID)
+		}
+		if err := j.processClaim(ctx, claimID, claimed); err != nil {
+			processErrs = append(processErrs, err)
+		}
 	}
 
-	eventsmetrics.EventsClaimedTotal.Add(float64(len(claimed)))
+	return errors.Join(processErrs...)
+}
 
-	// Phase 2: dispatch each event and mark it in its own short transaction.
-	// External I/O (HTTP, mailer) happens outside any DB transaction.
-	// All events are processed regardless of individual mark failures so that
-	// no claimed event is stranded waiting for the 10-minute stale-claim timeout.
+func (j *eventDispatcherJob) processClaim(ctx context.Context, claimID uuid.UUID, claimed []db.ClaimPendingDomainEventsRow) error {
+	stopRenewal := j.startClaimRenewal(ctx, claimID)
 	var markErrs []error
+
 	for _, row := range claimed {
 		event := events.Event{
 			ID:        row.ID,
@@ -150,39 +170,108 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 			CreatedAt: row.CreatedAt,
 		}
 
-		dispatchErr := j.dispatcher.Dispatch(ctx, event)
-
+		dispatchErr := j.dispatch(ctx, event)
 		if dispatchErr != nil {
 			eventsmetrics.EventsFailedTotal.WithLabelValues(string(event.EventType)).Inc()
 		}
 
-		if markErr := j.mark(ctx, row.ID, dispatchErr); markErr != nil {
+		if markErr := j.mark(ctx, row.ID, claimID, dispatchErr); markErr != nil {
 			markErrs = append(markErrs, fault.Wrap(markErr, fault.Internal("mark domain event")))
 			continue
 		}
-
 		if dispatchErr == nil {
 			eventsmetrics.EventsProcessedTotal.WithLabelValues(string(event.EventType)).Inc()
 		}
 	}
 
-	return errors.Join(markErrs...)
+	return errors.Join(errors.Join(markErrs...), stopRenewal())
 }
 
-func (j *eventDispatcherJob) mark(ctx context.Context, id uuid.UUID, dispatchErr error) error {
+func (j *eventDispatcherJob) dispatch(ctx context.Context, event events.Event) error {
+	completedIDs, err := db.Query.FindCompletedDomainEventHandlers(ctx, j.db.Primary(), event.ID)
+	if err != nil {
+		return fault.Wrap(err, fault.Internal("find completed domain event handlers"))
+	}
+	completed := make(map[events.HandlerID]struct{}, len(completedIDs))
+	for _, id := range completedIDs {
+		completed[events.HandlerID(id)] = struct{}{}
+	}
+
+	results, dispatchErr := j.dispatcher.Dispatch(ctx, event, completed)
+	errs := []error{dispatchErr}
+	for _, result := range results {
+		if result.Err != nil {
+			errs = append(errs, result.Err)
+			continue
+		}
+		if err := db.Query.InsertDomainEventHandlerCompletion(ctx, j.db.Primary(), db.InsertDomainEventHandlerCompletionParams{
+			EventID:   event.ID,
+			HandlerID: string(result.HandlerID),
+		}); err != nil {
+			errs = append(errs, fault.Wrap(err, fault.Internal("insert domain event handler completion")))
+		}
+	}
+	return errors.Join(errs...)
+}
+
+func (j *eventDispatcherJob) startClaimRenewal(ctx context.Context, claimID uuid.UUID) func() error {
+	renewCtx, cancel := context.WithCancel(ctx)
+	done := make(chan error, 1)
+	go func() {
+		ticker := time.NewTicker(claimRenewInterval)
+		defer ticker.Stop()
+
+		var renewErr error
+		for {
+			select {
+			case <-renewCtx.Done():
+				done <- renewErr
+				return
+			case <-ticker.C:
+				if _, err := db.Query.RenewDomainEventClaim(renewCtx, j.db.Primary(), claimID); err != nil {
+					if errors.Is(err, context.Canceled) && renewCtx.Err() != nil {
+						done <- renewErr
+						return
+					}
+					if renewErr == nil {
+						renewErr = fault.Wrap(err, fault.Internal("renew domain event claim"))
+					}
+				}
+			}
+		}
+	}()
+	return func() error {
+		cancel()
+		return <-done
+	}
+}
+
+func (j *eventDispatcherJob) mark(ctx context.Context, id, claimID uuid.UUID, dispatchErr error) error {
 	return db.Tx(ctx, j.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
+		var affected int64
+		var err error
 		if dispatchErr == nil {
-			return db.Query.MarkDomainEventProcessed(ctx, txx, id)
+			affected, err = db.Query.MarkDomainEventProcessed(ctx, txx, db.MarkDomainEventProcessedParams{
+				ID:      id,
+				ClaimID: claimID,
+			})
+		} else {
+			msg := dispatchErr.Error()
+			if len(msg) > 1000 {
+				msg = msg[:1000]
+			}
+			affected, err = db.Query.MarkDomainEventFailed(ctx, txx, db.MarkDomainEventFailedParams{
+				ID:        id,
+				ClaimID:   claimID,
+				LastError: sql.NullString{String: msg, Valid: true},
+			})
 		}
-
-		msg := dispatchErr.Error()
-		if len(msg) > 1000 {
-			msg = msg[:1000]
+		if err != nil {
+			return err
 		}
-
-		return db.Query.MarkDomainEventFailed(ctx, txx, db.MarkDomainEventFailedParams{
-			ID:        id,
-			LastError: sql.NullString{String: msg, Valid: true},
-		})
+		if affected == 0 {
+			return fault.New("domain event claim ownership lost")
+		}
+		return nil
 	})
 }

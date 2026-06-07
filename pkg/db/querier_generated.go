@@ -77,7 +77,8 @@ type Querier interface {
 	//ClaimPendingDomainEvents
 	//
 	//  UPDATE domain_events
-	//  SET claimed_at = NOW()
+	//  SET claimed_at = NOW(),
+	//      claim_id   = $1::uuid
 	//  WHERE id IN (
 	//      SELECT id
 	//      FROM domain_events
@@ -85,12 +86,13 @@ type Querier interface {
 	//        AND failed_at IS NULL
 	//        AND (claimed_at IS NULL OR claimed_at < NOW() - INTERVAL '10 minutes')
 	//        AND attempts < 5
+	//        AND NOT (id = ANY($2::uuid[]))
 	//      ORDER BY created_at
 	//      LIMIT 100
 	//      FOR UPDATE SKIP LOCKED
 	//  )
 	//  RETURNING id, tenant_id, event_type, payload, attempts, created_at
-	ClaimPendingDomainEvents(ctx context.Context, db DBTX) ([]ClaimPendingDomainEventsRow, error)
+	ClaimPendingDomainEvents(ctx context.Context, db DBTX, arg ClaimPendingDomainEventsParams) ([]ClaimPendingDomainEventsRow, error)
 	//CompleteOnboardingProgress
 	//
 	//  UPDATE onboarding_progress
@@ -274,6 +276,12 @@ type Querier interface {
 	//  ORDER BY a.starts_at
 	//  LIMIT 5
 	FindAppointmentsByCustomerID(ctx context.Context, db DBTX, arg FindAppointmentsByCustomerIDParams) ([]FindAppointmentsByCustomerIDRow, error)
+	//FindCompletedDomainEventHandlers
+	//
+	//  SELECT handler_id
+	//  FROM domain_event_handler_completions
+	//  WHERE event_id = $1
+	FindCompletedDomainEventHandlers(ctx context.Context, db DBTX, eventID uuid.UUID) ([]string, error)
 	//FindCustomerActiveConversationSession
 	//
 	//  SELECT id,
@@ -957,6 +965,12 @@ type Querier interface {
 	//  INSERT INTO domain_events (id, tenant_id, event_type, payload)
 	//  VALUES ($1, $2, $3, $4)
 	InsertDomainEvent(ctx context.Context, db DBTX, arg InsertDomainEventParams) error
+	//InsertDomainEventHandlerCompletion
+	//
+	//  INSERT INTO domain_event_handler_completions (event_id, handler_id)
+	//  VALUES ($1, $2)
+	//  ON CONFLICT (event_id, handler_id) DO NOTHING
+	InsertDomainEventHandlerCompletion(ctx context.Context, db DBTX, arg InsertDomainEventHandlerCompletionParams) error
 	//InsertOnboardingProgress
 	//
 	//  INSERT INTO onboarding_progress (id, tenant_id, current_step)
@@ -1165,18 +1179,22 @@ type Querier interface {
 	//  UPDATE domain_events
 	//  SET attempts   = attempts + 1,
 	//      claimed_at = NULL,
-	//      last_error = $2,
+	//      claim_id    = NULL,
+	//      last_error = $1,
 	//      failed_at  = CASE WHEN attempts + 1 >= 5 THEN NOW() ELSE NULL END
-	//  WHERE id = $1
+	//  WHERE id = $2
+	//    AND claim_id = $3::uuid
 	//    AND processed_at IS NULL
-	MarkDomainEventFailed(ctx context.Context, db DBTX, arg MarkDomainEventFailedParams) error
+	MarkDomainEventFailed(ctx context.Context, db DBTX, arg MarkDomainEventFailedParams) (int64, error)
 	//MarkDomainEventProcessed
 	//
 	//  UPDATE domain_events
 	//  SET claimed_at   = NULL,
+	//      claim_id     = NULL,
 	//      processed_at = NOW()
 	//  WHERE id = $1
-	MarkDomainEventProcessed(ctx context.Context, db DBTX, id uuid.UUID) error
+	//    AND claim_id = $2::uuid
+	MarkDomainEventProcessed(ctx context.Context, db DBTX, arg MarkDomainEventProcessedParams) (int64, error)
 	//MarkUnattendedAppointmentsNoShow
 	//
 	//  UPDATE appointments
@@ -1198,6 +1216,14 @@ type Querier interface {
 	//      updated_at        = NOW()
 	//  WHERE tenant_id = $2
 	RejectTenantActivation(ctx context.Context, db DBTX, arg RejectTenantActivationParams) error
+	//RenewDomainEventClaim
+	//
+	//  UPDATE domain_events
+	//  SET claimed_at = NOW()
+	//  WHERE claim_id = $1::uuid
+	//    AND processed_at IS NULL
+	//    AND failed_at IS NULL
+	RenewDomainEventClaim(ctx context.Context, db DBTX, claimID uuid.UUID) (int64, error)
 	//SearchAppointments
 	//
 	//  SELECT a.id,

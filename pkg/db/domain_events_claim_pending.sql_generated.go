@@ -11,11 +11,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 const claimPendingDomainEvents = `-- name: ClaimPendingDomainEvents :many
 UPDATE domain_events
-SET claimed_at = NOW()
+SET claimed_at = NOW(),
+    claim_id   = $1::uuid
 WHERE id IN (
     SELECT id
     FROM domain_events
@@ -23,12 +25,18 @@ WHERE id IN (
       AND failed_at IS NULL
       AND (claimed_at IS NULL OR claimed_at < NOW() - INTERVAL '10 minutes')
       AND attempts < 5
+      AND NOT (id = ANY($2::uuid[]))
     ORDER BY created_at
     LIMIT 100
     FOR UPDATE SKIP LOCKED
 )
 RETURNING id, tenant_id, event_type, payload, attempts, created_at
 `
+
+type ClaimPendingDomainEventsParams struct {
+	ClaimID     uuid.UUID   `db:"claim_id"`
+	ExcludedIds []uuid.UUID `db:"excluded_ids"`
+}
 
 type ClaimPendingDomainEventsRow struct {
 	ID        uuid.UUID       `db:"id"`
@@ -42,7 +50,8 @@ type ClaimPendingDomainEventsRow struct {
 // ClaimPendingDomainEvents
 //
 //	UPDATE domain_events
-//	SET claimed_at = NOW()
+//	SET claimed_at = NOW(),
+//	    claim_id   = $1::uuid
 //	WHERE id IN (
 //	    SELECT id
 //	    FROM domain_events
@@ -50,13 +59,14 @@ type ClaimPendingDomainEventsRow struct {
 //	      AND failed_at IS NULL
 //	      AND (claimed_at IS NULL OR claimed_at < NOW() - INTERVAL '10 minutes')
 //	      AND attempts < 5
+//	      AND NOT (id = ANY($2::uuid[]))
 //	    ORDER BY created_at
 //	    LIMIT 100
 //	    FOR UPDATE SKIP LOCKED
 //	)
 //	RETURNING id, tenant_id, event_type, payload, attempts, created_at
-func (q *Queries) ClaimPendingDomainEvents(ctx context.Context, db DBTX) ([]ClaimPendingDomainEventsRow, error) {
-	rows, err := db.QueryContext(ctx, claimPendingDomainEvents)
+func (q *Queries) ClaimPendingDomainEvents(ctx context.Context, db DBTX, arg ClaimPendingDomainEventsParams) ([]ClaimPendingDomainEventsRow, error) {
+	rows, err := db.QueryContext(ctx, claimPendingDomainEvents, arg.ClaimID, pq.Array(arg.ExcludedIds))
 	if err != nil {
 		return nil, err
 	}

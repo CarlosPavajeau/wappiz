@@ -1,4 +1,4 @@
-load("@rules_go//go:def.bzl", "go_library")
+load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "events",
@@ -15,4 +15,11 @@ go_library(
         "//pkg/logger",
         "@com_github_google_uuid//:uuid",
     ],
+)
+
+go_test(
+    name = "events_test",
+    srcs = ["events_test.go"],
+    embed = [":events"],
+    deps = ["@com_github_stretchr_testify//require"],
 )

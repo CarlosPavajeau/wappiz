@@ -5,6 +5,7 @@ CREATE TABLE "domain_events" (
 	"payload" jsonb DEFAULT '{}' NOT NULL,
 	"attempts" integer DEFAULT 0 NOT NULL,
 	"claimed_at" timestamp with time zone,
+	"claim_id" uuid,
 	"processed_at" timestamp with time zone,
 	"failed_at" timestamp with time zone,
 	"last_error" text,

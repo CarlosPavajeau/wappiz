@@ -11,20 +11,32 @@ import (
 	"github.com/google/uuid"
 )
 
-const markDomainEventProcessed = `-- name: MarkDomainEventProcessed :exec
+const markDomainEventProcessed = `-- name: MarkDomainEventProcessed :execrows
 UPDATE domain_events
 SET claimed_at   = NULL,
+    claim_id     = NULL,
     processed_at = NOW()
 WHERE id = $1
+  AND claim_id = $2::uuid
 `
+
+type MarkDomainEventProcessedParams struct {
+	ID      uuid.UUID `db:"id"`
+	ClaimID uuid.UUID `db:"claim_id"`
+}
 
 // MarkDomainEventProcessed
 //
 //	UPDATE domain_events
 //	SET claimed_at   = NULL,
+//	    claim_id     = NULL,
 //	    processed_at = NOW()
 //	WHERE id = $1
-func (q *Queries) MarkDomainEventProcessed(ctx context.Context, db DBTX, id uuid.UUID) error {
-	_, err := db.ExecContext(ctx, markDomainEventProcessed, id)
-	return err
+//	  AND claim_id = $2::uuid
+func (q *Queries) MarkDomainEventProcessed(ctx context.Context, db DBTX, arg MarkDomainEventProcessedParams) (int64, error) {
+	result, err := db.ExecContext(ctx, markDomainEventProcessed, arg.ID, arg.ClaimID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

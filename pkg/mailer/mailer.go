@@ -31,7 +31,14 @@ func (m *mailer) Send(ctx context.Context, email Email) error {
 		Html:    email.Body,
 	}
 
-	_, err := m.client.Emails.SendWithContext(ctx, params)
+	var err error
+	if email.IdempotencyKey == "" {
+		_, err = m.client.Emails.SendWithContext(ctx, params)
+	} else {
+		_, err = m.client.Emails.SendWithOptions(ctx, params, &resend.SendEmailOptions{
+			IdempotencyKey: email.IdempotencyKey,
+		})
+	}
 	if err != nil {
 		return fmt.Errorf("resend: %w", err)
 	}

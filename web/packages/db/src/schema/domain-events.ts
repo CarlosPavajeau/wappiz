@@ -4,6 +4,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -23,6 +24,7 @@ export const domainEvents = pgTable(
     payload: jsonb().default({}).notNull(),
     attempts: integer().default(0).notNull(),
     claimedAt: timestamp("claimed_at", { withTimezone: true }),
+    claimId: uuid("claim_id"),
     processedAt: timestamp("processed_at", { withTimezone: true }),
     failedAt: timestamp("failed_at", { withTimezone: true }),
     lastError: text("last_error"),
@@ -32,7 +34,31 @@ export const domainEvents = pgTable(
   },
   (table) => [
     index("idx_domain_events_pending")
-      .using("btree", table.attempts.asc().nullsLast(), table.createdAt.asc().nullsLast())
-      .where(sql`(processed_at IS NULL AND failed_at IS NULL AND claimed_at IS NULL)`),
+      .using(
+        "btree",
+        table.attempts.asc().nullsLast(),
+        table.createdAt.asc().nullsLast()
+      )
+      .where(
+        sql`(processed_at IS NULL AND failed_at IS NULL AND claimed_at IS NULL)`
+      ),
+  ]
+)
+
+export const domainEventHandlerCompletions = pgTable(
+  "domain_event_handler_completions",
+  {
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => domainEvents.id, { onDelete: "cascade" }),
+    handlerId: varchar("handler_id", { length: 200 }).notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true })
+      .default(sql`now()`)
+      .notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.eventId, table.handlerId],
+    }),
   ]
 )

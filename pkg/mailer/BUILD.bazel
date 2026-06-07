@@ -1,4 +1,4 @@
-load("@rules_go//go:def.bzl", "go_library")
+load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "mailer",
@@ -10,4 +10,14 @@ go_library(
     importpath = "wappiz/pkg/mailer",
     visibility = ["//visibility:public"],
     deps = ["@com_github_resend_resend_go_v3//:resend-go"],
+)
+
+go_test(
+    name = "mailer_test",
+    srcs = ["mailer_test.go"],
+    embed = [":mailer"],
+    deps = [
+        "@com_github_resend_resend_go_v3//:resend-go",
+        "@com_github_stretchr_testify//require",
+    ],
 )
