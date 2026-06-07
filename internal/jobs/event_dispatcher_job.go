@@ -101,8 +101,13 @@ func (j *eventDispatcherJob) listen(ctx context.Context, notifyCh chan<- struct{
 					conn.Close(ctx)
 					return
 				}
-				logger.Warn("[event_dispatcher_job] listener connection lost, reconnecting", "err", err)
+				logger.Warn("[event_dispatcher_job] listener connection lost, retrying in 5s", "err", err)
 				conn.Close(ctx)
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(5 * time.Second):
+				}
 				break
 			}
 
