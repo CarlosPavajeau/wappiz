@@ -7,6 +7,7 @@ import (
 	"errors"
 	"math"
 	"time"
+	"wappiz/internal/events"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
@@ -58,6 +59,19 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return s.handleOverlapOnConfirm(ctx, msg, session, sessionData, svc)
 		}
 
+		evt, evtErr := events.NewAppointmentCreated(events.AppointmentCreatedPayload{
+			AppointmentID: appointmentID,
+			TenantID:      tenant.ID,
+			CustomerID:    session.CustomerID,
+			ServiceID:     *sessionData.ServiceID,
+			ResourceID:    *sessionData.ResourceID,
+			StartsAt:      startsAt,
+			EndsAt:        endsAt,
+		})
+		if evtErr != nil {
+			return fault.Wrap(evtErr, fault.Internal("build appointment.created event"))
+		}
+
 		err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
 			if err := db.Query.InsertAppointment(ctx, txx, db.InsertAppointmentParams{
 				ID:             appointmentID,
@@ -92,8 +106,11 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 				)
 			}
 
-			return nil
+			return s.publisher.Publish(ctx, txx, evt)
 		})
+		if err == nil {
+			s.publisher.Notify(ctx, s.db.Primary())
+		}
 		if err != nil {
 			if isAppointmentOverlapConstraintError(err) {
 				logger.Warn("[scheduling] appointment overlap detected on confirm, informing customer",

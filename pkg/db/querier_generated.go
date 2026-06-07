@@ -74,6 +74,23 @@ type Querier interface {
 	//      )
 	//  ON CONFLICT (appointment_id, reminder_type) DO NOTHING
 	ClaimDueAppointmentReminderEvents(ctx context.Context, db DBTX) error
+	//ClaimPendingDomainEvents
+	//
+	//  UPDATE domain_events
+	//  SET claimed_at = NOW()
+	//  WHERE id IN (
+	//      SELECT id
+	//      FROM domain_events
+	//      WHERE processed_at IS NULL
+	//        AND failed_at IS NULL
+	//        AND (claimed_at IS NULL OR claimed_at < NOW() - INTERVAL '10 minutes')
+	//        AND attempts < 5
+	//      ORDER BY created_at
+	//      LIMIT 100
+	//      FOR UPDATE SKIP LOCKED
+	//  )
+	//  RETURNING id, tenant_id, event_type, payload, attempts, created_at
+	ClaimPendingDomainEvents(ctx context.Context, db DBTX) ([]ClaimPendingDomainEventsRow, error)
 	//CompleteOnboardingProgress
 	//
 	//  UPDATE onboarding_progress
@@ -621,6 +638,15 @@ type Querier interface {
 	//    AND is_enabled = true
 	//  ORDER BY sort_order, created_at
 	FindTenantEnabledFlowFields(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]FindTenantEnabledFlowFieldsRow, error)
+	//FindTenantOwnerEmail
+	//
+	//  SELECT u.email
+	//  FROM tenant_users tu
+	//           JOIN users u ON u.id = tu.user_id
+	//  WHERE tu.tenant_id = $1
+	//  ORDER BY u.created_at
+	//  LIMIT 1
+	FindTenantOwnerEmail(ctx context.Context, db DBTX, tenantID uuid.UUID) (string, error)
 	//FindTenantPendingActivations
 	//
 	//  SELECT wc.tenant_id,
@@ -926,6 +952,11 @@ type Querier interface {
 	//  VALUES ($1, $2, $3)
 	//  ON CONFLICT (tenant_id, phone_number) DO NOTHING
 	InsertCustomer(ctx context.Context, db DBTX, arg InsertCustomerParams) error
+	//InsertDomainEvent
+	//
+	//  INSERT INTO domain_events (id, tenant_id, event_type, payload)
+	//  VALUES ($1, $2, $3, $4)
+	InsertDomainEvent(ctx context.Context, db DBTX, arg InsertDomainEventParams) error
 	//InsertOnboardingProgress
 	//
 	//  INSERT INTO onboarding_progress (id, tenant_id, current_step)
@@ -1129,6 +1160,23 @@ type Querier interface {
 	//  WHERE id = $2::uuid
 	//    AND status = 'confirmed'
 	MarkAppointmentReminderSentByType(ctx context.Context, db DBTX, arg MarkAppointmentReminderSentByTypeParams) error
+	//MarkDomainEventFailed
+	//
+	//  UPDATE domain_events
+	//  SET attempts   = attempts + 1,
+	//      claimed_at = NULL,
+	//      last_error = $2,
+	//      failed_at  = CASE WHEN attempts + 1 >= 5 THEN NOW() ELSE NULL END
+	//  WHERE id = $1
+	//    AND processed_at IS NULL
+	MarkDomainEventFailed(ctx context.Context, db DBTX, arg MarkDomainEventFailedParams) error
+	//MarkDomainEventProcessed
+	//
+	//  UPDATE domain_events
+	//  SET claimed_at   = NULL,
+	//      processed_at = NOW()
+	//  WHERE id = $1
+	MarkDomainEventProcessed(ctx context.Context, db DBTX, id uuid.UUID) error
 	//MarkUnattendedAppointmentsNoShow
 	//
 	//  UPDATE appointments

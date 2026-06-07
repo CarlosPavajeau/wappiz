@@ -8,6 +8,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"wappiz/internal/events"
+	"wappiz/internal/events/handlers"
 	"wappiz/internal/jobs"
 	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
@@ -138,11 +140,17 @@ func Run(ctx context.Context, cfg Config) error {
 		BaseURL:    cfg.WhatsappBaseURL,
 		ApiVersion: cfg.WhatsappAPIVersion,
 	})
+
+	eventsDispatcher := events.NewDispatcher()
+	eventsDispatcher.Register(handlers.NewAppointmentCreatedEmailHandler(database, mailerSvc))
+	eventsPublisher := events.NewPublisher()
+
 	slotFinder := slotfinder.New(database)
 	stateMachineSvc := statemachine.New(statemachine.Config{
 		DB:          database,
 		Whatsapp:    waSvc,
 		SlotFinder:  slotFinder,
+		Publisher:   eventsPublisher,
 		Environment: cfg.Environment,
 	})
 
@@ -204,6 +212,12 @@ func Run(ctx context.Context, cfg Config) error {
 
 	cleanupSessionJob := jobs.NewCleanupSessions(database)
 
+	eventDispatcherJob := jobs.NewEventDispatcher(jobs.EventDispatcherConfig{
+		DB:         database,
+		ConnString: cfg.DatabaseURL,
+		Dispatcher: eventsDispatcher,
+	})
+
 	r.Go(func(ctx context.Context) error {
 		reminderJob.Run(ctx)
 		return nil
@@ -216,6 +230,11 @@ func Run(ctx context.Context, cfg Config) error {
 
 	r.Go(func(ctx context.Context) error {
 		cleanupSessionJob.Run(ctx)
+		return nil
+	})
+
+	r.Go(func(ctx context.Context) error {
+		eventDispatcherJob.Run(ctx)
 		return nil
 	})
 

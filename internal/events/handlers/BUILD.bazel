@@ -1,0 +1,14 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "handlers",
+    srcs = ["appointment_created_email.go"],
+    importpath = "wappiz/internal/events/handlers",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//internal/events",
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/mailer",
+    ],
+)
