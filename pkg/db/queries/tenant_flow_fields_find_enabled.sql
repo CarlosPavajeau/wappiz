@@ -4,6 +4,7 @@ SELECT id,
        field_type,
        question,
        is_required,
+       is_one_time,
        sort_order
 FROM tenant_flow_fields
 WHERE tenant_id = $1

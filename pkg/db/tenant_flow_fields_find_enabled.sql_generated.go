@@ -18,6 +18,7 @@ SELECT id,
        field_type,
        question,
        is_required,
+       is_one_time,
        sort_order
 FROM tenant_flow_fields
 WHERE tenant_id = $1
@@ -31,6 +32,7 @@ type FindTenantEnabledFlowFieldsRow struct {
 	FieldType  FlowFieldType  `db:"field_type"`
 	Question   sql.NullString `db:"question"`
 	IsRequired bool           `db:"is_required"`
+	IsOneTime  bool           `db:"is_one_time"`
 	SortOrder  int32          `db:"sort_order"`
 }
 
@@ -41,6 +43,7 @@ type FindTenantEnabledFlowFieldsRow struct {
 //	       field_type,
 //	       question,
 //	       is_required,
+//	       is_one_time,
 //	       sort_order
 //	FROM tenant_flow_fields
 //	WHERE tenant_id = $1
@@ -61,6 +64,7 @@ func (q *Queries) FindTenantEnabledFlowFields(ctx context.Context, db DBTX, tena
 			&i.FieldType,
 			&i.Question,
 			&i.IsRequired,
+			&i.IsOneTime,
 			&i.SortOrder,
 		); err != nil {
 			return nil, err

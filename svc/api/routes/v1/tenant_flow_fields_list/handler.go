@@ -15,6 +15,7 @@ type Response struct {
 	FieldType  string `json:"fieldType"`
 	Question   string `json:"question"`
 	IsRequired bool   `json:"isRequired"`
+	IsOneTime  bool   `json:"isOneTime"`
 	IsEnabled  bool   `json:"isEnabled"`
 	SortOrder  int32  `json:"sortOrder"`
 }
@@ -43,6 +44,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 			FieldType:  string(field.FieldType),
 			Question:   field.Question.String,
 			IsRequired: field.IsRequired,
+			IsOneTime:  field.IsOneTime,
 			IsEnabled:  field.IsEnabled,
 			SortOrder:  field.SortOrder,
 		}

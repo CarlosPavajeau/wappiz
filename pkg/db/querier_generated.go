@@ -136,6 +136,7 @@ type Querier interface {
 	//      field_type,
 	//      question,
 	//      is_required,
+	//      is_one_time,
 	//      is_enabled,
 	//      sort_order
 	//  )
@@ -145,6 +146,7 @@ type Querier interface {
 	//      UNNEST(fields.field_keys),
 	//      'predefined',
 	//      NULL,
+	//      false,
 	//      false,
 	//      false,
 	//      UNNEST(fields.sort_orders)
@@ -217,6 +219,7 @@ type Querier interface {
 	//         field_type,
 	//         question,
 	//         is_required,
+	//         is_one_time,
 	//         is_enabled,
 	//         sort_order,
 	//         created_at
@@ -372,6 +375,18 @@ type Querier interface {
 	//    AND (expires_at IS NULL OR expires_at > NOW())
 	//  LIMIT 1
 	FindJWKByID(ctx context.Context, db DBTX, id string) (FindJWKByIDRow, error)
+	//FindLatestOneTimeFlowFieldAnswers
+	//
+	//  SELECT DISTINCT ON (afr.field_key)
+	//         afr.field_key,
+	//         afr.response
+	//  FROM appointment_field_responses afr
+	//  JOIN appointments a ON a.id = afr.appointment_id
+	//  WHERE a.tenant_id = $1
+	//    AND a.customer_id = $2
+	//    AND afr.field_key = ANY($3::text[])
+	//  ORDER BY afr.field_key, afr.created_at DESC
+	FindLatestOneTimeFlowFieldAnswers(ctx context.Context, db DBTX, arg FindLatestOneTimeFlowFieldAnswersParams) ([]FindLatestOneTimeFlowFieldAnswersRow, error)
 	//FindOnboardingProgressByTenant
 	//
 	//  SELECT id, tenant_id, current_step, completed_at, created_at, updated_at
@@ -640,6 +655,7 @@ type Querier interface {
 	//         field_type,
 	//         question,
 	//         is_required,
+	//         is_one_time,
 	//         sort_order
 	//  FROM tenant_flow_fields
 	//  WHERE tenant_id = $1
@@ -933,6 +949,7 @@ type Querier interface {
 	//      field_type,
 	//      question,
 	//      is_required,
+	//      is_one_time,
 	//      is_enabled,
 	//      sort_order
 	//  )
@@ -943,14 +960,16 @@ type Querier interface {
 	//      'custom',
 	//      $4,
 	//      $5,
+	//      $6,
 	//      true,
-	//      $6
+	//      $7
 	//  )
 	//  RETURNING id,
 	//            field_key,
 	//            field_type,
 	//            question,
 	//            is_required,
+	//            is_one_time,
 	//            is_enabled,
 	//            sort_order
 	InsertCustomTenantFlowField(ctx context.Context, db DBTX, arg InsertCustomTenantFlowFieldParams) (InsertCustomTenantFlowFieldRow, error)
@@ -1083,6 +1102,7 @@ type Querier interface {
 	//      field_type,
 	//      question,
 	//      is_required,
+	//      is_one_time,
 	//      is_enabled,
 	//      sort_order
 	//  )
@@ -1094,7 +1114,8 @@ type Querier interface {
 	//      $5,
 	//      $6,
 	//      $7,
-	//      $8
+	//      $8,
+	//      $9
 	//  )
 	InsertTenantFlowField(ctx context.Context, db DBTX, arg InsertTenantFlowFieldParams) error
 	//InsertTenantWhatsappConfig
@@ -1295,7 +1316,8 @@ type Querier interface {
 	//  UPDATE tenant_flow_fields
 	//  SET question    = $3,
 	//      is_required = $4,
-	//      sort_order  = $5
+	//      is_one_time = $5,
+	//      sort_order  = $6
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) (int64, error)

@@ -40,7 +40,7 @@ func TestHandle_UpdatesTenantOwnedFlowField(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPut,
 		"/v1/tenants/flow-fields/"+fieldID.String(),
-		strings.NewReader(`{"question":"  Cual es tu email?  ","isRequired":true,"sortOrder":9}`),
+		strings.NewReader(`{"question":"  Cual es tu email?  ","isRequired":true,"isOneTime":true,"sortOrder":9}`),
 	)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -51,15 +51,17 @@ func TestHandle_UpdatesTenantOwnedFlowField(t *testing.T) {
 
 	var question string
 	var required bool
+	var oneTime bool
 	var sortOrder int32
 	err := database.Primary().QueryRowContext(
 		context.Background(),
-		`SELECT question, is_required, sort_order FROM tenant_flow_fields WHERE id = $1`,
+		`SELECT question, is_required, is_one_time, sort_order FROM tenant_flow_fields WHERE id = $1`,
 		fieldID,
-	).Scan(&question, &required, &sortOrder)
+	).Scan(&question, &required, &oneTime, &sortOrder)
 	require.NoError(t, err)
 	require.Equal(t, "Cual es tu email?", question)
 	require.True(t, required)
+	require.True(t, oneTime)
 	require.Equal(t, int32(9), sortOrder)
 }
 
@@ -99,15 +101,17 @@ func TestHandle_ReturnsNotFoundForOtherTenantFlowField(t *testing.T) {
 
 	var question string
 	var required bool
+	var oneTime bool
 	var sortOrder int32
 	err := database.Primary().QueryRowContext(
 		context.Background(),
-		`SELECT question, is_required, sort_order FROM tenant_flow_fields WHERE id = $1`,
+		`SELECT question, is_required, is_one_time, sort_order FROM tenant_flow_fields WHERE id = $1`,
 		fieldID,
-	).Scan(&question, &required, &sortOrder)
+	).Scan(&question, &required, &oneTime, &sortOrder)
 	require.NoError(t, err)
 	require.Equal(t, "Original", question)
 	require.False(t, required)
+	require.False(t, oneTime)
 	require.Equal(t, int32(1), sortOrder)
 }
 

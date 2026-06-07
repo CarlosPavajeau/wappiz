@@ -20,6 +20,7 @@ INSERT INTO tenant_flow_fields (
     field_type,
     question,
     is_required,
+    is_one_time,
     is_enabled,
     sort_order
 )
@@ -31,7 +32,8 @@ VALUES (
     $5,
     $6,
     $7,
-    $8
+    $8,
+    $9
 )
 `
 
@@ -42,6 +44,7 @@ type InsertTenantFlowFieldParams struct {
 	FieldType  FlowFieldType  `db:"field_type"`
 	Question   sql.NullString `db:"question"`
 	IsRequired bool           `db:"is_required"`
+	IsOneTime  bool           `db:"is_one_time"`
 	IsEnabled  bool           `db:"is_enabled"`
 	SortOrder  int32          `db:"sort_order"`
 }
@@ -55,6 +58,7 @@ type InsertTenantFlowFieldParams struct {
 //	    field_type,
 //	    question,
 //	    is_required,
+//	    is_one_time,
 //	    is_enabled,
 //	    sort_order
 //	)
@@ -66,7 +70,8 @@ type InsertTenantFlowFieldParams struct {
 //	    $5,
 //	    $6,
 //	    $7,
-//	    $8
+//	    $8,
+//	    $9
 //	)
 func (q *Queries) InsertTenantFlowField(ctx context.Context, db DBTX, arg InsertTenantFlowFieldParams) error {
 	_, err := db.ExecContext(ctx, insertTenantFlowField,
@@ -76,6 +81,7 @@ func (q *Queries) InsertTenantFlowField(ctx context.Context, db DBTX, arg Insert
 		arg.FieldType,
 		arg.Question,
 		arg.IsRequired,
+		arg.IsOneTime,
 		arg.IsEnabled,
 		arg.SortOrder,
 	)

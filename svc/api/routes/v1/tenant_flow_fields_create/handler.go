@@ -17,6 +17,7 @@ import (
 type Request struct {
 	Question   string `json:"question"`
 	IsRequired *bool  `json:"isRequired"`
+	IsOneTime  *bool  `json:"isOneTime"`
 	SortOrder  *int32 `json:"sortOrder"`
 }
 
@@ -26,6 +27,7 @@ type Response struct {
 	FieldType  string `json:"fieldType"`
 	Question   string `json:"question"`
 	IsRequired bool   `json:"isRequired"`
+	IsOneTime  bool   `json:"isOneTime"`
 	IsEnabled  bool   `json:"isEnabled"`
 	SortOrder  int32  `json:"sortOrder"`
 }
@@ -53,6 +55,11 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	}
 
+	isOneTime := false
+	if req.IsOneTime != nil {
+		isOneTime = *req.IsOneTime
+	}
+
 	id := uuid.New()
 	field, err := db.Query.InsertCustomTenantFlowField(c.Request.Context(), h.DB.Primary(), db.InsertCustomTenantFlowFieldParams{
 		ID:         id,
@@ -60,6 +67,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		FieldKey:   customFieldKey(id),
 		Question:   sql.NullString{String: question, Valid: true},
 		IsRequired: *req.IsRequired,
+		IsOneTime:  isOneTime,
 		SortOrder:  *req.SortOrder,
 	})
 	if err != nil {
@@ -73,6 +81,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		FieldType:  string(field.FieldType),
 		Question:   field.Question.String,
 		IsRequired: field.IsRequired,
+		IsOneTime:  field.IsOneTime,
 		IsEnabled:  field.IsEnabled,
 		SortOrder:  field.SortOrder,
 	})

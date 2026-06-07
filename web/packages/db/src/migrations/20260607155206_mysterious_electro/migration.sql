@@ -1,0 +1,1 @@
+ALTER TABLE "tenant_flow_fields" ADD COLUMN "is_one_time" boolean DEFAULT false NOT NULL;

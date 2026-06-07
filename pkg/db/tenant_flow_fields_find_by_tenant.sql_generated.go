@@ -19,6 +19,7 @@ SELECT id,
        field_type,
        question,
        is_required,
+       is_one_time,
        is_enabled,
        sort_order,
        created_at
@@ -33,6 +34,7 @@ type FindAllTenantFlowFieldsRow struct {
 	FieldType  FlowFieldType  `db:"field_type"`
 	Question   sql.NullString `db:"question"`
 	IsRequired bool           `db:"is_required"`
+	IsOneTime  bool           `db:"is_one_time"`
 	IsEnabled  bool           `db:"is_enabled"`
 	SortOrder  int32          `db:"sort_order"`
 	CreatedAt  time.Time      `db:"created_at"`
@@ -45,6 +47,7 @@ type FindAllTenantFlowFieldsRow struct {
 //	       field_type,
 //	       question,
 //	       is_required,
+//	       is_one_time,
 //	       is_enabled,
 //	       sort_order,
 //	       created_at
@@ -66,6 +69,7 @@ func (q *Queries) FindAllTenantFlowFields(ctx context.Context, db DBTX, tenantID
 			&i.FieldType,
 			&i.Question,
 			&i.IsRequired,
+			&i.IsOneTime,
 			&i.IsEnabled,
 			&i.SortOrder,
 			&i.CreatedAt,

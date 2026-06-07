@@ -65,6 +65,7 @@ export const Route = createFileRoute("/_authed/dashboard/flow-fields")({
 })
 
 const flowFieldSchema = type({
+  isOneTime: "boolean",
   isRequired: "boolean",
   question: type("string >= 2").configure({
     message: "La pregunta debe tener al menos 2 caracteres",
@@ -84,6 +85,7 @@ function defaultValuesFor(
   field: TenantFlowField | undefined
 ): FlowFieldFormValues {
   return {
+    isOneTime: field?.isOneTime ?? false,
     isRequired: field?.isRequired ?? false,
     question: field?.question ?? "",
     sortOrder: field?.sortOrder ?? 0,
@@ -92,6 +94,7 @@ function defaultValuesFor(
 
 function toRequest(values: FlowFieldFormValues): UpsertTenantFlowFieldRequest {
   return {
+    isOneTime: values.isOneTime,
     isRequired: values.isRequired,
     question: values.question.trim(),
     sortOrder: values.sortOrder,
@@ -202,7 +205,7 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <Controller
                 control={control}
                 name="sortOrder"
@@ -237,6 +240,28 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                     <FieldLabel htmlFor={formField.name}>
                       Obligatorio
                     </FieldLabel>
+                    <Switch
+                      id={formField.name}
+                      name={formField.name}
+                      aria-invalid={fieldState.invalid}
+                      checked={formField.value}
+                      onCheckedChange={formField.onChange}
+                    />
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
+
+              <Controller
+                control={control}
+                name="isOneTime"
+                render={({ field: formField, fieldState }) => (
+                  <Field
+                    orientation="horizontal"
+                    className="w-fit self-end"
+                    data-invalid={fieldState.invalid}
+                  >
+                    <FieldLabel htmlFor={formField.name}>Una vez</FieldLabel>
                     <Switch
                       id={formField.name}
                       name={formField.name}
@@ -296,6 +321,7 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
           <TableHead>Tipo</TableHead>
           <TableHead>Orden</TableHead>
           <TableHead>Obligatorio</TableHead>
+          <TableHead>Frecuencia</TableHead>
           <TableHead>Activo</TableHead>
           <TableHead className="w-10" />
         </TableRow>
@@ -324,6 +350,7 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
               {field.sortOrder}
             </TableCell>
             <TableCell>{field.isRequired ? "Si" : "No"}</TableCell>
+            <TableCell>{field.isOneTime ? "Una vez" : "Cada cita"}</TableCell>
             <TableCell>
               <FlowFieldEnabledSwitch field={field} />
             </TableCell>

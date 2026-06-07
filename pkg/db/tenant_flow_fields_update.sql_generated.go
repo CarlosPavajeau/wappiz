@@ -16,7 +16,8 @@ const updateFlowField = `-- name: UpdateFlowField :execrows
 UPDATE tenant_flow_fields
 SET question    = $3,
     is_required = $4,
-    sort_order  = $5
+    is_one_time = $5,
+    sort_order  = $6
 WHERE id = $1
   AND tenant_id = $2
 `
@@ -26,6 +27,7 @@ type UpdateFlowFieldParams struct {
 	TenantID   uuid.UUID      `db:"tenant_id"`
 	Question   sql.NullString `db:"question"`
 	IsRequired bool           `db:"is_required"`
+	IsOneTime  bool           `db:"is_one_time"`
 	SortOrder  int32          `db:"sort_order"`
 }
 
@@ -34,7 +36,8 @@ type UpdateFlowFieldParams struct {
 //	UPDATE tenant_flow_fields
 //	SET question    = $3,
 //	    is_required = $4,
-//	    sort_order  = $5
+//	    is_one_time = $5,
+//	    sort_order  = $6
 //	WHERE id = $1
 //	  AND tenant_id = $2
 func (q *Queries) UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) (int64, error) {
@@ -43,6 +46,7 @@ func (q *Queries) UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFi
 		arg.TenantID,
 		arg.Question,
 		arg.IsRequired,
+		arg.IsOneTime,
 		arg.SortOrder,
 	)
 	if err != nil {

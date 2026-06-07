@@ -20,6 +20,7 @@ INSERT INTO tenant_flow_fields (
     field_type,
     question,
     is_required,
+    is_one_time,
     is_enabled,
     sort_order
 )
@@ -30,14 +31,16 @@ VALUES (
     'custom',
     $4,
     $5,
+    $6,
     true,
-    $6
+    $7
 )
 RETURNING id,
           field_key,
           field_type,
           question,
           is_required,
+          is_one_time,
           is_enabled,
           sort_order
 `
@@ -48,6 +51,7 @@ type InsertCustomTenantFlowFieldParams struct {
 	FieldKey   string         `db:"field_key"`
 	Question   sql.NullString `db:"question"`
 	IsRequired bool           `db:"is_required"`
+	IsOneTime  bool           `db:"is_one_time"`
 	SortOrder  int32          `db:"sort_order"`
 }
 
@@ -57,6 +61,7 @@ type InsertCustomTenantFlowFieldRow struct {
 	FieldType  FlowFieldType  `db:"field_type"`
 	Question   sql.NullString `db:"question"`
 	IsRequired bool           `db:"is_required"`
+	IsOneTime  bool           `db:"is_one_time"`
 	IsEnabled  bool           `db:"is_enabled"`
 	SortOrder  int32          `db:"sort_order"`
 }
@@ -70,6 +75,7 @@ type InsertCustomTenantFlowFieldRow struct {
 //	    field_type,
 //	    question,
 //	    is_required,
+//	    is_one_time,
 //	    is_enabled,
 //	    sort_order
 //	)
@@ -80,14 +86,16 @@ type InsertCustomTenantFlowFieldRow struct {
 //	    'custom',
 //	    $4,
 //	    $5,
+//	    $6,
 //	    true,
-//	    $6
+//	    $7
 //	)
 //	RETURNING id,
 //	          field_key,
 //	          field_type,
 //	          question,
 //	          is_required,
+//	          is_one_time,
 //	          is_enabled,
 //	          sort_order
 func (q *Queries) InsertCustomTenantFlowField(ctx context.Context, db DBTX, arg InsertCustomTenantFlowFieldParams) (InsertCustomTenantFlowFieldRow, error) {
@@ -97,6 +105,7 @@ func (q *Queries) InsertCustomTenantFlowField(ctx context.Context, db DBTX, arg 
 		arg.FieldKey,
 		arg.Question,
 		arg.IsRequired,
+		arg.IsOneTime,
 		arg.SortOrder,
 	)
 	var i InsertCustomTenantFlowFieldRow
@@ -106,6 +115,7 @@ func (q *Queries) InsertCustomTenantFlowField(ctx context.Context, db DBTX, arg 
 		&i.FieldType,
 		&i.Question,
 		&i.IsRequired,
+		&i.IsOneTime,
 		&i.IsEnabled,
 		&i.SortOrder,
 	)

@@ -4,6 +4,7 @@ SELECT id,
        field_type,
        question,
        is_required,
+       is_one_time,
        is_enabled,
        sort_order,
        created_at

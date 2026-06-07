@@ -94,6 +94,7 @@ export const tenantFlowFields = pgTable(
     fieldType: flowFieldType("field_type").notNull(),
     question: text(),
     isRequired: boolean("is_required").default(false).notNull(),
+    isOneTime: boolean("is_one_time").default(false).notNull(),
     isEnabled: boolean("is_enabled").default(true).notNull(),
     sortOrder: integer("sort_order").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })

@@ -18,6 +18,7 @@ import (
 type Request struct {
 	Question   string `json:"question"`
 	IsRequired *bool  `json:"isRequired"`
+	IsOneTime  *bool  `json:"isOneTime"`
 	SortOrder  *int32 `json:"sortOrder"`
 }
 
@@ -53,11 +54,17 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	}
 
+	isOneTime := false
+	if req.IsOneTime != nil {
+		isOneTime = *req.IsOneTime
+	}
+
 	rowsAffected, err := db.Query.UpdateFlowField(c.Request.Context(), h.DB.Primary(), db.UpdateFlowFieldParams{
 		ID:         id,
 		TenantID:   jwt.TenantIDFromContext(c),
 		Question:   sql.NullString{String: question, Valid: true},
 		IsRequired: *req.IsRequired,
+		IsOneTime:  isOneTime,
 		SortOrder:  *req.SortOrder,
 	})
 	if err != nil {

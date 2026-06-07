@@ -25,6 +25,7 @@ INSERT INTO tenant_flow_fields (
     field_type,
     question,
     is_required,
+    is_one_time,
     is_enabled,
     sort_order
 )
@@ -34,6 +35,7 @@ SELECT
     UNNEST(fields.field_keys),
     'predefined',
     NULL,
+    false,
     false,
     false,
     UNNEST(fields.sort_orders)
@@ -61,6 +63,7 @@ type CreateTenantPredefinedFlowFieldsParams struct {
 //	    field_type,
 //	    question,
 //	    is_required,
+//	    is_one_time,
 //	    is_enabled,
 //	    sort_order
 //	)
@@ -70,6 +73,7 @@ type CreateTenantPredefinedFlowFieldsParams struct {
 //	    UNNEST(fields.field_keys),
 //	    'predefined',
 //	    NULL,
+//	    false,
 //	    false,
 //	    false,
 //	    UNNEST(fields.sort_orders)

@@ -406,6 +406,7 @@ type TenantFlowField struct {
 	FieldType  FlowFieldType  `db:"field_type"`
 	Question   sql.NullString `db:"question"`
 	IsRequired bool           `db:"is_required"`
+	IsOneTime  bool           `db:"is_one_time"`
 	IsEnabled  bool           `db:"is_enabled"`
 	SortOrder  int32          `db:"sort_order"`
 	CreatedAt  time.Time      `db:"created_at"`

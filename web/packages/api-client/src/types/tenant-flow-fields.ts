@@ -6,6 +6,7 @@ export type TenantFlowField = {
   fieldType: FlowFieldType
   question: string
   isRequired: boolean
+  isOneTime: boolean
   isEnabled: boolean
   sortOrder: number
 }
@@ -13,5 +14,6 @@ export type TenantFlowField = {
 export type UpsertTenantFlowFieldRequest = {
   question: string
   isRequired: boolean
+  isOneTime: boolean
   sortOrder: number
 }

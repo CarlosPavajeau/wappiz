@@ -5,6 +5,7 @@ CREATE TABLE "tenant_flow_fields" (
 	"field_type" "flow_field_type" NOT NULL,
 	"question" text,
 	"is_required" boolean DEFAULT false NOT NULL,
+	"is_one_time" boolean DEFAULT false NOT NULL,
 	"is_enabled" boolean DEFAULT true NOT NULL,
 	"sort_order" integer NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
