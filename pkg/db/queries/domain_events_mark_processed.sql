@@ -1,4 +1,5 @@
 -- name: MarkDomainEventProcessed :exec
 UPDATE domain_events
-SET processed_at = NOW()
+SET claimed_at   = NULL,
+    processed_at = NOW()
 WHERE id = $1;

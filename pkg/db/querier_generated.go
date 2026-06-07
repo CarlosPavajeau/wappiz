@@ -1164,6 +1164,7 @@ type Querier interface {
 	//
 	//  UPDATE domain_events
 	//  SET attempts   = attempts + 1,
+	//      claimed_at = NULL,
 	//      last_error = $2,
 	//      failed_at  = CASE WHEN attempts + 1 >= 5 THEN NOW() ELSE NULL END
 	//  WHERE id = $1
@@ -1172,7 +1173,8 @@ type Querier interface {
 	//MarkDomainEventProcessed
 	//
 	//  UPDATE domain_events
-	//  SET processed_at = NOW()
+	//  SET claimed_at   = NULL,
+	//      processed_at = NOW()
 	//  WHERE id = $1
 	MarkDomainEventProcessed(ctx context.Context, db DBTX, id uuid.UUID) error
 	//MarkUnattendedAppointmentsNoShow

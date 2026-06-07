@@ -13,14 +13,16 @@ import (
 
 const markDomainEventProcessed = `-- name: MarkDomainEventProcessed :exec
 UPDATE domain_events
-SET processed_at = NOW()
+SET claimed_at   = NULL,
+    processed_at = NOW()
 WHERE id = $1
 `
 
 // MarkDomainEventProcessed
 //
 //	UPDATE domain_events
-//	SET processed_at = NOW()
+//	SET claimed_at   = NULL,
+//	    processed_at = NOW()
 //	WHERE id = $1
 func (q *Queries) MarkDomainEventProcessed(ctx context.Context, db DBTX, id uuid.UUID) error {
 	_, err := db.ExecContext(ctx, markDomainEventProcessed, id)
