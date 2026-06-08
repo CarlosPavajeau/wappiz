@@ -35,6 +35,31 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         href: geist,
         rel: "stylesheet",
       },
+      {
+        href: "/favicon.ico",
+        rel: "icon",
+      },
+      {
+        href: "/favicon-16x16.png",
+        rel: "icon",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        href: "/favicon-32x32.png",
+        rel: "icon",
+        sizes: "32x32",
+        type: "image/png",
+      },
+      {
+        href: "/apple-touch-icon.png",
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+      },
+      {
+        href: "/site.webmanifest",
+        rel: "manifest",
+      },
     ],
     meta: [
       {
