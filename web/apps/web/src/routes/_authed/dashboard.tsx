@@ -99,14 +99,19 @@ function getRouteLabel(routeId: string, loaderData: unknown): string {
 function DashboardBreadcrumb() {
   const matches = useMatches()
 
-  const crumbs = matches
-    .filter((m) => !EXCLUDED_ROUTE_IDS.has(m.routeId))
-    .map((m) => ({
-      id: m.id,
-      label: getRouteLabel(m.routeId, m.loaderData),
-      pathname: m.pathname,
-    }))
-    .filter((c) => c.label !== "")
+  const crumbs: { id: string; label: string; pathname: string }[] = []
+
+  for (const match of matches) {
+    if (EXCLUDED_ROUTE_IDS.has(match.routeId)) {
+      continue
+    }
+
+    const label = getRouteLabel(match.routeId, match.loaderData)
+
+    if (label !== "") {
+      crumbs.push({ id: match.id, label, pathname: match.pathname })
+    }
+  }
 
   if (crumbs.length === 0) {
     return null
