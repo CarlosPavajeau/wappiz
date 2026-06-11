@@ -1,5 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
-import { useRouter } from "@tanstack/react-router"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -18,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { api } from "@/lib/client-api"
+import { listResourceOverviewsQuery } from "@/queries/resources"
 
 type FormState = {
   date: Date | undefined
@@ -42,12 +42,12 @@ type Props = {
 export function CreateScheduleOverrideDialog({ resourceId }: Props) {
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState<FormState>(DEFAULT_FORM)
-  const router = useRouter()
 
   const update = (changes: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...changes }))
   }
 
+  const queryClient = useQueryClient()
   const { mutate: createOverride, isPending } = useMutation({
     mutationFn: () => {
       if (!form.date) {
@@ -64,10 +64,11 @@ export function CreateScheduleOverrideDialog({ resourceId }: Props) {
     onError: () => {
       toast.error("Error al guardar la excepción. Intenta de nuevo.")
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(listResourceOverviewsQuery(resourceId))
+
       setOpen(false)
       toast.success("Excepción creada correctamente")
-      router.invalidate()
     },
   })
 

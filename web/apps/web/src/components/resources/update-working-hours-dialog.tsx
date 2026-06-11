@@ -1,5 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
-import { useRouter } from "@tanstack/react-router"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { WorkingHour } from "@wappiz/api-client/types/resources"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -19,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { api } from "@/lib/client-api"
 import { cn } from "@/lib/utils"
+import { listResourcesQuery } from "@/queries/resources"
 
 type HourState = {
   id: string
@@ -81,14 +81,13 @@ export function UpdateWorkingHoursDialog({
   const [hours, setHours] = useState<HourState[]>(() =>
     defaultOpen ? seedHours(workingHours) : []
   )
-  const router = useRouter()
-
   const updateHour = (index: number, changes: Partial<HourState>) => {
     setHours((prev) =>
       prev.map((h, i) => (i === index ? { ...h, ...changes } : h))
     )
   }
 
+  const queryClient = useQueryClient()
   const { mutate: saveHours, isPending } = useMutation({
     mutationFn: () =>
       Promise.all(
@@ -104,10 +103,11 @@ export function UpdateWorkingHoursDialog({
     onError: () => {
       toast.error("Error al actualizar el horario. Intenta de nuevo.")
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(listResourcesQuery)
+
       setOpen(false)
       toast.success("Horario actualizado correctamente")
-      router.invalidate()
     },
   })
 
