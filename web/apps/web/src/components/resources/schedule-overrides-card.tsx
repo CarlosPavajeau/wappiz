@@ -25,6 +25,18 @@ function formatTime(time: string) {
   return timeFormatter.format(date)
 }
 
+function formatOverrideTime(override: ScheduleOverride) {
+  if (override.isDayOff) {
+    return "Cerrado"
+  }
+
+  if (override.startTime && override.endTime) {
+    return `${formatTime(override.startTime)} – ${formatTime(override.endTime)}`
+  }
+
+  return null
+}
+
 type Props = {
   resourceId: string
   overrides: ScheduleOverride[]
@@ -67,11 +79,7 @@ export function ScheduleOverridesCard({ resourceId, overrides }: Props) {
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <span className="text-muted-foreground tabular-nums">
-                    {override.isDayOff
-                      ? "Cerrado"
-                      : override.startTime && override.endTime
-                        ? `${formatTime(override.startTime)} – ${formatTime(override.endTime)}`
-                        : null}
+                    {formatOverrideTime(override)}
                   </span>
                   <DeleteOverrideButton
                     resourceId={resourceId}
