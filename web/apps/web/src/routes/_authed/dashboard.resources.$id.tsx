@@ -1,5 +1,6 @@
 import { ArrowLeft01Icon, ServiceIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { type } from "arktype"
 
@@ -19,8 +20,13 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
-import { api } from "@/lib/client-api"
 import { cn } from "@/lib/utils"
+import {
+  getResourceQuery,
+  listResourceOverviewsQuery,
+  listResourceServicesQuery,
+} from "@/queries/resources"
+import { listServicesQuery } from "@/queries/services"
 
 const searchSchema = type({
   "setup?": "string",
@@ -36,13 +42,13 @@ export const Route = createFileRoute("/_authed/dashboard/resources/$id")({
   },
   loader: async ({ params, context }) => {
     const { id } = params
-    const { setup } = context
+    const { setup, queryClient } = context
 
     const [resource, services, allServices, overrides] = await Promise.all([
-      api.resources.get(id),
-      api.resources.services(id),
-      api.services.list(),
-      api.resources.listOverrides(id),
+      queryClient.ensureQueryData(getResourceQuery(id)),
+      queryClient.ensureQueryData(listResourceServicesQuery(id)),
+      queryClient.ensureQueryData(listServicesQuery),
+      queryClient.ensureQueryData(listResourceOverviewsQuery(id)),
     ])
 
     return {
@@ -57,8 +63,13 @@ export const Route = createFileRoute("/_authed/dashboard/resources/$id")({
 })
 
 function RouteComponent() {
-  const { allServices, overrides, resource, services, setup } =
-    Route.useLoaderData()
+  const { setup } = Route.useSearch()
+  const { id } = Route.useParams()
+
+  const { data: resource } = useSuspenseQuery(getResourceQuery(id))
+  const { data: services } = useSuspenseQuery(listResourceServicesQuery(id))
+  const { data: allServices } = useSuspenseQuery(listServicesQuery)
+  const { data: overrides } = useSuspenseQuery(listResourceOverviewsQuery(id))
 
   const linkedServiceIds = services.map((s) => s.id)
 
