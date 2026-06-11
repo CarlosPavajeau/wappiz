@@ -31,7 +31,11 @@
     "db:generate": "turbo -F @wappiz/db db:generate",
     "db:migrate": "turbo -F @wappiz/db db:migrate",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix"
   },
   "dependencies": {
     "@posthog/react": "^1.9.0",
