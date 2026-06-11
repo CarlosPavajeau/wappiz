@@ -143,7 +143,7 @@ function UserRowActions({ user }: { user: AdminUser }) {
               variant={isBanned ? "default" : "destructive"}
               onClick={handleConfirm}
             >
-              {isPending ? <Spinner /> : (isBanned ? "Desbanear" : "Banear")}
+              {isPending ? <Spinner /> : isBanned ? "Desbanear" : "Banear"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
