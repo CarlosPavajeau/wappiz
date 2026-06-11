@@ -1,5 +1,4 @@
-import { useMutation } from "@tanstack/react-query"
-import { useRouter } from "@tanstack/react-router"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { Service } from "@wappiz/api-client/types/services"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -17,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { api } from "@/lib/client-api"
+import { listResourceServicesQuery } from "@/queries/resources"
 
 const priceFormatter = new Intl.NumberFormat("es-MX", {
   currency: "MXN",
@@ -38,7 +38,6 @@ export function LinkServicesDialog({
 }: Props) {
   const [open, setOpen] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const router = useRouter()
 
   const toggleService = (id: string) => {
     setSelectedIds((prev) => {
@@ -52,6 +51,7 @@ export function LinkServicesDialog({
     })
   }
 
+  const queryClient = useQueryClient()
   const { mutate: assignServices, isPending } = useMutation({
     mutationFn: () =>
       api.resources.assignService(resourceId, {
@@ -60,10 +60,11 @@ export function LinkServicesDialog({
     onError: () => {
       toast.error("Error al guardar los servicios. Intenta de nuevo.")
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(listResourceServicesQuery(resourceId))
+      
       setOpen(false)
       toast.success("Servicios actualizados correctamente")
-      router.invalidate()
     },
   })
 
