@@ -173,13 +173,15 @@ function getPageRange(current: number, total: number): (number | "ellipsis")[] {
   return pages
 }
 
+const shortDateFormatter = new Intl.DateTimeFormat("es", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+})
+
 function formatShortDate(iso: string): string {
   try {
-    return new Intl.DateTimeFormat("es", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }).format(new Date(iso))
+    return shortDateFormatter.format(new Date(iso))
   } catch {
     return iso
   }
