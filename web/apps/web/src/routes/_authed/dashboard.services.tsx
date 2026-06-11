@@ -4,6 +4,7 @@ import {
   Tag01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import type { Service } from "@wappiz/api-client/types/services"
 import type React from "react"
@@ -32,13 +33,14 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { api } from "@/lib/client-api"
 import { priceFormatter } from "@/lib/intl"
+import { listServicesQuery } from "@/queries/services"
 
 export const Route = createFileRoute("/_authed/dashboard/services")({
   component: RouteComponent,
-  loader: async () => {
-    const services = await api.services.list()
+  loader: async ({ context }) => {
+    const { queryClient } = context
+    const services = await queryClient.ensureQueryData(listServicesQuery)
     return {
       services,
     }
@@ -145,7 +147,7 @@ function ServicesTableView({ services }: { services: Service[] }) {
 }
 
 function RouteComponent() {
-  const { services } = Route.useLoaderData()
+  const { data: services } = useSuspenseQuery(listServicesQuery)
   const [view, setView] = useState<ViewMode>(getInitialView)
   const serviceCount = services.length
 

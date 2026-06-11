@@ -6,7 +6,7 @@ import {
   PencilEdit01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import type { Service } from "@wappiz/api-client/types/services"
 import { type } from "arktype"
@@ -40,6 +40,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
+import { listServicesQuery } from "@/queries/services"
 
 const updateServiceSchema = type({
   bufferMinutes: type("number >= 0").configure({
@@ -62,7 +63,6 @@ type UpdateServiceFormValues = typeof updateServiceSchema.infer
 
 export function UpdateServiceDialog({ service }: { service: Service }) {
   const [open, setOpen] = useState(false)
-  const router = useRouter()
 
   const {
     control,
@@ -81,6 +81,7 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
     resolver: arktypeResolver(updateServiceSchema),
   })
 
+  const queryClient = useQueryClient()
   const { mutateAsync: updateService } = useMutation({
     mutationFn: (values: UpdateServiceFormValues) =>
       api.services.update(service.id, values),
@@ -89,10 +90,11 @@ export function UpdateServiceDialog({ service }: { service: Service }) {
         "Error al actualizar el servicio. Verifica los datos e intenta de nuevo."
       )
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(listServicesQuery)
+
       setOpen(false)
       toast.success("Servicio actualizado correctamente")
-      router.invalidate()
     },
   })
 
