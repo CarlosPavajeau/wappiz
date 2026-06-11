@@ -8,16 +8,6 @@ import {
 import type { AppointmentStatus } from "@wappiz/api-client/types/appointments"
 import { format } from "date-fns"
 
-export const STATUS_VARIANT = {
-  cancelled: "destructive",
-  check_in: "default",
-  completed: "secondary",
-  confirmed: "default",
-  in_progress: "default",
-  no_show: "outline",
-  pending: "outline",
-} as const
-
 export const STATUS_LABEL = {
   cancelled: "Cancelada",
   check_in: "Check-in",
@@ -36,10 +26,6 @@ export const STATUS_COLOR = {
   in_progress: "bg-blue-700",
   no_show: "bg-amber-700",
   pending: "bg-yellow-700",
-}
-
-export function statusVariant(status: string) {
-  return STATUS_VARIANT[status as keyof typeof STATUS_VARIANT] ?? "outline"
 }
 
 export function statusLabel(status: string) {
