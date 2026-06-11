@@ -30,6 +30,10 @@ fmt: ## Format code
 	go fmt ./...
 	cd web && bun run fix
 
+.PHONY: test
+test: ## Run app tests
+	bazel test //...
+
 .PHONY: bazel
 bazel: ## Sync BUILD.bazel
 	bazel mod tidy
