@@ -6,8 +6,13 @@ import { FeaturesSection } from "@/components/landing/sections/features-section"
 import { FooterSection } from "@/components/landing/sections/footer-section"
 import { HeroSection } from "@/components/landing/sections/hero-section"
 import { PricingSection } from "@/components/landing/sections/pricing-section"
+import { getCurrentYear } from "@/functions/get-current-year"
 
 export const Route = createFileRoute("/")({
+  loader: async () => {
+    const currentYear = await getCurrentYear()
+    return { currentYear }
+  },
   component: HomeComponent,
   head: () => ({
     links: [
@@ -69,6 +74,8 @@ export const Route = createFileRoute("/")({
 })
 
 function HomeComponent() {
+  const { currentYear } = Route.useLoaderData()
+
   return (
     <main className="relative overflow-x-hidden bg-background text-foreground">
       <NavigationBar />
@@ -81,7 +88,7 @@ function HomeComponent() {
 
       <CtaSection />
 
-      <FooterSection />
+      <FooterSection currentYear={currentYear} />
     </main>
   )
 }

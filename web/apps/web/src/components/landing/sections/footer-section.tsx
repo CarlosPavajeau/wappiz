@@ -6,7 +6,7 @@ const navLinks = [
   { external: false, href: "/privacy", label: "Política de privacidad" },
 ]
 
-export function FooterSection() {
+export function FooterSection({ currentYear }: { currentYear: number }) {
   return (
     <Section last>
       <SectionContent>
@@ -32,7 +32,7 @@ export function FooterSection() {
           </div>
           <div className="flex items-center gap-3">
             <span className="font-mono text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Wappiz
+              © {currentYear} Wappiz
             </span>
           </div>
         </div>

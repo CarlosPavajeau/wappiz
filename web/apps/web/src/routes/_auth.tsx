@@ -8,7 +8,13 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 
+import { getCurrentYear } from "@/functions/get-current-year"
+
 export const Route = createFileRoute("/_auth")({
+  loader: async () => {
+    const currentYear = await getCurrentYear()
+    return { currentYear }
+  },
   component: RouteComponent,
 })
 
@@ -70,6 +76,7 @@ function AnimatedWord() {
 }
 
 function RouteComponent() {
+  const { currentYear } = Route.useLoaderData()
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex min-h-screen">
@@ -118,9 +125,7 @@ function RouteComponent() {
             </ul>
           </div>
 
-          <p className="text-xs text-white/30">
-            © {new Date().getFullYear()} wappiz
-          </p>
+          <p className="text-xs text-white/30">© {currentYear} wappiz</p>
         </div>
 
         <div className="flex flex-1 flex-col items-center justify-center p-6 sm:p-10">
