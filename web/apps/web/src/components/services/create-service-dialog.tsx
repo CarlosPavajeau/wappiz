@@ -1,7 +1,7 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { InformationCircleIcon, ServiceIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import { type } from "arktype"
 import { useState } from "react"
@@ -32,6 +32,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { api } from "@/lib/client-api"
+import { listServicesQuery } from "@/queries/services"
 
 import { Spinner } from "../ui/spinner"
 
@@ -55,7 +56,6 @@ type CreateServiceFormValues = typeof createServiceSchema.infer
 
 export function CreateServiceDialog() {
   const [open, setOpen] = useState(false)
-  const router = useRouter()
 
   const {
     control,
@@ -73,6 +73,7 @@ export function CreateServiceDialog() {
     resolver: arktypeResolver(createServiceSchema),
   })
 
+  const queryClient = useQueryClient()
   const { mutateAsync: createService } = useMutation({
     mutationFn: (values: CreateServiceFormValues) =>
       api.services.create(values),
@@ -81,10 +82,10 @@ export function CreateServiceDialog() {
         "Error al crear el servicio. Verifica los datos e intenta de nuevo."
       )
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(listServicesQuery)
       setOpen(false)
       toast.success("Servicio creado correctamente")
-      router.invalidate()
     },
   })
 
