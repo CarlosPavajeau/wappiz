@@ -2,7 +2,6 @@ import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { Edit01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useRouter } from "@tanstack/react-router"
 import { type } from "arktype"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -51,7 +50,6 @@ type Props = {
 
 export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
   const [open, setOpen] = useState(false)
-  const router = useRouter()
   const isMobile = useIsMobile()
 
   const {
