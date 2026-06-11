@@ -1,7 +1,7 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { ResourcesAddIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import { type } from "arktype"
@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
+import { listResourcesQuery } from "@/queries/resources"
 
 const createResourceSchema = type({
   name: type("string >= 1").configure({
@@ -54,6 +55,7 @@ export function CreateResourceDialog() {
     resolver: arktypeResolver(createResourceSchema),
   })
 
+  const queryClient = useQueryClient()
   const { mutateAsync: createResource } = useMutation({
     mutationFn: (values: CreateResourceFormValues) =>
       api.resources.create(values),
@@ -64,7 +66,9 @@ export function CreateResourceDialog() {
           : "Error al crear el recurso. Verifica los datos e intenta de nuevo."
       )
     },
-    onSuccess: (resource) => {
+    onSuccess: async (resource) => {
+      await queryClient.invalidateQueries(listResourcesQuery)
+
       setOpen(false)
       navigate({
         params: {

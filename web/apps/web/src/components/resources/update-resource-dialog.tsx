@@ -1,7 +1,7 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import { Edit01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import { type } from "arktype"
 import { useState } from "react"
@@ -29,6 +29,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
+import { listResourcesQuery } from "@/queries/resources"
 
 const updateResourceSchema = type({
   avatarURL: type("string").optional(),
@@ -63,6 +64,7 @@ export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
     resolver: arktypeResolver(updateResourceSchema),
   })
 
+  const queryClient = useQueryClient()
   const { mutateAsync: updateResource } = useMutation({
     mutationFn: (values: UpdateResourceFormValues) =>
       api.resources.update(resourceId, values),
@@ -71,9 +73,9 @@ export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
         "Error al actualizar el recurso. Verifica los datos e intenta de nuevo."
       )
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(listResourcesQuery)
       setOpen(false)
-      router.invalidate()
     },
   })
 

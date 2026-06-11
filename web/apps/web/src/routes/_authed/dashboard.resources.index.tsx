@@ -4,6 +4,7 @@ import {
   User02Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute } from "@tanstack/react-router"
 import type { Resource } from "@wappiz/api-client/types/resources"
 import type React from "react"
@@ -30,12 +31,13 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { api } from "@/lib/client-api"
+import { listResourcesQuery } from "@/queries/resources"
 
 export const Route = createFileRoute("/_authed/dashboard/resources/")({
   component: RouteComponent,
-  loader: async () => {
-    const resources = await api.resources.list()
+  loader: async ({ context }) => {
+    const { queryClient } = context
+    const resources = await queryClient.ensureQueryData(listResourcesQuery)
     return {
       resources,
     }
@@ -130,7 +132,7 @@ function ResourcesTableView({ resources }: { resources: Resource[] }) {
 }
 
 function RouteComponent() {
-  const { resources } = Route.useLoaderData()
+  const { data: resources } = useSuspenseQuery(listResourcesQuery)
   const [view, setView] = useState<ViewMode>(getInitialView)
   const resourceCount = resources.length
 
