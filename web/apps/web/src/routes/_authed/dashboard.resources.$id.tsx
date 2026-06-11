@@ -27,13 +27,13 @@ const searchSchema = type({
 })
 
 export const Route = createFileRoute("/_authed/dashboard/resources/$id")({
+  validateSearch: searchSchema,
   beforeLoad: ({ search }) => {
     const { setup } = search
     return {
       setup,
     }
   },
-  component: RouteComponent,
   loader: async ({ params, context }) => {
     const { id } = params
     const { setup } = context
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/_authed/dashboard/resources/$id")({
       setup,
     }
   },
-  validateSearch: searchSchema,
+  component: RouteComponent,
 })
 
 function RouteComponent() {
