@@ -20,6 +20,7 @@ import (
 	"wappiz/pkg/counter"
 	"wappiz/pkg/crypto"
 	"wappiz/pkg/db"
+	"wappiz/pkg/fault"
 	"wappiz/pkg/jwt"
 	"wappiz/pkg/logger"
 	"wappiz/pkg/mailer"
@@ -155,7 +156,14 @@ func Run(ctx context.Context, cfg Config) error {
 		Environment: cfg.Environment,
 	})
 
-	ctr := counter.NewMemoryCounter(clk)
+	ctr, err := counter.NewRedis(counter.RedisConfig{
+		RedisURL: cfg.RedisURL,
+	})
+
+	if err != nil {
+		return fault.New(fmt.Sprintf("unable to create redis counter %s", err))
+	}
+
 	rlSvc, err := ratelimit.New(ratelimit.Config{
 		Clock:   clk,
 		Counter: ctr,

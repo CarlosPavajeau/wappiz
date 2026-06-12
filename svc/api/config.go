@@ -58,6 +58,8 @@ type Config struct {
 	Region string
 	// DatabaseURL is the connection string for the PostgreSQL database (DATABASE_URL).
 	DatabaseURL string
+	// RedisURL is the connection string for the Redis instance (REDIS_URL)
+	RedisURL string
 	// Port is the address the HTTP server listens on (PORT). Defaults to ":8080".
 	Port string
 	// WhatsappBaseURL is the base URL for the WhatsApp Cloud API (WHATSAPP_BASE_URL).
@@ -145,6 +147,7 @@ func LoadConfiguration() Config {
 		InstanceID:         mustGet("INSTANCE_ID"),
 		Region:             mustGet("REGION"),
 		DatabaseURL:        mustGet("DATABASE_URL"),
+		RedisURL:           mustGet("REDIS_URL"),
 		Port:               getOrDefault("PORT", ":8080"),
 		WhatsappBaseURL:    getOrDefault("WHATSAPP_BASE_URL", "https://graph.facebook.com"),
 		WhatsappAPIVersion: getOrDefault("WHATSAPP_API_VERSION", "v19.0"),
