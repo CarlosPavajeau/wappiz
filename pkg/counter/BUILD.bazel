@@ -6,21 +6,31 @@ go_library(
         "doc.go",
         "interface.go",
         "memory.go",
+        "redis.go",
     ],
     importpath = "wappiz/pkg/counter",
     visibility = ["//visibility:public"],
     deps = [
+        "//pkg/assert",
         "//pkg/clock",
+        "//pkg/logger",
+        "//pkg/otel/tracing",
         "//pkg/repeat",
+        "@com_github_redis_go_redis_v9//:go-redis",
     ],
 )
 
 go_test(
     name = "counter_test",
-    srcs = ["memory_test.go"],
+    srcs = [
+        "memory_test.go",
+        "redis_test.go",
+    ],
+    embed = [":counter"],
     deps = [
-        ":counter",
         "//pkg/clock",
+        "//pkg/uid",
         "@com_github_stretchr_testify//require",
+        "@com_github_testcontainers_testcontainers_go_modules_redis//:redis",
     ],
 )

@@ -5,4 +5,5 @@ type Prefix string
 
 const (
 	RequestPrefix Prefix = "req"
+	TestPrefix    Prefix = "test" // for tests only
 )
