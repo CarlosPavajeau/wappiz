@@ -1,24 +1,16 @@
-import { ArrowLeft01Icon, ServiceIcon } from "@hugeicons/core-free-icons"
+import { ArrowLeft01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { type } from "arktype"
 
 import { LinkServicesDialog } from "@/components/resources/link-services-dialog"
-import { ResourceServiceCard } from "@/components/resources/resource-service-card"
+import { ResourceServicesList } from "@/components/resources/resource-services-list"
 import { ScheduleOverridesCard } from "@/components/resources/schedule-overrides-card"
 import { UpdateResourceDialog } from "@/components/resources/update-resource-dialog"
 import { WorkingHoursCard } from "@/components/resources/working-hours-card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import {
@@ -143,8 +135,11 @@ function RouteComponent() {
 
       <Separator />
 
-      <div className="grid gap-8 md:grid-cols-[220px_1fr] lg:grid-cols-[300px_1fr]">
-        <aside aria-label="Configuración de horario" className="space-y-5">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-12">
+        <section
+          aria-label="Disponibilidad del recurso"
+          className="grid content-start gap-5 xl:grid-cols-2"
+        >
           <WorkingHoursCard
             resourceId={resource.id}
             workingHours={resource.workingHours}
@@ -155,16 +150,16 @@ function RouteComponent() {
             resourceId={resource.id}
             overrides={overrides}
           />
-        </aside>
+        </section>
 
-        <section aria-labelledby="services-heading" className="space-y-5">
-          <div className="flex items-start justify-between gap-4 sm:items-center">
+        <aside aria-labelledby="services-heading" className="space-y-4">
+          <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h2
                 id="services-heading"
                 className="text-base leading-snug font-semibold"
               >
-                Servicios asignados
+                Servicios
               </h2>
               <p className="mt-0.5 text-sm text-muted-foreground">
                 {serviceLabel}
@@ -179,34 +174,8 @@ function RouteComponent() {
             </div>
           </div>
 
-          {serviceCount === 0 ? (
-            <Empty className="border py-14">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <HugeiconsIcon
-                    icon={ServiceIcon}
-                    size={16}
-                    strokeWidth={1.5}
-                    aria-hidden="true"
-                  />
-                </EmptyMedia>
-                <EmptyTitle>Sin servicios asignados</EmptyTitle>
-              </EmptyHeader>
-              <EmptyContent>
-                <EmptyDescription>
-                  Vincula servicios a este recurso para que puedan ser
-                  agendados.
-                </EmptyDescription>
-              </EmptyContent>
-            </Empty>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {services.map((service) => (
-                <ResourceServiceCard key={service.id} service={service} />
-              ))}
-            </div>
-          )}
-        </section>
+          <ResourceServicesList services={services} />
+        </aside>
       </div>
     </div>
   )
