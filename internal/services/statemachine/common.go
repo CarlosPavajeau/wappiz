@@ -2,6 +2,7 @@ package statemachine
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/codes"
@@ -56,11 +57,12 @@ func buildErrorMessage(err error, input string, suggestions []slotfinder.TimeSlo
 		if len(suggestions) == 0 {
 			return "Ese horario ya no está disponible 😔 Por favor intenta con otra fecha."
 		}
-		msg := "Ese horario acaba de ser tomado 😔 Estas son las opciones más cercanas:\n\n"
+		var msg strings.Builder
+		msg.WriteString("Ese horario acaba de ser tomado 😔 Estas son las opciones más cercanas:\n\n")
 		for _, s := range suggestions {
-			msg += fmt.Sprintf("• %s\n", s.StartsAt.Format("02/01 03:04 PM"))
+			fmt.Fprintf(&msg, "• %s\n", s.StartsAt.Format("02/01 03:04 PM"))
 		}
-		return msg
+		return msg.String()
 	}
 	return "Ocurrió un error inesperado. Por favor intenta de nuevo."
 }
