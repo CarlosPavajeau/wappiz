@@ -1,11 +1,13 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"time"
 	"wappiz/pkg/assert"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
+	"wappiz/pkg/retry"
 
 	_ "github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -38,8 +40,25 @@ func open(dns string) (*sql.DB, error) {
 	db.SetConnMaxLifetime(5 * time.Minute) // Refresh connections every 5 min (PlanetScale recommendation)
 	db.SetConnMaxIdleTime(1 * time.Minute)
 
-	if err := db.Ping(); err != nil {
-		return nil, fault.Wrap(err, fault.Internal("failed to ping database"))
+	err = retry.New(
+		retry.Attempts(5),
+		retry.Backoff(func(n int) time.Duration {
+			return time.Duration(n) * time.Second
+		}),
+	).Do(func() error {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		pingErr := db.PingContext(ctx)
+		if pingErr != nil {
+			logger.Info("database not ready yet, retrying...", "error", pingErr.Error())
+		}
+
+		return pingErr
+	})
+
+	if err != nil {
+		return nil, fault.Wrap(err, fault.Internal("failed to ping database after retries"))
 	}
 
 	logger.Info("database connection pool initialized successfully")
