@@ -141,13 +141,21 @@ export function ScheduleAppointmentDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger render={<Button size="sm" />}>
+      <DialogTrigger
+        render={
+          <Button
+            aria-label="Nueva cita"
+            size="sm"
+            className="max-sm:w-7 max-sm:px-0!"
+          />
+        }
+      >
         <HugeiconsIcon
           icon={PlusSignIcon}
           strokeWidth={2}
           data-icon="inline-start"
         />
-        Nueva cita
+        <span className="max-sm:hidden">Nueva cita</span>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">

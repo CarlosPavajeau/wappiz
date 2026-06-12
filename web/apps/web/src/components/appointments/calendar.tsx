@@ -1,4 +1,5 @@
 import {
+  ArrowDown01Icon,
   ArrowLeft01Icon,
   ArrowRight01Icon,
   LayoutRightIcon,
@@ -28,14 +29,18 @@ import {
 import { CalendarDayView } from "@/components/appointments/calendar-day-view"
 import { CalendarMobileFilters } from "@/components/appointments/calendar-mobile-filters"
 import { CalendarMonthView } from "@/components/appointments/calendar-month-view"
-import { CalendarPeriodHeader } from "@/components/appointments/calendar-period-header"
 import { CalendarSidebar } from "@/components/appointments/calendar-sidebar"
 import { CalendarSkeleton } from "@/components/appointments/calendar-skeleton"
 import { CalendarWeekView } from "@/components/appointments/calendar-week-view"
 import { FilterSelect } from "@/components/appointments/filter-select"
 import { ScheduleAppointmentDialog } from "@/components/appointments/schedule-appointment-dialog"
 import { Button } from "@/components/ui/button"
-import { DatePicker } from "@/components/ui/date-picker"
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCalendarData } from "@/hooks/use-calendar-data"
@@ -62,6 +67,7 @@ export function AppointmentsCalendar() {
 
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const {
     apts,
@@ -144,47 +150,69 @@ export function AppointmentsCalendar() {
 
   return (
     <div className="-mb-16 flex h-[calc(100dvh-6rem)] flex-col gap-0 overflow-hidden">
-      <CalendarPeriodHeader periodLabel={periodLabel} aptCount={apts.length} />
+      <div className="flex flex-col gap-2 pb-3">
+        <div className="flex items-center gap-1">
+          <Button
+            aria-label="Período anterior"
+            size="icon-sm"
+            variant="outline"
+            onClick={() => goBy(-1)}
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+          </Button>
+          <Button
+            aria-label="Período siguiente"
+            size="icon-sm"
+            variant="outline"
+            onClick={() => goBy(1)}
+          >
+            <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="hidden sm:inline-flex"
+            onClick={() => setDateParam(null)}
+          >
+            Hoy
+          </Button>
 
-      <div className="flex flex-col gap-2 pb-3 md:flex-row md:items-center md:justify-between md:gap-1.5">
-        <div className="flex items-center gap-1.5">
-          <Tabs value={calView} onValueChange={(v) => setView(v)}>
-            <TabsList>
-              <TabsTrigger value="day">Día</TabsTrigger>
-              <TabsTrigger value="week">Semana</TabsTrigger>
-              <TabsTrigger value="month">Mes</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="hidden items-center gap-1.5 md:flex">
-            <Separator orientation="vertical" className="h-5" />
-            <FilterSelect
-              isLoading={isLoadingResources}
-              items={(resources ?? []).map((r) => ({
-                id: r.id,
-                label: r.name,
-              }))}
-              label="Recursos"
-              selectedIds={resourceIds}
-              onSelectedIdsChange={setResourceIds}
-            />
-            <FilterSelect
-              isLoading={isLoadingServices}
-              items={(services ?? []).map((s) => ({ id: s.id, label: s.name }))}
-              label="Servicios"
-              selectedIds={serviceIds}
-              onSelectedIdsChange={setServiceIds}
-            />
-            <FilterSelect
-              items={STATUS_ITEMS}
-              label="Estado"
-              selectedIds={statuses}
-              onSelectedIdsChange={setStatuses}
-            />
+          <div className="flex min-w-0 flex-1 items-center gap-1.5 max-sm:pr-2">
+            <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+              <PopoverTrigger
+                render={<Button size="sm" variant="ghost" />}
+                className="min-w-0 px-2"
+              >
+                <span className="truncate text-[15px] font-semibold tracking-tight first-letter:capitalize">
+                  {periodLabel}
+                </span>
+                <HugeiconsIcon
+                  icon={ArrowDown01Icon}
+                  strokeWidth={2}
+                  data-icon="inline-end"
+                  className="text-muted-foreground"
+                />
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-0">
+                <Calendar
+                  autoFocus
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(d) => {
+                    if (d) {
+                      setDateParam(toDateKey(d))
+                      setPickerOpen(false)
+                    }
+                  }}
+                  locale={es}
+                />
+              </PopoverContent>
+            </Popover>
+            <span className="hidden text-xs whitespace-nowrap text-muted-foreground lg:inline">
+              {apts.length} {apts.length === 1 ? "cita" : "citas"} agendadas
+            </span>
           </div>
-        </div>
 
-        <div className="flex items-center justify-between gap-1">
           <ScheduleAppointmentDialog
             defaultDate={selectedDate}
             isLoadingResources={isLoadingResources}
@@ -192,6 +220,59 @@ export function AppointmentsCalendar() {
             resources={resources}
             services={services}
           />
+
+          <Button
+            aria-label={sidebarOpen ? "Ocultar panel" : "Mostrar panel"}
+            aria-pressed={sidebarOpen}
+            size="icon-sm"
+            variant={sidebarOpen ? "secondary" : "ghost"}
+            onClick={() => setSidebarOpen((o) => !o)}
+            className="hidden md:inline-flex"
+          >
+            <HugeiconsIcon icon={LayoutRightIcon} strokeWidth={2} />
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between gap-1.5">
+          <div className="flex min-w-0 items-center gap-1.5">
+            <Tabs value={calView} onValueChange={(v) => setView(v)}>
+              <TabsList>
+                <TabsTrigger value="day">Día</TabsTrigger>
+                <TabsTrigger value="week">Semana</TabsTrigger>
+                <TabsTrigger value="month">Mes</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <div className="hidden items-center gap-1.5 md:flex">
+              <Separator orientation="vertical" className="h-5" />
+              <FilterSelect
+                isLoading={isLoadingResources}
+                items={(resources ?? []).map((r) => ({
+                  id: r.id,
+                  label: r.name,
+                }))}
+                label="Recursos"
+                selectedIds={resourceIds}
+                onSelectedIdsChange={setResourceIds}
+              />
+              <FilterSelect
+                isLoading={isLoadingServices}
+                items={(services ?? []).map((s) => ({
+                  id: s.id,
+                  label: s.name,
+                }))}
+                label="Servicios"
+                selectedIds={serviceIds}
+                onSelectedIdsChange={setServiceIds}
+              />
+              <FilterSelect
+                items={STATUS_ITEMS}
+                label="Estado"
+                selectedIds={statuses}
+                onSelectedIdsChange={setStatuses}
+              />
+            </div>
+          </div>
 
           <CalendarMobileFilters
             filterCount={resourceIds.length + serviceIds.length}
@@ -206,52 +287,6 @@ export function AppointmentsCalendar() {
             onServiceIdsChange={setServiceIds}
             onStatusesChange={setStatuses}
           />
-
-          <div className="flex items-center gap-1">
-            <Button
-              aria-label="Período anterior"
-              size="icon-sm"
-              variant="outline"
-              onClick={() => goBy(-1)}
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-            </Button>
-
-            {calView === "day" ? (
-              <DatePicker
-                value={selectedDate}
-                onChange={(d) => setDateParam(d ? toDateKey(d) : null)}
-              />
-            ) : (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setDateParam(null)}
-              >
-                Hoy
-              </Button>
-            )}
-
-            <Button
-              aria-label="Período siguiente"
-              size="icon-sm"
-              variant="outline"
-              onClick={() => goBy(1)}
-            >
-              <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-            </Button>
-          </div>
-
-          <Button
-            aria-label={sidebarOpen ? "Ocultar panel" : "Mostrar panel"}
-            aria-pressed={sidebarOpen}
-            size="icon-sm"
-            variant={sidebarOpen ? "secondary" : "ghost"}
-            onClick={() => setSidebarOpen((o) => !o)}
-            className="hidden md:inline-flex"
-          >
-            <HugeiconsIcon icon={LayoutRightIcon} strokeWidth={2} />
-          </Button>
         </div>
       </div>
 
