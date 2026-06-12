@@ -62,7 +62,7 @@ export function LinkServicesDialog({
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries(listResourceServicesQuery(resourceId))
-      
+
       setOpen(false)
       toast.success("Servicios actualizados correctamente")
     },

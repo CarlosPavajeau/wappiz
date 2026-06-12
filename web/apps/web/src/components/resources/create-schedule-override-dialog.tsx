@@ -65,7 +65,9 @@ export function CreateScheduleOverrideDialog({ resourceId }: Props) {
       toast.error("Error al guardar la excepción. Intenta de nuevo.")
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries(listResourceOverviewsQuery(resourceId))
+      await queryClient.invalidateQueries(
+        listResourceOverviewsQuery(resourceId)
+      )
 
       setOpen(false)
       toast.success("Excepción creada correctamente")
