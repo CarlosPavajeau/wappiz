@@ -36,6 +36,7 @@ export function useCalendarUrl() {
       "check_in",
     ])
   )
+  const [aptId, setAptId] = useQueryState("apt", parseAsString)
 
   const calView: CalView = view === "week" || view === "month" ? view : "day"
   const selectedDate = useMemo(() => parseISO(dateParam), [dateParam])
@@ -57,12 +58,14 @@ export function useCalendarUrl() {
   }, [calView, dateParam, selectedDate])
 
   return {
+    aptId,
     calView,
     dateParam,
     from,
     resourceIds,
     selectedDate,
     serviceIds,
+    setAptId,
     setDateParam,
     setResourceIds,
     setServiceIds,

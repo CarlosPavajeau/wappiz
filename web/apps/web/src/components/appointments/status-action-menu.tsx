@@ -1,5 +1,7 @@
 "use client"
 
+import { MoreHorizontalIcon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type {
   Appointment,
@@ -19,6 +21,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { api } from "@/lib/client-api"
@@ -51,8 +59,10 @@ const isDestructive = (status: AppointmentStatus) => status === "cancelled"
 
 export function StatusActionMenu({
   appointment,
+  stacked = false,
 }: {
   appointment: Appointment
+  stacked?: boolean
 }) {
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -112,32 +122,70 @@ export function StatusActionMenu({
     }
   }
 
+  const primaryButton = primaryStatus && (
+    <Button
+      disabled={isPending}
+      onClick={() => triggerAction(primaryStatus)}
+      type="button"
+    >
+      {isPending && <Spinner data-icon="inline-start" />}
+      Cambiar a {getStatusConfig(primaryStatus).label}
+    </Button>
+  )
+
+  const overflowMenu = overflowStatuses.length > 0 && (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button type="button" variant="outline">
+            <HugeiconsIcon
+              icon={MoreHorizontalIcon}
+              size={16}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            Más acciones
+          </Button>
+        }
+      />
+      <DropdownMenuContent align="end">
+        {overflowStatuses.map((status) => {
+          const { icon, label } = getStatusConfig(status)
+
+          return (
+            <DropdownMenuItem
+              key={status}
+              disabled={isPending}
+              onClick={() => triggerAction(status)}
+              variant={isDestructive(status) ? "destructive" : "default"}
+            >
+              <HugeiconsIcon
+                icon={icon}
+                size={14}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+              Cambiar a {label}
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
   return (
     <>
-      {primaryStatus && (
-        <Button
-          key={primaryStatus}
-          disabled={isPending}
-          onClick={() => triggerAction(primaryStatus)}
-          type="button"
-        >
-          {isPending && <Spinner data-icon="inline-start" />}
-          Cambiar a {getStatusConfig(primaryStatus).label}
-        </Button>
+      {stacked ? (
+        <>
+          {primaryButton}
+          {overflowMenu}
+        </>
+      ) : (
+        <>
+          {overflowMenu}
+          {primaryButton}
+        </>
       )}
-
-      {overflowStatuses.map((status) => (
-        <Button
-          key={status}
-          disabled={isPending}
-          onClick={() => triggerAction(status)}
-          type="button"
-          variant={isDestructive(status) ? "destructive" : "secondary"}
-        >
-          {isPending && <Spinner data-icon="inline-start" />}
-          Cambiar a {getStatusConfig(status).label}
-        </Button>
-      ))}
 
       <AlertDialog onOpenChange={handleDialogOpenChange} open={dialogOpen}>
         <AlertDialogContent>

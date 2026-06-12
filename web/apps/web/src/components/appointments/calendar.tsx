@@ -17,7 +17,7 @@ import {
   subWeeks,
 } from "date-fns"
 import { es } from "date-fns/locale"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { AppointmentDetailModal } from "@/components/appointments/appointment-detail-modal"
 import {
@@ -44,11 +44,13 @@ import { useIsMobile } from "@/hooks/use-mobile"
 
 export function AppointmentsCalendar() {
   const {
+    aptId,
     calView,
     from,
     resourceIds,
     selectedDate,
     serviceIds,
+    setAptId,
     setDateParam,
     setResourceIds,
     setServiceIds,
@@ -58,8 +60,6 @@ export function AppointmentsCalendar() {
     to,
   } = useCalendarUrl()
 
-  const [selectedAptId, setSelectedAptId] = useState<string | null>(null)
-  const [detailOpen, setDetailOpen] = useState(false)
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile)
 
@@ -76,11 +76,19 @@ export function AppointmentsCalendar() {
     calView,
     from,
     resourceIds,
-    selectedAptId,
+    selectedAptId: aptId,
     serviceIds,
     statuses,
     to,
   })
+
+  // Clear the apt param when the loaded data can't resolve it (e.g. the
+  // appointment moved to a status excluded by the active filters)
+  useEffect(() => {
+    if (aptId && !(isLoading || isError) && selectedApt === null) {
+      setAptId(null)
+    }
+  }, [aptId, isLoading, isError, selectedApt, setAptId])
 
   const periodLabel = useMemo(() => {
     if (calView === "day") {
@@ -94,10 +102,12 @@ export function AppointmentsCalendar() {
     return format(selectedDate, "MMMM yyyy", { locale: es })
   }, [calView, selectedDate])
 
-  const openApt = useCallback((a: Appointment) => {
-    setSelectedAptId(a.id)
-    setDetailOpen(true)
-  }, [])
+  const openApt = useCallback(
+    (a: Appointment) => {
+      setAptId(a.id)
+    },
+    [setAptId]
+  )
 
   const switchToDay = useCallback(
     (d: Date) => {
@@ -307,8 +317,12 @@ export function AppointmentsCalendar() {
 
       <AppointmentDetailModal
         appointment={selectedApt}
-        open={detailOpen}
-        onOpenChange={setDetailOpen}
+        open={selectedApt !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAptId(null)
+          }
+        }}
       />
     </div>
   )
