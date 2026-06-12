@@ -14,8 +14,9 @@ import (
 
 type Response struct {
 	ID        uuid.UUID `json:"id"`
-	Date      string    `json:"date"`
-	IsDayOff  bool      `json:"isDayOff"`
+	Kind      string    `json:"kind"`
+	StartDate string    `json:"startDate"`
+	EndDate   string    `json:"endDate"`
 	StartTime string    `json:"startTime"`
 	EndTime   string    `json:"endTime"`
 	Reason    string    `json:"reason"`
@@ -75,8 +76,8 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	overrides, err := db.Query.FindResourceScheduleOverrides(c.Request.Context(), h.DB.Primary(), db.FindResourceScheduleOverridesParams{
 		ResourceID: id,
-		Date:       from,
-		Date_2:     to,
+		FromDate:   from,
+		ToDate:     to,
 	})
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("failed to fetch schedule overrides"))
@@ -95,8 +96,9 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 		response[i] = Response{
 			ID:        o.ID,
-			Date:      o.Date.Format("2006-01-02"),
-			IsDayOff:  o.IsDayOff,
+			Kind:      string(o.Kind),
+			StartDate: o.StartDate.Format("2006-01-02"),
+			EndDate:   o.EndDate.Format("2006-01-02"),
 			StartTime: startTime,
 			EndTime:   endTime,
 			Reason:    o.Reason,

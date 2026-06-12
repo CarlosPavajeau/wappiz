@@ -4,6 +4,7 @@ import type {
   AssignServicesRequest,
   CreateResourceRequest,
   CreateScheduleOverrideRequest,
+  CreateScheduleOverrideResponse,
   DeleteScheduleOverrideRequest,
   Resource,
   ScheduleOverride,
@@ -25,7 +26,7 @@ const definitions = {
     method: "POST",
     path: (id: string) => `/resources/${id}/overrides`,
   } as EndpointDefinition<
-    ScheduleOverride,
+    CreateScheduleOverrideResponse,
     CreateScheduleOverrideRequest,
     string
   >,

@@ -10,6 +10,7 @@ import (
 type SlotFinderService interface {
 	FindAvailableSlots(ctx context.Context, params FindAvailableSlotsParams) ([]TimeSlot, error)
 	GetSuggestedSlots(ctx context.Context, params GetSuggestedSlotsParams) ([]TimeSlot, error)
+	IsBookable(ctx context.Context, params IsBookableParams) (bool, error)
 }
 
 type ServiceParam struct {
@@ -27,6 +28,14 @@ type GetSuggestedSlotsParams struct {
 	ResourceID uuid.UUID
 	From       time.Time
 	Service    ServiceParam
+}
+
+// IsBookableParams times must be expressed in the tenant's location so the
+// requested instant resolves to the correct calendar date.
+type IsBookableParams struct {
+	ResourceID uuid.UUID
+	StartsAt   time.Time
+	EndsAt     time.Time
 }
 
 type TimeSlot struct {

@@ -199,6 +199,12 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND resource_id = $2
 	DeleteWorkingHour(ctx context.Context, db DBTX, arg DeleteWorkingHourParams) error
+	//DeleteWorkingHoursByResource
+	//
+	//  DELETE
+	//  FROM working_hours
+	//  WHERE resource_id = $1
+	DeleteWorkingHoursByResource(ctx context.Context, db DBTX, resourceID uuid.UUID) error
 	//FindActivePlanByTenant
 	//
 	//  SELECT p.id,
@@ -440,6 +446,22 @@ type Querier interface {
 	//    AND cancelled_at IS NOT NULL
 	//    AND cancelled_at >= NOW() - INTERVAL '10 minutes'
 	FindRecentlyCancelledAppointments(ctx context.Context, db DBTX) ([]FindRecentlyCancelledAppointmentsRow, error)
+	//FindResourceAppointmentsInRange
+	//
+	//  SELECT a.id,
+	//         a.starts_at,
+	//         a.ends_at,
+	//         COALESCE(c.name, '') AS customer_name,
+	//         s.name               AS service_name
+	//  FROM appointments a
+	//           INNER JOIN customers c ON c.id = a.customer_id
+	//           INNER JOIN services s ON s.id = a.service_id
+	//  WHERE a.resource_id = $1
+	//    AND a.starts_at < $2
+	//    AND a.ends_at > $3
+	//    AND a.status NOT IN ('cancelled', 'no_show')
+	//  ORDER BY a.starts_at
+	FindResourceAppointmentsInRange(ctx context.Context, db DBTX, arg FindResourceAppointmentsInRangeParams) ([]FindResourceAppointmentsInRangeRow, error)
 	//FindResourceById
 	//
 	//  SELECT id,
@@ -469,16 +491,18 @@ type Querier interface {
 	//
 	//  SELECT id,
 	//         resource_id,
-	//         date,
-	//         is_day_off,
+	//         start_date,
+	//         end_date,
+	//         kind,
 	//         start_time,
 	//         end_time,
 	//         COALESCE(reason, '') as reason,
 	//         created_at
 	//  FROM schedule_overrides
 	//  WHERE resource_id = $1
-	//    AND date BETWEEN $2 AND $3
-	//  ORDER BY date
+	//    AND start_date <= $2
+	//    AND end_date >= $3
+	//  ORDER BY start_date
 	FindResourceScheduleOverrides(ctx context.Context, db DBTX, arg FindResourceScheduleOverridesParams) ([]FindResourceScheduleOverridesRow, error)
 	//FindResourceWorkingHours
 	//
@@ -1026,8 +1050,9 @@ type Querier interface {
 	//  INSERT INTO schedule_overrides(
 	//      id,
 	//      resource_id,
-	//      date,
-	//      is_day_off,
+	//      start_date,
+	//      end_date,
+	//      kind,
 	//      start_time,
 	//      end_time,
 	//      reason
@@ -1038,12 +1063,9 @@ type Querier interface {
 	//      $4,
 	//      $5,
 	//      $6,
-	//      $7
-	//  ) ON CONFLICT (resource_id, date) DO UPDATE
-	//      SET is_day_off = EXCLUDED.is_day_off,
-	//          start_time = EXCLUDED.start_time,
-	//          end_time   = EXCLUDED.end_time,
-	//          reason     = EXCLUDED.reason
+	//      $7,
+	//      $8
+	//  )
 	InsertScheduleOverride(ctx context.Context, db DBTX, arg InsertScheduleOverrideParams) error
 	//InsertService
 	//
@@ -1134,6 +1156,24 @@ type Querier interface {
 	//          activation_contact_email = EXCLUDED.activation_contact_email,
 	//          activation_notes         = EXCLUDED.activation_notes
 	InsertTenantWhatsappConfig(ctx context.Context, db DBTX, arg InsertTenantWhatsappConfigParams) error
+	//InsertWorkingHour
+	//
+	//  INSERT INTO working_hours(
+	//      id,
+	//      resource_id,
+	//      day_of_week,
+	//      start_time,
+	//      end_time,
+	//      is_active
+	//  ) VALUES (
+	//      $1,
+	//      $2,
+	//      $3,
+	//      $4,
+	//      $5,
+	//      $6
+	//  )
+	InsertWorkingHour(ctx context.Context, db DBTX, arg InsertWorkingHourParams) error
 	//LinkTenantUser
 	//
 	//  INSERT INTO tenant_users (user_id, tenant_id, role)
@@ -1362,27 +1402,6 @@ type Querier interface {
 	//      updated_at       = NOW()
 	//  WHERE id = $4
 	UpdateTenantWhatsappConfig(ctx context.Context, db DBTX, arg UpdateTenantWhatsappConfigParams) error
-	//UpsertWorkingHours
-	//
-	//  INSERT INTO working_hours(
-	//      id,
-	//      resource_id,
-	//      day_of_week,
-	//      start_time,
-	//      end_time,
-	//      is_active
-	//  ) VALUES (
-	//      $1,
-	//      $2,
-	//      $3,
-	//      $4,
-	//      $5,
-	//      $6
-	//  ) ON CONFLICT (resource_id, day_of_week) DO UPDATE
-	//      SET start_time = EXCLUDED.start_time,
-	//          end_time   = EXCLUDED.end_time,
-	//          is_active  = EXCLUDED.is_active
-	UpsertWorkingHours(ctx context.Context, db DBTX, arg UpsertWorkingHoursParams) error
 }
 
 var _ Querier = (*Queries)(nil)

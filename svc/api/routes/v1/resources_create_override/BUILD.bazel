@@ -6,6 +6,7 @@ go_library(
     importpath = "wappiz/svc/api/routes/v1/resources_create_override",
     visibility = ["//visibility:public"],
     deps = [
+        "//internal/services/slotfinder",
         "//pkg/codes",
         "//pkg/db",
         "//pkg/fault",

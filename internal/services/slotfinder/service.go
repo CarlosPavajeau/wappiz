@@ -17,30 +17,12 @@ func New(database db.Database) *service {
 }
 
 func (s *service) FindAvailableSlots(ctx context.Context, params FindAvailableSlotsParams) ([]TimeSlot, error) {
-	overrides, err := db.Query.FindResourceScheduleOverrides(ctx, s.db.Primary(), db.FindResourceScheduleOverridesParams{
-		ResourceID: params.ResourceID,
-		Date:       params.Date,
-		Date_2:     params.Date,
-	})
+	intervals, err := s.dayIntervals(ctx, params.ResourceID, params.Date)
 	if err != nil {
 		return nil, err
 	}
-
-	var override *db.FindResourceScheduleOverridesRow
-	if len(overrides) > 0 {
-		override = &overrides[0]
-	}
-
-	if override != nil && override.IsDayOff {
-		return nil, nil
-	}
-
-	workStart, workEnd, err := s.resolveWorkingHours(ctx, params.ResourceID, params.Date, override)
-	if err != nil {
-		return nil, err
-	}
-	if workStart == nil {
-		return nil, nil // not a working day
+	if len(intervals) == 0 {
+		return nil, nil // not a working day or fully blocked
 	}
 
 	dayStart := time.Date(params.Date.Year(), params.Date.Month(), params.Date.Day(), 0, 0, 0, 0, params.Date.Location())
@@ -65,25 +47,7 @@ func (s *service) FindAvailableSlots(ctx context.Context, params FindAvailableSl
 		}
 	}
 
-	slotDuration := time.Duration(params.Service.DurationMinutes+params.Service.BufferMinutes) * time.Minute
-	var available []TimeSlot
-
-	current := *workStart
-	for current.Add(time.Duration(params.Service.DurationMinutes)*time.Minute).Before(*workEnd) ||
-		current.Add(time.Duration(params.Service.DurationMinutes)*time.Minute).Equal(*workEnd) {
-
-		slotEnd := current.Add(slotDuration)
-		if !s.overlapsAny(current, slotEnd, occupied) {
-			available = append(available, TimeSlot{
-				StartsAt:   current,
-				EndsAt:     current.Add(time.Duration(params.Service.DurationMinutes) * time.Minute),
-				ResourceID: params.ResourceID,
-			})
-		}
-		current = current.Add(slotDuration)
-	}
-
-	return available, nil
+	return generateSlots(params.ResourceID, intervals, occupied, params.Service), nil
 }
 
 func (s *service) GetSuggestedSlots(ctx context.Context, params GetSuggestedSlotsParams) ([]TimeSlot, error) {
@@ -117,43 +81,36 @@ func (s *service) GetSuggestedSlots(ctx context.Context, params GetSuggestedSlot
 	return suggestions, nil
 }
 
-func (s *service) resolveWorkingHours(ctx context.Context, resourceID uuid.UUID, date time.Time, override *db.FindResourceScheduleOverridesRow) (*time.Time, *time.Time, error) {
-	loc := date.Location()
-
-	if override != nil && !override.IsDayOff && override.StartTime.Valid {
-		start := parseTimeOnDate(date, override.StartTime.String, loc)
-		end := parseTimeOnDate(date, override.EndTime.String, loc)
-		return &start, &end, nil
-	}
-
-	weeklyHours, err := db.Query.FindResourceWorkingHours(ctx, s.db.Primary(), resourceID)
+// IsBookable reports whether [StartsAt, EndsAt] lies entirely inside one of
+// the resource's bookable windows for that day. Overlap with existing
+// appointments is enforced separately by the database exclusion constraints.
+func (s *service) IsBookable(ctx context.Context, params IsBookableParams) (bool, error) {
+	intervals, err := s.dayIntervals(ctx, params.ResourceID, params.StartsAt)
 	if err != nil {
-		return nil, nil, err
+		return false, err
 	}
-
-	dow := int16(date.Weekday())
-	for _, wh := range weeklyHours {
-		if wh.DayOfWeek == dow && wh.IsActive && wh.StartTime != "" {
-			start := parseTimeOnDate(date, wh.StartTime, loc)
-			end := parseTimeOnDate(date, wh.EndTime, loc)
-			return &start, &end, nil
+	for _, iv := range intervals {
+		if !params.StartsAt.Before(iv.Start) && !params.EndsAt.After(iv.End) {
+			return true, nil
 		}
 	}
-
-	return nil, nil, nil
+	return false, nil
 }
 
-func (s *service) overlapsAny(start, end time.Time, occupied []TimeSlot) bool {
-	for _, o := range occupied {
-		if start.Before(o.EndsAt) && end.After(o.StartsAt) {
-			return true
-		}
+func (s *service) dayIntervals(ctx context.Context, resourceID uuid.UUID, date time.Time) ([]Interval, error) {
+	overrides, err := db.Query.FindResourceScheduleOverrides(ctx, s.db.Primary(), db.FindResourceScheduleOverridesParams{
+		ResourceID: resourceID,
+		FromDate:   date,
+		ToDate:     date,
+	})
+	if err != nil {
+		return nil, err
 	}
-	return false
-}
 
-func parseTimeOnDate(date time.Time, t string, loc *time.Location) time.Time {
-	parsed, _ := time.Parse("15:04:05", t)
-	return time.Date(date.Year(), date.Month(), date.Day(),
-		parsed.Hour(), parsed.Minute(), 0, 0, loc)
+	weekly, err := db.Query.FindResourceWorkingHours(ctx, s.db.Primary(), resourceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return resolveDayIntervals(date, weekly, overrides), nil
 }

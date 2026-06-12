@@ -23,6 +23,16 @@ function formatTime(time: string) {
   return timeFormatter.format(date)
 }
 
+const ALL_DAYS = [
+  { dayName: "Domingo", dayOfWeek: 0 },
+  { dayName: "Lunes", dayOfWeek: 1 },
+  { dayName: "Martes", dayOfWeek: 2 },
+  { dayName: "Miércoles", dayOfWeek: 3 },
+  { dayName: "Jueves", dayOfWeek: 4 },
+  { dayName: "Viernes", dayOfWeek: 5 },
+  { dayName: "Sábado", dayOfWeek: 6 },
+]
+
 type Props = {
   resourceId: string
   workingHours: WorkingHour[]
@@ -36,7 +46,7 @@ export function WorkingHoursCard({
   defaultOpen,
   todayDayOfWeek,
 }: Props) {
-  const sorted = workingHours.toSorted((a, b) => a.dayOfWeek - b.dayOfWeek)
+  const active = workingHours.filter((h) => h.isActive)
 
   return (
     <Card>
@@ -51,32 +61,40 @@ export function WorkingHoursCard({
         </CardAction>
       </CardHeader>
       <CardContent>
-        {sorted.length === 0 ? (
+        {active.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Sin horario configurado — este recurso no recibirá reservas
           </p>
         ) : (
           <ul>
-            {sorted.map((hour) => {
+            {ALL_DAYS.map((day) => {
+              const intervals = active
+                .filter((h) => h.dayOfWeek === day.dayOfWeek)
+                .toSorted((a, b) => a.startTime.localeCompare(b.startTime))
+              const isOpen = intervals.length > 0
               const isToday =
-                todayDayOfWeek !== undefined &&
-                hour.dayOfWeek === todayDayOfWeek
+                todayDayOfWeek !== undefined && day.dayOfWeek === todayDayOfWeek
 
               return (
                 <li
-                  key={hour.id}
+                  key={day.dayOfWeek}
                   className={cn(
-                    "-mx-2 flex items-center justify-between rounded px-2 py-2 text-sm",
-                    !hour.isActive && "text-muted-foreground",
-                    isToday && hour.isActive && "bg-primary/5 font-medium"
+                    "-mx-2 flex items-center justify-between gap-4 rounded px-2 py-2 text-sm",
+                    !isOpen && "text-muted-foreground",
+                    isToday && isOpen && "bg-primary/5 font-medium"
                   )}
                 >
                   <span className="capitalize">
-                    {hour.dayName.toLowerCase()}
+                    {day.dayName.toLowerCase()}
                   </span>
-                  {hour.isActive ? (
-                    <span className="tabular-nums">
-                      {formatTime(hour.startTime)} – {formatTime(hour.endTime)}
+                  {isOpen ? (
+                    <span className="text-right tabular-nums">
+                      {intervals
+                        .map(
+                          (h) =>
+                            `${formatTime(h.startTime)} – ${formatTime(h.endTime)}`
+                        )
+                        .join(" · ")}
                     </span>
                   ) : (
                     <span>Cerrado</span>

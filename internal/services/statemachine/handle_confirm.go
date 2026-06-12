@@ -8,6 +8,7 @@ import (
 	"math"
 	"time"
 	"wappiz/internal/events"
+	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
@@ -56,6 +57,27 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			logger.Warn("[scheduling] customer overlap detected on confirm, informing customer",
 				"session_id", session.ID,
 				"customer_id", session.CustomerID)
+			return s.handleOverlapOnConfirm(ctx, msg, session, sessionData, svc)
+		}
+
+		// Re-check the schedule at confirm time: an override may have been
+		// created between slot selection and confirmation.
+		loc, err := time.LoadLocation(tenant.Timezone)
+		if err != nil {
+			return fault.Wrap(err, fault.Internal("load tenant timezone"))
+		}
+		bookable, err := s.slotFinder.IsBookable(ctx, slotfinder.IsBookableParams{
+			ResourceID: *sessionData.ResourceID,
+			StartsAt:   startsAt.In(loc),
+			EndsAt:     endsAt.In(loc),
+		})
+		if err != nil {
+			return fault.Wrap(err, fault.Internal("check resource schedule on confirm"))
+		}
+		if !bookable {
+			logger.Warn("[scheduling] slot became unavailable on confirm, informing customer",
+				"session_id", session.ID,
+				"resource_id", *sessionData.ResourceID)
 			return s.handleOverlapOnConfirm(ctx, msg, session, sessionData, svc)
 		}
 

@@ -16,51 +16,56 @@ import (
 const findResourceScheduleOverrides = `-- name: FindResourceScheduleOverrides :many
 SELECT id,
        resource_id,
-       date,
-       is_day_off,
+       start_date,
+       end_date,
+       kind,
        start_time,
        end_time,
        COALESCE(reason, '') as reason,
        created_at
 FROM schedule_overrides
 WHERE resource_id = $1
-  AND date BETWEEN $2 AND $3
-ORDER BY date
+  AND start_date <= $2
+  AND end_date >= $3
+ORDER BY start_date
 `
 
 type FindResourceScheduleOverridesParams struct {
 	ResourceID uuid.UUID `db:"resource_id"`
-	Date       time.Time `db:"date"`
-	Date_2     time.Time `db:"date_2"`
+	ToDate     time.Time `db:"to_date"`
+	FromDate   time.Time `db:"from_date"`
 }
 
 type FindResourceScheduleOverridesRow struct {
-	ID         uuid.UUID      `db:"id"`
-	ResourceID uuid.UUID      `db:"resource_id"`
-	Date       time.Time      `db:"date"`
-	IsDayOff   bool           `db:"is_day_off"`
-	StartTime  sql.NullString `db:"start_time"`
-	EndTime    sql.NullString `db:"end_time"`
-	Reason     string         `db:"reason"`
-	CreatedAt  time.Time      `db:"created_at"`
+	ID         uuid.UUID            `db:"id"`
+	ResourceID uuid.UUID            `db:"resource_id"`
+	StartDate  time.Time            `db:"start_date"`
+	EndDate    time.Time            `db:"end_date"`
+	Kind       ScheduleOverrideKind `db:"kind"`
+	StartTime  sql.NullString       `db:"start_time"`
+	EndTime    sql.NullString       `db:"end_time"`
+	Reason     string               `db:"reason"`
+	CreatedAt  time.Time            `db:"created_at"`
 }
 
 // FindResourceScheduleOverrides
 //
 //	SELECT id,
 //	       resource_id,
-//	       date,
-//	       is_day_off,
+//	       start_date,
+//	       end_date,
+//	       kind,
 //	       start_time,
 //	       end_time,
 //	       COALESCE(reason, '') as reason,
 //	       created_at
 //	FROM schedule_overrides
 //	WHERE resource_id = $1
-//	  AND date BETWEEN $2 AND $3
-//	ORDER BY date
+//	  AND start_date <= $2
+//	  AND end_date >= $3
+//	ORDER BY start_date
 func (q *Queries) FindResourceScheduleOverrides(ctx context.Context, db DBTX, arg FindResourceScheduleOverridesParams) ([]FindResourceScheduleOverridesRow, error) {
-	rows, err := db.QueryContext(ctx, findResourceScheduleOverrides, arg.ResourceID, arg.Date, arg.Date_2)
+	rows, err := db.QueryContext(ctx, findResourceScheduleOverrides, arg.ResourceID, arg.ToDate, arg.FromDate)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +76,9 @@ func (q *Queries) FindResourceScheduleOverrides(ctx context.Context, db DBTX, ar
 		if err := rows.Scan(
 			&i.ID,
 			&i.ResourceID,
-			&i.Date,
-			&i.IsDayOff,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Kind,
 			&i.StartTime,
 			&i.EndTime,
 			&i.Reason,

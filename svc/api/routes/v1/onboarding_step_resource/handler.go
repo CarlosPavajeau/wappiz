@@ -97,7 +97,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		}
 
 		for _, day := range req.WorkingDays {
-			if err := db.Query.UpsertWorkingHours(c.Request.Context(), txx, db.UpsertWorkingHoursParams{
+			if err := db.Query.InsertWorkingHour(c.Request.Context(), txx, db.InsertWorkingHourParams{
 				ID:         uuid.New(),
 				ResourceID: resourceID,
 				DayOfWeek:  int16(day),

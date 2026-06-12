@@ -1,5 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import type { WorkingHour } from "@wappiz/api-client/types/resources"
+import type {
+  WorkingHour,
+  WorkingHoursInterval,
+} from "@wappiz/api-client/types/resources"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -15,18 +18,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { api } from "@/lib/client-api"
 import { cn } from "@/lib/utils"
 import { listResourcesQuery } from "@/queries/resources"
 
-type HourState = {
-  id: string
+type DayState = {
   dayOfWeek: number
   dayName: string
-  startTime: string
-  endTime: string
-  isActive: boolean
+  intervals: WorkingHoursInterval[]
 }
 
 function toTimeInput(time: string) {
@@ -43,32 +42,41 @@ const ALL_DAYS = [
   { dayName: "Sábado", dayOfWeek: 6 },
 ]
 
+const DEFAULT_INTERVAL: WorkingHoursInterval = {
+  endTime: "18:00",
+  startTime: "09:00",
+}
+
 type Props = {
   resourceId: string
   workingHours: WorkingHour[]
   defaultOpen?: boolean
 }
 
-function seedHours(workingHours: WorkingHour[]): HourState[] {
-  const byDay = new Map(workingHours.map((h) => [h.dayOfWeek, h]))
-
+function seedDays(workingHours: WorkingHour[]): DayState[] {
   return ALL_DAYS.map((day) => {
-    const existing = byDay.get(day.dayOfWeek)
-    if (existing) {
-      return {
-        ...existing,
-        endTime: toTimeInput(existing.endTime),
-        startTime: toTimeInput(existing.startTime),
-      }
-    }
-    return {
-      dayName: day.dayName,
-      dayOfWeek: day.dayOfWeek,
-      endTime: "18:00",
-      id: `day-${day.dayOfWeek}`,
-      isActive: false,
-      startTime: "09:00",
-    }
+    const intervals = workingHours
+      .filter((h) => h.dayOfWeek === day.dayOfWeek && h.isActive)
+      .map((h) => ({
+        endTime: toTimeInput(h.endTime),
+        startTime: toTimeInput(h.startTime),
+      }))
+      .toSorted((a, b) => a.startTime.localeCompare(b.startTime))
+
+    return { ...day, intervals }
+  })
+}
+
+function findInvalidDay(days: DayState[]): DayState | undefined {
+  return days.find((day) => {
+    const sorted = day.intervals.toSorted((a, b) =>
+      a.startTime.localeCompare(b.startTime)
+    )
+    return sorted.some(
+      (iv, i) =>
+        iv.startTime >= iv.endTime ||
+        (i > 0 && iv.startTime < sorted[i - 1].endTime)
+    )
   })
 }
 
@@ -78,30 +86,70 @@ export function UpdateWorkingHoursDialog({
   defaultOpen = false,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen)
-  const [hours, setHours] = useState<HourState[]>(() =>
-    defaultOpen ? seedHours(workingHours) : []
+  const [days, setDays] = useState<DayState[]>(() =>
+    defaultOpen ? seedDays(workingHours) : []
   )
-  const updateHour = (index: number, changes: Partial<HourState>) => {
-    setHours((prev) =>
-      prev.map((h, i) => (i === index ? { ...h, ...changes } : h))
+
+  const updateDay = (dayOfWeek: number, changes: Partial<DayState>) => {
+    setDays((prev) =>
+      prev.map((d) => (d.dayOfWeek === dayOfWeek ? { ...d, ...changes } : d))
     )
+  }
+
+  const updateInterval = (
+    day: DayState,
+    index: number,
+    changes: Partial<WorkingHoursInterval>
+  ) => {
+    updateDay(day.dayOfWeek, {
+      intervals: day.intervals.map((iv, i) =>
+        i === index ? { ...iv, ...changes } : iv
+      ),
+    })
+  }
+
+  const addInterval = (day: DayState) => {
+    const last = day.intervals.at(-1)
+    const next = last
+      ? { endTime: "18:00", startTime: last.endTime }
+      : DEFAULT_INTERVAL
+    updateDay(day.dayOfWeek, { intervals: [...day.intervals, next] })
+  }
+
+  const removeInterval = (day: DayState, index: number) => {
+    updateDay(day.dayOfWeek, {
+      intervals: day.intervals.filter((_, i) => i !== index),
+    })
   }
 
   const queryClient = useQueryClient()
   const { mutate: saveHours, isPending } = useMutation({
-    mutationFn: () =>
-      Promise.all(
-        hours.map((h) =>
-          api.resources.updateWorkingHours(resourceId, {
-            dayOfWeek: h.dayOfWeek,
-            endTime: h.endTime,
-            isActive: h.isActive,
-            startTime: h.startTime,
-          })
+    mutationFn: () => {
+      const invalid = findInvalidDay(days)
+      if (invalid) {
+        return Promise.reject(
+          new Error(
+            `Los intervalos de ${invalid.dayName.toLowerCase()} se superponen o están mal ordenados`
+          )
         )
-      ),
-    onError: () => {
-      toast.error("Error al actualizar el horario. Intenta de nuevo.")
+      }
+      return api.resources.updateWorkingHours(resourceId, {
+        days: days
+          .filter((d) => d.intervals.length > 0)
+          .map((d) => ({
+            dayOfWeek: d.dayOfWeek,
+            intervals: d.intervals.toSorted((a, b) =>
+              a.startTime.localeCompare(b.startTime)
+            ),
+          })),
+      })
+    },
+    onError: (error) => {
+      toast.error(
+        error instanceof Error && error.message.startsWith("Los intervalos")
+          ? error.message
+          : "Error al actualizar el horario. Intenta de nuevo."
+      )
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries(listResourcesQuery)
@@ -112,7 +160,7 @@ export function UpdateWorkingHoursDialog({
   })
 
   const handleOpenChange = (next: boolean) => {
-    setHours(next ? seedHours(workingHours) : [])
+    setDays(next ? seedDays(workingHours) : [])
     setOpen(next)
   }
 
@@ -122,76 +170,92 @@ export function UpdateWorkingHoursDialog({
         Editar
       </DialogTrigger>
 
-      <DialogContent>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar horario semanal</DialogTitle>
           <DialogDescription>
-            Activa los días y define el horario de atención para cada uno.
+            Activa los días y define los horarios de atención. Agrega varios
+            intervalos en un día para registrar descansos (p. ej. almuerzo).
           </DialogDescription>
         </DialogHeader>
 
         <ul aria-label="Horario semanal" className="space-y-3">
-          {hours.map((hour, index) => (
-            <li key={hour.id} className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id={`active-${hour.id}`}
-                  checked={hour.isActive}
-                  onCheckedChange={(checked) =>
-                    updateHour(index, { isActive: Boolean(checked) })
-                  }
-                />
-                <label
-                  htmlFor={`active-${hour.id}`}
-                  className="cursor-pointer text-sm font-medium capitalize"
-                >
-                  {hour.dayName.toLowerCase()}
-                </label>
-              </div>
+          {days.map((day) => {
+            const isActive = day.intervals.length > 0
 
-              <div
-                className={cn(
-                  "ml-6 grid grid-cols-2 gap-2 transition-opacity",
-                  !hour.isActive && "pointer-events-none opacity-40"
-                )}
-              >
-                <div className="space-y-1">
-                  <Label
-                    htmlFor={`start-${hour.id}`}
-                    className="text-xs text-muted-foreground"
-                  >
-                    Apertura
-                  </Label>
-                  <Input
-                    id={`start-${hour.id}`}
-                    type="time"
-                    value={hour.startTime}
-                    disabled={!hour.isActive}
-                    onChange={(e) =>
-                      updateHour(index, { startTime: e.target.value })
+            return (
+              <li key={day.dayOfWeek} className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={`active-${day.dayOfWeek}`}
+                    checked={isActive}
+                    onCheckedChange={(checked) =>
+                      updateDay(day.dayOfWeek, {
+                        intervals: checked ? [DEFAULT_INTERVAL] : [],
+                      })
                     }
                   />
-                </div>
-                <div className="space-y-1">
-                  <Label
-                    htmlFor={`end-${hour.id}`}
-                    className="text-xs text-muted-foreground"
+                  <label
+                    htmlFor={`active-${day.dayOfWeek}`}
+                    className="cursor-pointer text-sm font-medium capitalize"
                   >
-                    Cierre
-                  </Label>
-                  <Input
-                    id={`end-${hour.id}`}
-                    type="time"
-                    value={hour.endTime}
-                    disabled={!hour.isActive}
-                    onChange={(e) =>
-                      updateHour(index, { endTime: e.target.value })
-                    }
-                  />
+                    {day.dayName.toLowerCase()}
+                  </label>
                 </div>
-              </div>
-            </li>
-          ))}
+
+                <div
+                  className={cn(
+                    "ml-6 space-y-2 transition-opacity",
+                    !isActive && "hidden"
+                  )}
+                >
+                  {day.intervals.map((interval, index) => (
+                    <div
+                      key={`${day.dayOfWeek}-${index}`}
+                      className="flex items-center gap-2"
+                    >
+                      <Input
+                        aria-label={`Apertura ${day.dayName} intervalo ${index + 1}`}
+                        type="time"
+                        value={interval.startTime}
+                        onChange={(e) =>
+                          updateInterval(day, index, {
+                            startTime: e.target.value,
+                          })
+                        }
+                      />
+                      <span className="text-xs text-muted-foreground">–</span>
+                      <Input
+                        aria-label={`Cierre ${day.dayName} intervalo ${index + 1}`}
+                        type="time"
+                        value={interval.endTime}
+                        onChange={(e) =>
+                          updateInterval(day, index, {
+                            endTime: e.target.value,
+                          })
+                        }
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Quitar intervalo ${index + 1} de ${day.dayName}`}
+                        onClick={() => removeInterval(day, index)}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addInterval(day)}
+                  >
+                    Agregar intervalo
+                  </Button>
+                </div>
+              </li>
+            )
+          })}
         </ul>
 
         <DialogFooter showCloseButton>

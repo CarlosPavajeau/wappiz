@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"time"
+	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
@@ -39,6 +40,7 @@ type Response struct {
 type Handler struct {
 	DB          db.Database
 	Environment string
+	SlotFinder  slotfinder.SlotFinderService
 }
 
 func (h *Handler) Method() string { return http.MethodPost }
@@ -146,6 +148,31 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	startsAt := req.StartsAt
 	endsAt := startsAt.Add(time.Duration(svc.DurationMinutes) * time.Minute)
+
+	tenant, err := db.Query.FindTenantByID(ctx, h.DB.Primary(), tenantID)
+	if err != nil {
+		return fault.Wrap(err, fault.Internal("find tenant by id"))
+	}
+	loc, err := time.LoadLocation(tenant.Timezone)
+	if err != nil {
+		return fault.Wrap(err, fault.Internal("load tenant timezone"))
+	}
+
+	bookable, err := h.SlotFinder.IsBookable(ctx, slotfinder.IsBookableParams{
+		ResourceID: req.ResourceID,
+		StartsAt:   startsAt.In(loc),
+		EndsAt:     endsAt.In(loc),
+	})
+	if err != nil {
+		return fault.Wrap(err, fault.Internal("check resource schedule"))
+	}
+	if !bookable {
+		return fault.New("outside working hours",
+			fault.Code(codes.AppErrorsOutsideHours),
+			fault.Internal("appointment falls outside resource bookable windows"),
+			fault.Public("El recurso no está disponible en ese horario"),
+		)
+	}
 
 	hasCustomerOverlap, err := db.Query.HasCustomerOverlap(ctx, h.DB.Primary(), db.HasCustomerOverlapParams{
 		TenantID:   tenantID,

@@ -25,16 +25,25 @@ function formatTime(time: string) {
   return timeFormatter.format(date)
 }
 
+function formatOverrideDates(override: ScheduleOverride) {
+  const start = parseISO(override.startDate)
+  if (override.startDate === override.endDate) {
+    return format(start, "d MMM yyyy", { locale: es })
+  }
+  const end = parseISO(override.endDate)
+  return `${format(start, "d MMM", { locale: es })} – ${format(end, "d MMM yyyy", { locale: es })}`
+}
+
 function formatOverrideTime(override: ScheduleOverride) {
-  if (override.isDayOff) {
-    return "Cerrado"
-  }
+  const hasTimes = override.startTime && override.endTime
+  const range = hasTimes
+    ? `${formatTime(override.startTime ?? "")} – ${formatTime(override.endTime ?? "")}`
+    : null
 
-  if (override.startTime && override.endTime) {
-    return `${formatTime(override.startTime)} – ${formatTime(override.endTime)}`
+  if (override.kind === "time_off") {
+    return range ? `Bloqueado ${range}` : "Cerrado"
   }
-
-  return null
+  return range ? `Horario: ${range}` : null
 }
 
 type Props = {
@@ -43,7 +52,9 @@ type Props = {
 }
 
 export function ScheduleOverridesCard({ resourceId, overrides }: Props) {
-  const sorted = [...overrides].toSorted((a, b) => a.date.localeCompare(b.date))
+  const sorted = [...overrides].toSorted((a, b) =>
+    a.startDate.localeCompare(b.startDate)
+  )
 
   return (
     <Card>
@@ -67,9 +78,7 @@ export function ScheduleOverridesCard({ resourceId, overrides }: Props) {
               >
                 <div className="min-w-0 space-y-0.5">
                   <p className="font-medium capitalize">
-                    {format(parseISO(override.date), "d MMM yyyy", {
-                      locale: es,
-                    })}
+                    {formatOverrideDates(override)}
                   </p>
                   {override.reason && (
                     <p className="truncate text-xs text-muted-foreground">

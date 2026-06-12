@@ -103,6 +103,48 @@ func (ns NullFlowFieldType) Value() (driver.Value, error) {
 	return string(ns.FlowFieldType), nil
 }
 
+type ScheduleOverrideKind string
+
+const (
+	ScheduleOverrideKindTimeOff     ScheduleOverrideKind = "time_off"
+	ScheduleOverrideKindCustomHours ScheduleOverrideKind = "custom_hours"
+)
+
+func (e *ScheduleOverrideKind) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ScheduleOverrideKind(s)
+	case string:
+		*e = ScheduleOverrideKind(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ScheduleOverrideKind: %T", src)
+	}
+	return nil
+}
+
+type NullScheduleOverrideKind struct {
+	ScheduleOverrideKind ScheduleOverrideKind
+	Valid                bool // Valid is true if ScheduleOverrideKind is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullScheduleOverrideKind) Scan(value interface{}) error {
+	if value == nil {
+		ns.ScheduleOverrideKind, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ScheduleOverrideKind.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullScheduleOverrideKind) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ScheduleOverrideKind), nil
+}
+
 type WhatsappActivationStatus string
 
 const (
@@ -323,14 +365,15 @@ type ResourceService struct {
 }
 
 type ScheduleOverride struct {
-	ID         uuid.UUID      `db:"id"`
-	ResourceID uuid.UUID      `db:"resource_id"`
-	Date       time.Time      `db:"date"`
-	IsDayOff   bool           `db:"is_day_off"`
-	StartTime  sql.NullString `db:"start_time"`
-	EndTime    sql.NullString `db:"end_time"`
-	Reason     sql.NullString `db:"reason"`
-	CreatedAt  time.Time      `db:"created_at"`
+	ID         uuid.UUID            `db:"id"`
+	ResourceID uuid.UUID            `db:"resource_id"`
+	StartDate  time.Time            `db:"start_date"`
+	EndDate    time.Time            `db:"end_date"`
+	Kind       ScheduleOverrideKind `db:"kind"`
+	StartTime  sql.NullString       `db:"start_time"`
+	EndTime    sql.NullString       `db:"end_time"`
+	Reason     sql.NullString       `db:"reason"`
+	CreatedAt  time.Time            `db:"created_at"`
 }
 
 type Service struct {

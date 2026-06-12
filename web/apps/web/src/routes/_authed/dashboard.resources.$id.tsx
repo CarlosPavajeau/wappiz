@@ -23,7 +23,7 @@ import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 import {
   getResourceQuery,
-  listResourceOverviewsQuery,
+  listResourceOverridesQuery,
   listResourceServicesQuery,
 } from "@/queries/resources"
 import { listServicesQuery } from "@/queries/services"
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/_authed/dashboard/resources/$id")({
       queryClient.ensureQueryData(getResourceQuery(id)),
       queryClient.ensureQueryData(listResourceServicesQuery(id)),
       queryClient.ensureQueryData(listServicesQuery),
-      queryClient.ensureQueryData(listResourceOverviewsQuery(id)),
+      queryClient.ensureQueryData(listResourceOverridesQuery(id)),
     ])
 
     return {
@@ -69,7 +69,7 @@ function RouteComponent() {
   const { data: resource } = useSuspenseQuery(getResourceQuery(id))
   const { data: services } = useSuspenseQuery(listResourceServicesQuery(id))
   const { data: allServices } = useSuspenseQuery(listServicesQuery)
-  const { data: overrides } = useSuspenseQuery(listResourceOverviewsQuery(id))
+  const { data: overrides } = useSuspenseQuery(listResourceOverridesQuery(id))
 
   const linkedServiceIds = services.map((s) => s.id)
 

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"wappiz/internal/services/ratelimit"
+	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/services/statemachine"
 	"wappiz/internal/services/webhookprocessor"
 	"wappiz/pkg/crypto"
@@ -29,6 +30,10 @@ type Services struct {
 
 	// StateMachine handles conversation state machine for WhatsApp booking flows.
 	StateMachine statemachine.StateMachineService
+
+	// SlotFinder resolves bookable windows and validates appointment times
+	// against working hours and schedule overrides.
+	SlotFinder slotfinder.SlotFinderService
 
 	// WebhookProcessor handles buffered processing of incoming WhatsApp webhook payloads.
 	WebhookProcessor webhookprocessor.Service

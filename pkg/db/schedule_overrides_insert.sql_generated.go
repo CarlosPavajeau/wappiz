@@ -17,8 +17,9 @@ const insertScheduleOverride = `-- name: InsertScheduleOverride :exec
 INSERT INTO schedule_overrides(
     id,
     resource_id,
-    date,
-    is_day_off,
+    start_date,
+    end_date,
+    kind,
     start_time,
     end_time,
     reason
@@ -29,22 +30,20 @@ INSERT INTO schedule_overrides(
     $4,
     $5,
     $6,
-    $7
-) ON CONFLICT (resource_id, date) DO UPDATE
-    SET is_day_off = EXCLUDED.is_day_off,
-        start_time = EXCLUDED.start_time,
-        end_time   = EXCLUDED.end_time,
-        reason     = EXCLUDED.reason
+    $7,
+    $8
+)
 `
 
 type InsertScheduleOverrideParams struct {
-	ID         uuid.UUID      `db:"id"`
-	ResourceID uuid.UUID      `db:"resource_id"`
-	Date       time.Time      `db:"date"`
-	IsDayOff   bool           `db:"is_day_off"`
-	StartTime  sql.NullString `db:"start_time"`
-	EndTime    sql.NullString `db:"end_time"`
-	Reason     sql.NullString `db:"reason"`
+	ID         uuid.UUID            `db:"id"`
+	ResourceID uuid.UUID            `db:"resource_id"`
+	StartDate  time.Time            `db:"start_date"`
+	EndDate    time.Time            `db:"end_date"`
+	Kind       ScheduleOverrideKind `db:"kind"`
+	StartTime  sql.NullString       `db:"start_time"`
+	EndTime    sql.NullString       `db:"end_time"`
+	Reason     sql.NullString       `db:"reason"`
 }
 
 // InsertScheduleOverride
@@ -52,8 +51,9 @@ type InsertScheduleOverrideParams struct {
 //	INSERT INTO schedule_overrides(
 //	    id,
 //	    resource_id,
-//	    date,
-//	    is_day_off,
+//	    start_date,
+//	    end_date,
+//	    kind,
 //	    start_time,
 //	    end_time,
 //	    reason
@@ -64,18 +64,16 @@ type InsertScheduleOverrideParams struct {
 //	    $4,
 //	    $5,
 //	    $6,
-//	    $7
-//	) ON CONFLICT (resource_id, date) DO UPDATE
-//	    SET is_day_off = EXCLUDED.is_day_off,
-//	        start_time = EXCLUDED.start_time,
-//	        end_time   = EXCLUDED.end_time,
-//	        reason     = EXCLUDED.reason
+//	    $7,
+//	    $8
+//	)
 func (q *Queries) InsertScheduleOverride(ctx context.Context, db DBTX, arg InsertScheduleOverrideParams) error {
 	_, err := db.ExecContext(ctx, insertScheduleOverride,
 		arg.ID,
 		arg.ResourceID,
-		arg.Date,
-		arg.IsDayOff,
+		arg.StartDate,
+		arg.EndDate,
+		arg.Kind,
 		arg.StartTime,
 		arg.EndTime,
 		arg.Reason,

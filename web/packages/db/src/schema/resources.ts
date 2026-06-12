@@ -3,10 +3,10 @@ import {
   boolean,
   check,
   integer,
+  pgEnum,
   pgTable,
   smallint,
   timestamp,
-  unique,
   uuid,
   varchar,
   date,
@@ -48,16 +48,18 @@ export const workingHours = pgTable(
       "btree",
       table.resourceId.asc().nullsLast()
     ),
-    unique("uq_working_hours_resource_day").on(
-      table.resourceId,
-      table.dayOfWeek
-    ),
     check(
       "working_hours_day_of_week_check",
       sql`((day_of_week >= 0) AND (day_of_week <= 6))`
     ),
+    check("working_hours_time_check", sql`start_time < end_time`),
   ]
 )
+
+export const scheduleOverrideKind = pgEnum("schedule_override_kind", [
+  "time_off",
+  "custom_hours",
+])
 
 export const scheduleOverrides = pgTable(
   "schedule_overrides",
@@ -66,8 +68,9 @@ export const scheduleOverrides = pgTable(
     resourceId: uuid("resource_id")
       .notNull()
       .references(() => resources.id, { onDelete: "cascade" }),
-    date: date().notNull(),
-    isDayOff: boolean("is_day_off").default(false).notNull(),
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    kind: scheduleOverrideKind().notNull(),
     startTime: time("start_time"),
     endTime: time("end_time"),
     reason: varchar({ length: 255 }),
@@ -76,9 +79,24 @@ export const scheduleOverrides = pgTable(
       .notNull(),
   },
   (table) => [
-    unique("uq_schedule_overrides_resource_date").on(
-      table.resourceId,
-      table.date
+    index("idx_schedule_overrides_resource_dates").using(
+      "btree",
+      table.resourceId.asc().nullsLast(),
+      table.startDate.asc().nullsLast(),
+      table.endDate.asc().nullsLast()
+    ),
+    check("schedule_overrides_date_range_check", sql`end_date >= start_date`),
+    check(
+      "schedule_overrides_times_paired_check",
+      sql`(start_time IS NULL) = (end_time IS NULL)`
+    ),
+    check(
+      "schedule_overrides_custom_hours_times_check",
+      sql`kind <> 'custom_hours' OR start_time IS NOT NULL`
+    ),
+    check(
+      "schedule_overrides_time_order_check",
+      sql`start_time IS NULL OR start_time < end_time`
     ),
   ]
 )

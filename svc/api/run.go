@@ -199,6 +199,7 @@ func Run(ctx context.Context, cfg Config) error {
 		Mailer:           mailerSvc,
 		Whatsapp:         waSvc,
 		StateMachine:     stateMachineSvc,
+		SlotFinder:       slotFinder,
 		WebhookProcessor: webhookProcessorSvc,
 		AdminEmail:       cfg.AdminEmail,
 		AppSecret:        cfg.WhatsappAppSecret,

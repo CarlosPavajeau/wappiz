@@ -100,7 +100,7 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &services_update.Handler{DB: svc.Database})
 
 	// v1/appointments
-	RegisterRoute(auth, &appointments_create.Handler{DB: svc.Database, Environment: svc.Environment})
+	RegisterRoute(auth, &appointments_create.Handler{DB: svc.Database, Environment: svc.Environment, SlotFinder: svc.SlotFinder})
 	RegisterRoute(auth, &appointments_search.Handler{DB: svc.Database})
 	RegisterRoute(auth, &appointments_get_status_history.Handler{DB: svc.Database})
 	RegisterRoute(auth, &appointments_update_status.Handler{DB: svc.Database, Whatsapp: svc.Whatsapp})
@@ -129,7 +129,7 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &resources_upsert_working_hours.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_delete_working_hours.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_list_overrides.Handler{DB: svc.Database})
-	RegisterRoute(auth, &resources_create_override.Handler{DB: svc.Database})
+	RegisterRoute(auth, &resources_create_override.Handler{DB: svc.Database, SlotFinder: svc.SlotFinder})
 	RegisterRoute(auth, &resources_delete_override.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_assign_services.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_get_services.Handler{DB: svc.Database})

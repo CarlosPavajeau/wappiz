@@ -1,13 +1,15 @@
 -- name: FindResourceScheduleOverrides :many
 SELECT id,
        resource_id,
-       date,
-       is_day_off,
+       start_date,
+       end_date,
+       kind,
        start_time,
        end_time,
        COALESCE(reason, '') as reason,
        created_at
 FROM schedule_overrides
-WHERE resource_id = $1
-  AND date BETWEEN $2 AND $3
-ORDER BY date;
+WHERE resource_id = sqlc.arg(resource_id)
+  AND start_date <= sqlc.arg(to_date)
+  AND end_date >= sqlc.arg(from_date)
+ORDER BY start_date;

@@ -5,8 +5,8 @@ CREATE TABLE "working_hours" (
 	"start_time" time NOT NULL,
 	"end_time" time NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
-	CONSTRAINT "uq_working_hours_resource_day" UNIQUE("resource_id","day_of_week"),
-	CONSTRAINT "working_hours_day_of_week_check" CHECK (((day_of_week >= 0) AND (day_of_week <= 6)))
+	CONSTRAINT "working_hours_day_of_week_check" CHECK (((day_of_week >= 0) AND (day_of_week <= 6))),
+	CONSTRAINT "working_hours_time_check" CHECK (start_time < end_time)
 );
 
 CREATE INDEX "idx_working_hours_resource_id" ON "working_hours" ("resource_id");

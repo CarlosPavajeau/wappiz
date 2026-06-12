@@ -27,28 +27,52 @@ export type AssignServicesRequest = {
   serviceIds: string[]
 }
 
-export type UpdateWorkingHoursRequest = {
-  dayOfWeek: number
+export type WorkingHoursInterval = {
   startTime: string
   endTime: string
-  isActive: boolean
 }
+
+export type WorkingHoursDay = {
+  dayOfWeek: number
+  intervals: WorkingHoursInterval[]
+}
+
+export type UpdateWorkingHoursRequest = {
+  days: WorkingHoursDay[]
+}
+
+export type ScheduleOverrideKind = "time_off" | "custom_hours"
 
 export type ScheduleOverride = {
   id: string
-  date: string
-  isDayOff: boolean
+  kind: ScheduleOverrideKind
+  startDate: string
+  endDate: string
   startTime?: string
   endTime?: string
   reason: string
 }
 
 export type CreateScheduleOverrideRequest = {
-  date: string
-  isDayOff: boolean
+  kind: ScheduleOverrideKind
+  startDate: string
+  endDate: string
   startTime?: string
   endTime?: string
   reason: string
+}
+
+export type OverrideConflict = {
+  appointmentId: string
+  startsAt: string
+  endsAt: string
+  customerName: string
+  serviceName: string
+}
+
+export type CreateScheduleOverrideResponse = {
+  id: string
+  conflicts: OverrideConflict[]
 }
 
 export type DeleteScheduleOverrideRequest = {
