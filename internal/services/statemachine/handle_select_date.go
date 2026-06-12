@@ -71,5 +71,10 @@ func (s *service) handleSelectDate(ctx context.Context, msg IncomingMessage, ses
 		return fault.Wrap(err, fault.Internal("update session"))
 	}
 
-	return s.sendSlotList(ctx, msg, result.Slots)
+	body := defaultSlotListBody
+	if result.DayUnavailable {
+		body = "Ese día no hay disponibilidad 📅 Estas son las opciones más cercanas:"
+	}
+
+	return s.sendSlotList(ctx, msg, result.Slots, body)
 }

@@ -48,5 +48,5 @@ func (s *service) handleOverlapOnConfirm(
 		return fault.Wrap(err, fault.Internal("update session"))
 	}
 
-	return s.sendSlotList(ctx, msg, filteredSuggestions)
+	return s.sendSlotList(ctx, msg, filteredSuggestions, defaultSlotListBody)
 }

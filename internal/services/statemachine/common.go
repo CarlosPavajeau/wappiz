@@ -47,11 +47,11 @@ func buildErrorMessage(err error, input string, suggestions []slotfinder.TimeSlo
 	case codes.AppErrorsDateInPast:
 		return "Esa fecha ya pasó 📅 Por favor elige una fecha futura."
 	case codes.AppErrorsDayOff:
-		return "Ese día no atendemos. Trabajamos de *lunes a sábado*.\nPor favor elige otro día."
+		return "No encontramos disponibilidad para esa fecha ni para los días cercanos 😔\n\nPor favor intenta con una fecha más adelante."
 	case codes.AppErrorsOutsideHours:
-		return "Ese horario está fuera de nuestro horario de atención (*9:00 AM – 7:00 PM*)."
+		return "Ese horario está fuera del horario de atención de ese día ⏰\n\nEscribe otra hora o fecha y te muestro las opciones disponibles."
 	case codes.AppErrorsPlanLimitReached:
-		return "Lo sentimos, esta barbería ha alcanzado su límite de citas del mes 😔"
+		return "Lo sentimos, por ahora no es posible agendar más citas por este medio 😔\nPor favor contacta directamente al negocio."
 	case codes.AppErrorsAppointmentOverlap:
 		if len(suggestions) == 0 {
 			return "Ese horario ya no está disponible 😔 Por favor intenta con otra fecha."

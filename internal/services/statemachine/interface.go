@@ -38,6 +38,10 @@ type DateValidationResult struct {
 	ResourceID *uuid.UUID
 	Slots      []slotfinder.TimeSlot // empty if is available
 	SlotTaken  bool
+	// DayUnavailable marks that the requested day had no bookable windows at
+	// all (day off, vacation or fully blocked); Slots then holds the nearest
+	// alternatives on the following days.
+	DayUnavailable bool
 }
 
 type SessionStep string

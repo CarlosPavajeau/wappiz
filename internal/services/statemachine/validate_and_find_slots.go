@@ -55,7 +55,33 @@ func (s *service) validateAndFindSlots(ctx context.Context, input, timezone stri
 		}
 
 		if len(slots) == 0 {
-			return nil, fault.New("day off", fault.Code(codes.AppErrorsDayOff))
+			// The requested day is closed (day off, vacation or fully
+			// blocked). Offer the nearest slots on the following days instead
+			// of a dead end; fall back to the day-off message only when the
+			// next days have nothing either.
+			suggestions, err := s.slotFinder.GetSuggestedSlots(ctx, slotfinder.GetSuggestedSlotsParams{
+				ResourceID: *sessionData.ResourceID,
+				From:       t,
+				Service: slotfinder.ServiceParam{
+					DurationMinutes: svc.DurationMinutes,
+					BufferMinutes:   svc.BufferMinutes,
+				},
+			})
+			if err != nil {
+				return nil, fault.Wrap(err, fault.Internal("get suggested slots for closed day"))
+			}
+
+			filtered := s.filterSlotsByCustomerAvailability(ctx, session.TenantID, session.CustomerID, suggestions)
+			if len(filtered) == 0 {
+				return nil, fault.New("day off", fault.Code(codes.AppErrorsDayOff))
+			}
+
+			return &DateValidationResult{
+				StartsAt:       t,
+				SlotTaken:      true,
+				DayUnavailable: true,
+				Slots:          filtered,
+			}, nil
 		}
 
 		if !customerConflict {

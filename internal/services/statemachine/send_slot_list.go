@@ -6,7 +6,9 @@ import (
 	"wappiz/pkg/whatsapp"
 )
 
-func (s *service) sendSlotList(ctx context.Context, msg IncomingMessage, slots []slotfinder.TimeSlot) error {
+const defaultSlotListBody = "Elige un horario disponible 🕐"
+
+func (s *service) sendSlotList(ctx context.Context, msg IncomingMessage, slots []slotfinder.TimeSlot, body string) error {
 	var rows []whatsapp.ListRow
 	for _, slot := range slots {
 		rows = append(rows, whatsapp.ListRow{
@@ -23,6 +25,5 @@ func (s *service) sendSlotList(ctx context.Context, msg IncomingMessage, slots [
 		},
 	}
 
-	return s.whatsapp.SendList(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
-		"Elige un horario disponible 🕐", sections)
+	return s.whatsapp.SendList(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, body, sections)
 }
