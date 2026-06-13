@@ -1,5 +1,9 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import { PlusSignIcon, Refresh03Icon } from "@hugeicons/core-free-icons"
+import {
+  Alert02Icon,
+  PlusSignIcon,
+  Refresh03Icon,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { ApiError } from "@wappiz/api-client"
@@ -12,6 +16,7 @@ import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -345,16 +350,15 @@ export function ScheduleAppointmentDialog({
         </form>
 
         {createAppointmentError !== null && (
-          <div
-            role="alert"
-            className="rounded-md border border-destructive/25 bg-destructive/5 px-3 py-2"
-          >
-            <p className="text-xs text-destructive">
+          <Alert variant="destructive">
+            <HugeiconsIcon icon={Alert02Icon} strokeWidth={2} />
+            <AlertTitle>No se pudo crear la cita</AlertTitle>
+            <AlertDescription>
               {createAppointmentError instanceof ApiError
                 ? createAppointmentError.message
-                : "No se pudo crear la cita. Revisa el horario e intenta de nuevo."}
-            </p>
-          </div>
+                : "Revisa el horario e intenta de nuevo."}
+            </AlertDescription>
+          </Alert>
         )}
 
         <DialogFooter showCloseButton>
