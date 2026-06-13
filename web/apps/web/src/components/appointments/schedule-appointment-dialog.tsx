@@ -91,17 +91,18 @@ export function ScheduleAppointmentDialog({
   })
   const customersLoaded = customers !== undefined && !isCustomersError
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = useForm<ScheduleAppointmentFormValues>({
-    defaultValues: defaultValuesFor(defaultDate),
-    resolver: arktypeResolver(scheduleAppointmentSchema),
-  })
+  const { control, handleSubmit, reset } =
+    useForm<ScheduleAppointmentFormValues>({
+      defaultValues: defaultValuesFor(defaultDate),
+      resolver: arktypeResolver(scheduleAppointmentSchema),
+    })
 
-  const { mutateAsync: createAppointment } = useMutation({
+  const {
+    error: createAppointmentError,
+    isPending: isCreatingAppointment,
+    mutate: createAppointment,
+    reset: resetCreateAppointment,
+  } = useMutation({
     mutationFn: (values: ScheduleAppointmentFormValues) => {
       const startsAt = new Date(`${values.date}T${values.time}:00`)
       if (!Number.isFinite(startsAt.getTime())) {
@@ -115,13 +116,6 @@ export function ScheduleAppointmentDialog({
         startsAt: startsAt.toISOString(),
       })
     },
-    onError: (error) => {
-      toast.error(
-        error instanceof ApiError
-          ? error.message
-          : "No se pudo crear la cita. Revisa el horario e intenta de nuevo."
-      )
-    },
     onSuccess: () => {
       setOpen(false)
       toast.success("Cita creada correctamente")
@@ -130,12 +124,11 @@ export function ScheduleAppointmentDialog({
     },
   })
 
-  const onSubmit = handleSubmit(
-    async (values) => await createAppointment(values)
-  )
+  const onSubmit = handleSubmit((values) => createAppointment(values))
 
   const handleOpenChange = (next: boolean) => {
     reset(defaultValuesFor(defaultDate))
+    resetCreateAppointment()
     setOpen(next)
   }
 
@@ -351,13 +344,26 @@ export function ScheduleAppointmentDialog({
           </FieldGroup>
         </form>
 
+        {createAppointmentError !== null && (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/25 bg-destructive/5 px-3 py-2"
+          >
+            <p className="text-xs text-destructive">
+              {createAppointmentError instanceof ApiError
+                ? createAppointmentError.message
+                : "No se pudo crear la cita. Revisa el horario e intenta de nuevo."}
+            </p>
+          </div>
+        )}
+
         <DialogFooter showCloseButton>
           <Button
             type="submit"
             form="schedule-appointment-form"
-            disabled={isSubmitting || !customersLoaded}
+            disabled={isCreatingAppointment || !customersLoaded}
           >
-            {isSubmitting && <Spinner />}
+            {isCreatingAppointment && <Spinner />}
             Agendar
           </Button>
         </DialogFooter>
