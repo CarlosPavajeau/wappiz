@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
@@ -55,6 +56,10 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 		return nil
 	}
 
+	if msg.InteractiveID != nil && strings.HasPrefix(*msg.InteractiveID, "reminder_") {
+		return s.handleReminderAction(ctx, msg, customer)
+	}
+
 	session, err := db.Query.FindCustomerActiveConversationSession(ctx, s.db.Primary(), db.FindCustomerActiveConversationSessionParams{
 		TenantID:   msg.TenantID,
 		CustomerID: customer.ID,
@@ -88,6 +93,9 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 
 	case StepConfirm:
 		return s.handleConfirm(ctx, msg, session, customer)
+
+	case StepReminderAction:
+		return s.handleReminderAction(ctx, msg, customer)
 
 	default:
 		logger.Warn("[scheduling] unknown step "+session.Step+" resetting to entry",

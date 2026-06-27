@@ -48,6 +48,9 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 		startsAt := *sessionData.StartsAt
 		endsAt := startsAt.Add(time.Duration(svc.DurationMinutes) * time.Minute)
 		appointmentID := uuid.New()
+		if sessionData.RescheduleAppointmentID != nil {
+			appointmentID = *sessionData.RescheduleAppointmentID
+		}
 
 		hasCustomerOverlap, err := s.hasCustomerOverlap(ctx, tenant.ID, session.CustomerID, startsAt, endsAt)
 		if err != nil {
@@ -81,35 +84,45 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return s.handleOverlapOnConfirm(ctx, msg, session, sessionData, svc)
 		}
 
-		evt, evtErr := events.NewAppointmentCreated(events.AppointmentCreatedPayload{
-			AppointmentID: appointmentID,
-			TenantID:      tenant.ID,
-			CustomerID:    session.CustomerID,
-			ServiceID:     *sessionData.ServiceID,
-			ResourceID:    *sessionData.ResourceID,
-			StartsAt:      startsAt,
-			EndsAt:        endsAt,
-		})
-		if evtErr != nil {
-			return fault.Wrap(evtErr, fault.Internal("build appointment.created event"))
-		}
-
 		err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
-			if err := db.Query.InsertAppointment(ctx, txx, db.InsertAppointmentParams{
-				ID:             appointmentID,
-				TenantID:       tenant.ID,
-				ResourceID:     *sessionData.ResourceID,
-				ServiceID:      *sessionData.ServiceID,
-				CustomerID:     session.CustomerID,
-				StartsAt:       startsAt,
-				EndsAt:         endsAt,
-				PriceAtBooking: svc.Price,
-			}); err != nil {
-				return err
+			if sessionData.RescheduleAppointmentID == nil {
+				if err := db.Query.InsertAppointment(ctx, txx, db.InsertAppointmentParams{
+					ID:             appointmentID,
+					TenantID:       tenant.ID,
+					ResourceID:     *sessionData.ResourceID,
+					ServiceID:      *sessionData.ServiceID,
+					CustomerID:     session.CustomerID,
+					StartsAt:       startsAt,
+					EndsAt:         endsAt,
+					PriceAtBooking: svc.Price,
+				}); err != nil {
+					return err
+				}
+			} else {
+				updated, err := db.Query.RescheduleAppointment(ctx, txx, db.RescheduleAppointmentParams{
+					StartsAt:   startsAt,
+					EndsAt:     endsAt,
+					ID:         appointmentID,
+					TenantID:   tenant.ID,
+					CustomerID: session.CustomerID,
+				})
+				if err != nil {
+					return err
+				}
+				if updated == 0 {
+					return fault.New("appointment not rescheduled",
+						fault.Internal("confirmed appointment not found for reschedule"),
+						fault.Public("No pudimos reagendar esta cita. Por favor intenta de nuevo."),
+					)
+				}
 			}
 
 			if err := recordFlowFieldResponses(ctx, txx, appointmentID, sessionData.FlowFieldAnswers); err != nil {
 				return err
+			}
+
+			if sessionData.RescheduleAppointmentID != nil {
+				return nil
 			}
 
 			updated, err := db.Query.IncrementTenantAppointmentCount(ctx, txx, db.IncrementTenantAppointmentCountParams{
@@ -126,6 +139,19 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 					fault.Code(codes.AppErrorsPlanLimitReached),
 					fault.Internal("plan limit reached"), fault.Public("Límite de citas alcanzado"),
 				)
+			}
+
+			evt, evtErr := events.NewAppointmentCreated(events.AppointmentCreatedPayload{
+				AppointmentID: appointmentID,
+				TenantID:      tenant.ID,
+				CustomerID:    session.CustomerID,
+				ServiceID:     *sessionData.ServiceID,
+				ResourceID:    *sessionData.ResourceID,
+				StartsAt:      startsAt,
+				EndsAt:        endsAt,
+			})
+			if evtErr != nil {
+				return fault.Wrap(evtErr, fault.Internal("build appointment.created event"))
 			}
 
 			return s.publisher.Publish(ctx, txx, evt)

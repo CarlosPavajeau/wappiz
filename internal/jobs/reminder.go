@@ -148,17 +148,22 @@ func (j *reminderJob) sendReminder(
 		"⏰ *Recordatorio de cita*\n\n"+
 			"Hola, te recordamos que tienes una cita *%s*:\n\n"+
 			"📅 %s\n"+
-			"Si necesitas cancelar escríbenos aquí.",
+			"¿Confirmas tu asistencia?",
 		timeLabel,
 		datetime.FormatTime(reminder.StartsAt, "Monday, 02 de January de 2006 a las 3:04 PM"),
 	)
+	buttons := []whatsapp.Button{
+		{Type: "reply", Reply: whatsapp.ButtonReply{ID: "reminder_confirm_" + reminder.AppointmentID.String(), Title: "✅ Confirmar"}},
+		{Type: "reply", Reply: whatsapp.ButtonReply{ID: "reminder_cancel_" + reminder.AppointmentID.String(), Title: "❌ Cancelar"}},
+		{Type: "reply", Reply: whatsapp.ButtonReply{ID: "reminder_reschedule_" + reminder.AppointmentID.String(), Title: "🔁 Reagendar"}},
+	}
 
 	decrypted, err := j.decryptedTokenForTenant(waConfig.TenantID, waConfig.AccessToken.String, decryptedByTenant, decryptErrByTenant)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("failed to decrypt token"))
 	}
 
-	if err := j.whatsapp.SendText(ctx, customer.PhoneNumber, waConfig.PhoneNumberID.String, decrypted, body); err != nil {
+	if err := j.whatsapp.SendButtons(ctx, customer.PhoneNumber, waConfig.PhoneNumberID.String, decrypted, body, buttons); err != nil {
 		return fault.Wrap(err, fault.Internal("failed to send reminder"))
 	}
 

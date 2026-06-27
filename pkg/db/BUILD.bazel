@@ -36,6 +36,7 @@ go_library(
         "appointments_mark_reminder_sent_by_type.sql_generated.go",
         "appointments_mark_unattended_no_show.sql_generated.go",
         "appointments_recently_cancelled.sql_generated.go",
+        "appointments_reschedule.sql_generated.go",
         "appointments_search.sql_generated.go",
         "appointments_update.sql_generated.go",
         "conversation_sessions_delete.sql_generated.go",

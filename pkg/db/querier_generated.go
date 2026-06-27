@@ -1285,6 +1285,19 @@ type Querier interface {
 	//    AND processed_at IS NULL
 	//    AND failed_at IS NULL
 	RenewDomainEventClaim(ctx context.Context, db DBTX, claimID uuid.UUID) (int64, error)
+	//RescheduleAppointment
+	//
+	//  UPDATE appointments
+	//  SET starts_at             = $1,
+	//      ends_at               = $2,
+	//      reminder_24h_sent_at  = NULL,
+	//      reminder_1h_sent_at   = NULL,
+	//      updated_at            = NOW()
+	//  WHERE id = $3
+	//    AND tenant_id = $4
+	//    AND customer_id = $5
+	//    AND status = 'confirmed'::appointment_status
+	RescheduleAppointment(ctx context.Context, db DBTX, arg RescheduleAppointmentParams) (int64, error)
 	//SearchAppointments
 	//
 	//  SELECT a.id,
