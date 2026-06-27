@@ -84,6 +84,11 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return s.handleOverlapOnConfirm(ctx, msg, session, sessionData, svc)
 		}
 
+		rescheduledAppointment, err := s.findRescheduledAppointment(ctx, session, sessionData)
+		if err != nil {
+			return err
+		}
+
 		err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
 			if sessionData.RescheduleAppointmentID == nil {
 				if err := db.Query.InsertAppointment(ctx, txx, db.InsertAppointmentParams{
@@ -115,6 +120,23 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 						fault.Public("No pudimos reagendar esta cita. Por favor intenta de nuevo."),
 					)
 				}
+
+				evt, evtErr := events.NewAppointmentRescheduled(events.AppointmentRescheduledPayload{
+					AppointmentID:    appointmentID,
+					TenantID:         tenant.ID,
+					CustomerID:       session.CustomerID,
+					ServiceID:        *sessionData.ServiceID,
+					ResourceID:       *sessionData.ResourceID,
+					PreviousStartsAt: rescheduledAppointment.StartsAt,
+					PreviousEndsAt:   rescheduledAppointment.EndsAt,
+					StartsAt:         startsAt,
+					EndsAt:           endsAt,
+				})
+				if evtErr != nil {
+					return fault.Wrap(evtErr, fault.Internal("build appointment.rescheduled event"))
+				}
+
+				return s.publisher.Publish(ctx, txx, evt)
 			}
 
 			if err := recordFlowFieldResponses(ctx, txx, appointmentID, sessionData.FlowFieldAnswers); err != nil {
@@ -239,6 +261,40 @@ func (s *service) findAppointmentLimit(ctx context.Context, tenantID uuid.UUID) 
 	}
 
 	return limit, nil
+}
+
+func (s *service) findRescheduledAppointment(
+	ctx context.Context,
+	session db.ConversationSession,
+	sessionData SessionData,
+) (db.FindAppointmentByIDRow, error) {
+	if sessionData.RescheduleAppointmentID == nil {
+		return db.FindAppointmentByIDRow{}, nil
+	}
+
+	appointment, err := db.Query.FindAppointmentByID(ctx, s.db.Primary(), db.FindAppointmentByIDParams{
+		ID:       *sessionData.RescheduleAppointmentID,
+		TenantID: session.TenantID,
+	})
+	if err != nil {
+		return db.FindAppointmentByIDRow{}, fault.Wrap(err, fault.Internal("find appointment for reschedule"))
+	}
+
+	if appointment.CustomerID != session.CustomerID {
+		return db.FindAppointmentByIDRow{}, fault.New("appointment customer mismatch",
+			fault.Internal("appointment does not belong to reschedule session customer"),
+			fault.Public("No pudimos reagendar esta cita. Por favor intenta de nuevo."),
+		)
+	}
+
+	if appointment.Status != db.AppointmentStatusConfirmed {
+		return db.FindAppointmentByIDRow{}, fault.New("appointment not confirmed",
+			fault.Internal("appointment is not confirmed for reschedule"),
+			fault.Public("No pudimos reagendar esta cita. Por favor intenta de nuevo."),
+		)
+	}
+
+	return appointment, nil
 }
 
 func appointmentLimitFromInt(limit int) (sql.NullInt32, error) {

@@ -18,8 +18,9 @@ type Type string
 type HandlerID string
 
 const (
-	TypeAppointmentCreated  Type = "appointment.created"
-	TypeAppointmentCanceled Type = "appointment.canceled"
+	TypeAppointmentCreated     Type = "appointment.created"
+	TypeAppointmentCanceled    Type = "appointment.canceled"
+	TypeAppointmentRescheduled Type = "appointment.rescheduled"
 )
 
 // Event is the runtime representation of a domain_events row.

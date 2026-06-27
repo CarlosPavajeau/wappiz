@@ -145,6 +145,7 @@ func Run(ctx context.Context, cfg Config) error {
 	eventsDispatcher := events.NewDispatcher()
 	eventsDispatcher.Register(handlers.NewAppointmentCanceledEmailHandler(database, mailerSvc))
 	eventsDispatcher.Register(handlers.NewAppointmentCreatedEmailHandler(database, mailerSvc))
+	eventsDispatcher.Register(handlers.NewAppointmentRescheduledEmailHandler(database, mailerSvc))
 	eventsPublisher := events.NewPublisher()
 
 	slotFinder := slotfinder.New(database)
