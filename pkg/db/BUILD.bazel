@@ -31,6 +31,7 @@ go_library(
         "appointments_find_unattended.sql_generated.go",
         "appointments_find_upcoming.sql_generated.go",
         "appointments_has_customer_overlap.sql_generated.go",
+        "appointments_has_customer_overlap_excluding_appointment.sql_generated.go",
         "appointments_insert.sql_generated.go",
         "appointments_mark_reminder_sent.sql_generated.go",
         "appointments_mark_reminder_sent_by_type.sql_generated.go",

@@ -201,6 +201,7 @@ func Run(ctx context.Context, cfg Config) error {
 		Whatsapp:         waSvc,
 		StateMachine:     stateMachineSvc,
 		SlotFinder:       slotFinder,
+		Publisher:        eventsPublisher,
 		WebhookProcessor: webhookProcessorSvc,
 		AdminEmail:       cfg.AdminEmail,
 		AppSecret:        cfg.WhatsappAppSecret,

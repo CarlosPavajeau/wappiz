@@ -38,6 +38,10 @@ export type CreateAppointmentResponse = {
   id: string
 }
 
+export type RescheduleAppointmentRequest = {
+  startsAt: string
+}
+
 export type UpdateAppointmentStatusRequest = {
   status: AppointmentStatus
   reason?: string | null
