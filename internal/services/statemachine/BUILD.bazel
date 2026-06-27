@@ -16,6 +16,7 @@ go_library(
         "handle_entry.go",
         "handle_my_appointments.go",
         "handle_overlap_on_confirm.go",
+        "handle_reminder_action.go",
         "handle_select_date.go",
         "handle_select_resource.go",
         "handle_select_service.go",

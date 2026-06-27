@@ -964,6 +964,31 @@ type Querier interface {
 	//          expires_at = EXCLUDED.expires_at,
 	//          updated_at = NOW()
 	InsertConversationSession(ctx context.Context, db DBTX, arg InsertConversationSessionParams) error
+	//InsertConversationSessionWhenInactive
+	//
+	//  INSERT INTO conversation_sessions(
+	//      id,
+	//      tenant_id,
+	//      whatsapp_config_id,
+	//      customer_id,
+	//      step,
+	//      data,
+	//      expires_at
+	//  ) VALUES (
+	//      $1,
+	//      $2,
+	//      $3,
+	//      $4,
+	//      $5,
+	//      $6,
+	//      $7
+	//  ) ON CONFLICT (tenant_id, customer_id) DO UPDATE
+	//      SET step       = EXCLUDED.step,
+	//          data       = EXCLUDED.data,
+	//          expires_at = EXCLUDED.expires_at,
+	//          updated_at = NOW()
+	//      WHERE conversation_sessions.expires_at <= NOW()
+	InsertConversationSessionWhenInactive(ctx context.Context, db DBTX, arg InsertConversationSessionWhenInactiveParams) (int64, error)
 	//InsertCustomTenantFlowField
 	//
 	//  INSERT INTO tenant_flow_fields (
@@ -1285,6 +1310,19 @@ type Querier interface {
 	//    AND processed_at IS NULL
 	//    AND failed_at IS NULL
 	RenewDomainEventClaim(ctx context.Context, db DBTX, claimID uuid.UUID) (int64, error)
+	//RescheduleAppointment
+	//
+	//  UPDATE appointments
+	//  SET starts_at             = $1,
+	//      ends_at               = $2,
+	//      reminder_24h_sent_at  = NULL,
+	//      reminder_1h_sent_at   = NULL,
+	//      updated_at            = NOW()
+	//  WHERE id = $3
+	//    AND tenant_id = $4
+	//    AND customer_id = $5
+	//    AND status = 'confirmed'::appointment_status
+	RescheduleAppointment(ctx context.Context, db DBTX, arg RescheduleAppointmentParams) (int64, error)
 	//SearchAppointments
 	//
 	//  SELECT a.id,

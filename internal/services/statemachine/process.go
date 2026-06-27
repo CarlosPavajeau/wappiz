@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
@@ -55,6 +56,10 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 		return nil
 	}
 
+	if handled, err := s.handleGlobalInteractiveAction(ctx, msg, customer); handled || err != nil {
+		return err
+	}
+
 	session, err := db.Query.FindCustomerActiveConversationSession(ctx, s.db.Primary(), db.FindCustomerActiveConversationSessionParams{
 		TenantID:   msg.TenantID,
 		CustomerID: customer.ID,
@@ -102,4 +107,28 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 
 		return s.handleEntry(ctx, msg, customer)
 	}
+}
+
+func (s *service) handleGlobalInteractiveAction(ctx context.Context, msg IncomingMessage, customer db.FindCustomerByPhoneNumberRow) (bool, error) {
+	if msg.InteractiveID == nil {
+		return false, nil
+	}
+
+	interactiveID := *msg.InteractiveID
+	switch {
+	case strings.HasPrefix(interactiveID, "reminder_"):
+		return true, s.handleReminderAction(ctx, msg, customer)
+
+	case strings.HasPrefix(interactiveID, "cancel_"):
+		return true, s.handleCancelConfirm(ctx, msg, customer)
+
+	case strings.HasPrefix(interactiveID, "confirm_cancel_"):
+		return true, s.handleCancelExecute(ctx, msg, customer)
+
+	case interactiveID == "action_keep":
+		return true, s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
+			"👍 Perfecto, tu cita sigue agendada. ¿Hay algo más en lo que pueda ayudarte?")
+	}
+
+	return false, nil
 }
