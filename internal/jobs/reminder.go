@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 	"wappiz/pkg/crypto"
@@ -94,6 +95,19 @@ func (j *reminderJob) process(ctx context.Context) error {
 				customers[reminder.CustomerID] = customer
 			}
 
+			hasActiveSession, err := j.hasActiveConversationSession(ctx, txx, reminder.TenantID, reminder.CustomerID)
+			if err != nil {
+				j.markReminderFailed(ctx, txx, reminder.ID, err)
+				continue
+			}
+			if hasActiveSession {
+				logger.Info("[reminder_job] skipping reminder for customer with active session",
+					"event_id", reminder.ID,
+					"tenant_id", reminder.TenantID,
+					"customer_id", reminder.CustomerID)
+				continue
+			}
+
 			if err := j.sendReminder(ctx, reminder, customer, waConfig, decryptedByTenant, decryptErrByTenant); err != nil {
 				j.markReminderFailed(ctx, txx, reminder.ID, err)
 				logger.Warn("[reminder_job] failed to send reminder",
@@ -116,6 +130,25 @@ func (j *reminderJob) process(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (j *reminderJob) hasActiveConversationSession(
+	ctx context.Context,
+	txx db.DBTX,
+	tenantID uuid.UUID,
+	customerID uuid.UUID,
+) (bool, error) {
+	_, err := db.Query.FindCustomerActiveConversationSession(ctx, txx, db.FindCustomerActiveConversationSessionParams{
+		TenantID:   tenantID,
+		CustomerID: customerID,
+	})
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	return false, fault.Wrap(err, fault.Internal("find active conversation session"))
 }
 
 func (j *reminderJob) sendReminder(

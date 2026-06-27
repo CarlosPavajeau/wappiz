@@ -55,5 +55,4 @@ const (
 	StepAwaitingName   SessionStep = "AWAITING_NAME"
 	StepCaptureField   SessionStep = "CAPTURE_FLOW_FIELD"
 	StepConfirm        SessionStep = "CONFIRM"
-	StepReminderAction SessionStep = "REMINDER_ACTION"
 )

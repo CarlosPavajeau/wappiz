@@ -56,8 +56,8 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 		return nil
 	}
 
-	if msg.InteractiveID != nil && strings.HasPrefix(*msg.InteractiveID, "reminder_") {
-		return s.handleReminderAction(ctx, msg, customer)
+	if handled, err := s.handleGlobalInteractiveAction(ctx, msg, customer); handled || err != nil {
+		return err
 	}
 
 	session, err := db.Query.FindCustomerActiveConversationSession(ctx, s.db.Primary(), db.FindCustomerActiveConversationSessionParams{
@@ -94,9 +94,6 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 	case StepConfirm:
 		return s.handleConfirm(ctx, msg, session, customer)
 
-	case StepReminderAction:
-		return s.handleReminderAction(ctx, msg, customer)
-
 	default:
 		logger.Warn("[scheduling] unknown step "+session.Step+" resetting to entry",
 			"session_id", session.ID)
@@ -110,4 +107,28 @@ func (s *service) Process(ctx context.Context, msg IncomingMessage) error {
 
 		return s.handleEntry(ctx, msg, customer)
 	}
+}
+
+func (s *service) handleGlobalInteractiveAction(ctx context.Context, msg IncomingMessage, customer db.FindCustomerByPhoneNumberRow) (bool, error) {
+	if msg.InteractiveID == nil {
+		return false, nil
+	}
+
+	interactiveID := *msg.InteractiveID
+	switch {
+	case strings.HasPrefix(interactiveID, "reminder_"):
+		return true, s.handleReminderAction(ctx, msg, customer)
+
+	case strings.HasPrefix(interactiveID, "cancel_"):
+		return true, s.handleCancelConfirm(ctx, msg, customer)
+
+	case strings.HasPrefix(interactiveID, "confirm_cancel_"):
+		return true, s.handleCancelExecute(ctx, msg, customer)
+
+	case interactiveID == "action_keep":
+		return true, s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
+			"👍 Perfecto, tu cita sigue agendada. ¿Hay algo más en lo que pueda ayudarte?")
+	}
+
+	return false, nil
 }

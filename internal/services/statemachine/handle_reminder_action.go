@@ -2,7 +2,9 @@ package statemachine
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 	"wappiz/pkg/db"
@@ -77,6 +79,15 @@ func (s *service) handleReminderAction(ctx context.Context, msg IncomingMessage,
 		return s.handleCancelConfirm(ctx, msg, customer)
 
 	case reminderActionReschedule:
+		hasActiveSession, err := s.hasActiveConversationSession(ctx, msg.TenantID, customer.ID)
+		if err != nil {
+			return err
+		}
+		if hasActiveSession {
+			return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
+				"Termina la conversación actual antes de reagendar esta cita.")
+		}
+
 		data, err := json.Marshal(SessionData{
 			RescheduleAppointmentID: &action.appointmentID,
 			ServiceID:               &appointment.ServiceID,
@@ -141,4 +152,18 @@ func parseReminderAction(interactiveID *string) (reminderAction, bool) {
 	}
 
 	return reminderAction{}, false
+}
+
+func (s *service) hasActiveConversationSession(ctx context.Context, tenantID uuid.UUID, customerID uuid.UUID) (bool, error) {
+	_, err := db.Query.FindCustomerActiveConversationSession(ctx, s.db.Primary(), db.FindCustomerActiveConversationSessionParams{
+		TenantID:   tenantID,
+		CustomerID: customerID,
+	})
+	if err == nil {
+		return true, nil
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, nil
+	}
+	return false, fault.Wrap(err, fault.Internal("find active conversation session"))
 }
