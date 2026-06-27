@@ -2,9 +2,7 @@ package statemachine
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"strings"
 	"time"
 	"wappiz/pkg/db"
@@ -79,15 +77,6 @@ func (s *service) handleReminderAction(ctx context.Context, msg IncomingMessage,
 		return s.handleCancelConfirm(ctx, msg, customer)
 
 	case reminderActionReschedule:
-		hasActiveSession, err := s.hasActiveConversationSession(ctx, msg.TenantID, customer.ID)
-		if err != nil {
-			return err
-		}
-		if hasActiveSession {
-			return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
-				"Termina la conversación actual antes de reagendar esta cita.")
-		}
-
 		data, err := json.Marshal(SessionData{
 			RescheduleAppointmentID: &action.appointmentID,
 			ServiceID:               &appointment.ServiceID,
@@ -97,7 +86,7 @@ func (s *service) handleReminderAction(ctx context.Context, msg IncomingMessage,
 			return fault.Wrap(err, fault.Internal("marshal reschedule session data"))
 		}
 
-		if err := db.Query.InsertConversationSession(ctx, s.db.Primary(), db.InsertConversationSessionParams{
+		created, err := db.Query.InsertConversationSessionWhenInactive(ctx, s.db.Primary(), db.InsertConversationSessionWhenInactiveParams{
 			ID:               uuid.New(),
 			TenantID:         msg.TenantID,
 			WhatsappConfigID: msg.WhatsappConfigID,
@@ -105,8 +94,13 @@ func (s *service) handleReminderAction(ctx context.Context, msg IncomingMessage,
 			Step:             string(StepSelectDate),
 			Data:             data,
 			ExpiresAt:        time.Now().Add(sessionTTL),
-		}); err != nil {
+		})
+		if err != nil {
 			return fault.Wrap(err, fault.Internal("create reschedule session"))
+		}
+		if created == 0 {
+			return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
+				"Termina la conversación actual antes de reagendar esta cita.")
 		}
 
 		if err := s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken,
@@ -152,18 +146,4 @@ func parseReminderAction(interactiveID *string) (reminderAction, bool) {
 	}
 
 	return reminderAction{}, false
-}
-
-func (s *service) hasActiveConversationSession(ctx context.Context, tenantID uuid.UUID, customerID uuid.UUID) (bool, error) {
-	_, err := db.Query.FindCustomerActiveConversationSession(ctx, s.db.Primary(), db.FindCustomerActiveConversationSessionParams{
-		TenantID:   tenantID,
-		CustomerID: customerID,
-	})
-	if err == nil {
-		return true, nil
-	}
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-	return false, fault.Wrap(err, fault.Internal("find active conversation session"))
 }

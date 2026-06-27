@@ -964,6 +964,31 @@ type Querier interface {
 	//          expires_at = EXCLUDED.expires_at,
 	//          updated_at = NOW()
 	InsertConversationSession(ctx context.Context, db DBTX, arg InsertConversationSessionParams) error
+	//InsertConversationSessionWhenInactive
+	//
+	//  INSERT INTO conversation_sessions(
+	//      id,
+	//      tenant_id,
+	//      whatsapp_config_id,
+	//      customer_id,
+	//      step,
+	//      data,
+	//      expires_at
+	//  ) VALUES (
+	//      $1,
+	//      $2,
+	//      $3,
+	//      $4,
+	//      $5,
+	//      $6,
+	//      $7
+	//  ) ON CONFLICT (tenant_id, customer_id) DO UPDATE
+	//      SET step       = EXCLUDED.step,
+	//          data       = EXCLUDED.data,
+	//          expires_at = EXCLUDED.expires_at,
+	//          updated_at = NOW()
+	//      WHERE conversation_sessions.expires_at <= NOW()
+	InsertConversationSessionWhenInactive(ctx context.Context, db DBTX, arg InsertConversationSessionWhenInactiveParams) (int64, error)
 	//InsertCustomTenantFlowField
 	//
 	//  INSERT INTO tenant_flow_fields (

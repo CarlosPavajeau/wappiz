@@ -43,6 +43,7 @@ go_library(
         "conversation_sessions_delete_expired.sql_generated.go",
         "conversation_sessions_find_active_by_customer.sql_generated.go",
         "conversation_sessions_insert.sql_generated.go",
+        "conversation_sessions_insert_when_inactive.sql_generated.go",
         "conversation_sessions_update.sql_generated.go",
         "custom_types.go",
         "customers_block.sql_generated.go",
