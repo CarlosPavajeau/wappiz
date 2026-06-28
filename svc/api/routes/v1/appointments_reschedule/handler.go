@@ -243,6 +243,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 			PreviousEndsAt:   appointment.EndsAt,
 			StartsAt:         startsAt,
 			EndsAt:           endsAt,
+			RescheduledBy:    events.AppointmentRescheduledByAdmin,
 		})
 		if evtErr != nil {
 			return fault.Wrap(evtErr, fault.Internal("build appointment.rescheduled event"))

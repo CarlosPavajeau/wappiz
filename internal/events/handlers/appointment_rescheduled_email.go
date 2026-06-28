@@ -40,6 +40,9 @@ func (h *AppointmentRescheduledEmailHandler) Handle(ctx context.Context, event e
 	if err := json.Unmarshal(event.Payload, &payload); err != nil {
 		return fault.Wrap(err, fault.Internal("unmarshal appointment.rescheduled payload"))
 	}
+	if payload.RescheduledBy == events.AppointmentRescheduledByAdmin {
+		return nil
+	}
 
 	ownerEmail, err := db.Query.FindTenantOwnerEmail(ctx, h.db.Primary(), payload.TenantID)
 	if err != nil {

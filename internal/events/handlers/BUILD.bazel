@@ -6,14 +6,18 @@ go_library(
         "appointment_canceled_email.go",
         "appointment_created_email.go",
         "appointment_rescheduled_email.go",
+        "appointment_rescheduled_whatsapp.go",
     ],
     importpath = "wappiz/internal/events/handlers",
     visibility = ["//:__subpackages__"],
     deps = [
         "//internal/events",
+        "//pkg/crypto",
+        "//pkg/datetime",
         "//pkg/db",
         "//pkg/fault",
         "//pkg/mailer",
+        "//pkg/whatsapp",
     ],
 )
 

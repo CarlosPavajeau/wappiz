@@ -131,6 +131,7 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 					PreviousEndsAt:   rescheduledAppointment.EndsAt,
 					StartsAt:         startsAt,
 					EndsAt:           endsAt,
+					RescheduledBy:    events.AppointmentRescheduledByCustomer,
 				})
 				if evtErr != nil {
 					return fault.Wrap(evtErr, fault.Internal("build appointment.rescheduled event"))

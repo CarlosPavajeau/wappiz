@@ -30,17 +30,25 @@ type AppointmentCanceledPayload struct {
 	EndsAt        time.Time `json:"ends_at"`
 }
 
+type AppointmentRescheduledBy string
+
+const (
+	AppointmentRescheduledByAdmin    AppointmentRescheduledBy = "admin"
+	AppointmentRescheduledByCustomer AppointmentRescheduledBy = "customer"
+)
+
 // AppointmentRescheduledPayload is the structured payload for TypeAppointmentRescheduled.
 type AppointmentRescheduledPayload struct {
-	AppointmentID    uuid.UUID `json:"appointment_id"`
-	TenantID         uuid.UUID `json:"tenant_id"`
-	CustomerID       uuid.UUID `json:"customer_id"`
-	ServiceID        uuid.UUID `json:"service_id"`
-	ResourceID       uuid.UUID `json:"resource_id"`
-	PreviousStartsAt time.Time `json:"previous_starts_at"`
-	PreviousEndsAt   time.Time `json:"previous_ends_at"`
-	StartsAt         time.Time `json:"starts_at"`
-	EndsAt           time.Time `json:"ends_at"`
+	AppointmentID    uuid.UUID                `json:"appointment_id"`
+	TenantID         uuid.UUID                `json:"tenant_id"`
+	CustomerID       uuid.UUID                `json:"customer_id"`
+	ServiceID        uuid.UUID                `json:"service_id"`
+	ResourceID       uuid.UUID                `json:"resource_id"`
+	PreviousStartsAt time.Time                `json:"previous_starts_at"`
+	PreviousEndsAt   time.Time                `json:"previous_ends_at"`
+	StartsAt         time.Time                `json:"starts_at"`
+	EndsAt           time.Time                `json:"ends_at"`
+	RescheduledBy    AppointmentRescheduledBy `json:"rescheduled_by,omitempty"`
 }
 
 // NewAppointmentCreated constructs an Event with the payload serialised to JSON.
