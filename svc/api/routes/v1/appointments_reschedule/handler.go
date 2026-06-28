@@ -152,7 +152,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		return fault.New("resource not found for tenant",
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource is inactive"),
-			fault.Public("El recurso no existe"),
+			fault.Public("El recurso no está disponible"),
 		)
 	}
 
