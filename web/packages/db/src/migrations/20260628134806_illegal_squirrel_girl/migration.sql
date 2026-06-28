@@ -1,0 +1,1 @@
+ALTER TABLE "customers" RENAME COLUMN "documentId" TO "document_id";

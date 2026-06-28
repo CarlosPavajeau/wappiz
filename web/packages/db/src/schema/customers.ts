@@ -27,7 +27,7 @@ export const customers = pgTable(
       .notNull(),
     noShowCount: integer("no_show_count").default(0).notNull(),
     lateCancelCount: integer("late_cancel_count").default(0).notNull(),
-    documentId: varchar({ length: 20 }),
+    documentId: varchar("document_id", { length: 20 }),
     birthDate: date("birth_date"),
     email: varchar({ length: 255 }),
     address: varchar({ length: 255 }),
