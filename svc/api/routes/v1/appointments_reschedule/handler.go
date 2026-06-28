@@ -223,6 +223,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		}
 		if updated == 0 {
 			return fault.New("appointment not rescheduled",
+				fault.Code(codes.ErrorsConflict),
 				fault.Internal("confirmed appointment not found for reschedule"),
 				fault.Public("No pudimos reagendar esta cita. Por favor intenta de nuevo."),
 			)
