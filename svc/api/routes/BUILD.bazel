@@ -9,6 +9,7 @@ go_library(
     importpath = "wappiz/svc/api/routes",
     visibility = ["//visibility:public"],
     deps = [
+        "//internal/events",
         "//internal/services/ratelimit",
         "//internal/services/slotfinder",
         "//internal/services/statemachine",
@@ -25,6 +26,7 @@ go_library(
         "//svc/api/routes/v1/admin_reject_tenant",
         "//svc/api/routes/v1/appointments_create",
         "//svc/api/routes/v1/appointments_get_status_history",
+        "//svc/api/routes/v1/appointments_reschedule",
         "//svc/api/routes/v1/appointments_search",
         "//svc/api/routes/v1/appointments_update_status",
         "//svc/api/routes/v1/customers_block",

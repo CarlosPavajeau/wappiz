@@ -11,6 +11,7 @@ import (
 	"wappiz/svc/api/routes/v1/admin_reject_tenant"
 	"wappiz/svc/api/routes/v1/appointments_create"
 	"wappiz/svc/api/routes/v1/appointments_get_status_history"
+	"wappiz/svc/api/routes/v1/appointments_reschedule"
 	"wappiz/svc/api/routes/v1/appointments_search"
 	"wappiz/svc/api/routes/v1/appointments_update_status"
 	"wappiz/svc/api/routes/v1/customers_block"
@@ -103,6 +104,7 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &appointments_create.Handler{DB: svc.Database, Environment: svc.Environment, SlotFinder: svc.SlotFinder})
 	RegisterRoute(auth, &appointments_search.Handler{DB: svc.Database})
 	RegisterRoute(auth, &appointments_get_status_history.Handler{DB: svc.Database})
+	RegisterRoute(auth, &appointments_reschedule.Handler{DB: svc.Database, Publisher: svc.Publisher, SlotFinder: svc.SlotFinder})
 	RegisterRoute(auth, &appointments_update_status.Handler{DB: svc.Database, Whatsapp: svc.Whatsapp})
 
 	// v1/onboarding

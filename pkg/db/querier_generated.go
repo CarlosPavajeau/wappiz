@@ -791,6 +791,19 @@ type Querier interface {
 	//    AND a.ends_at > $4
 	//  ) AS has_overlap
 	HasCustomerOverlap(ctx context.Context, db DBTX, arg HasCustomerOverlapParams) (bool, error)
+	//HasCustomerOverlapExcludingAppointment
+	//
+	//  SELECT EXISTS (
+	//      SELECT 1
+	//      FROM appointments a
+	//      WHERE a.tenant_id = $1
+	//        AND a.customer_id = $2
+	//        AND a.id <> $3
+	//        AND a.status NOT IN ('cancelled', 'no_show')
+	//        AND a.starts_at < $4
+	//        AND a.ends_at > $5
+	//  ) AS has_overlap
+	HasCustomerOverlapExcludingAppointment(ctx context.Context, db DBTX, arg HasCustomerOverlapExcludingAppointmentParams) (bool, error)
 	//IncrementCustomerLateCancels
 	//
 	//  UPDATE customers

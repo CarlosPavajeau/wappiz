@@ -5,6 +5,7 @@ import type {
   AppointmentStatusHistory,
   CreateAppointmentRequest,
   CreateAppointmentResponse,
+  RescheduleAppointmentRequest,
   UpdateAppointmentStatusRequest,
 } from "../types/appointments"
 
@@ -16,20 +17,44 @@ const createDefinition: EndpointDefinition<
   path: "/appointments",
 }
 
+const historyDefinition: EndpointDefinition<
+  AppointmentStatusHistory[],
+  void,
+  string
+> = {
+  method: "GET",
+  path: (id: string) => `/appointments/${id}/history`,
+}
+
+const listDefinition: EndpointDefinition<Appointment[], void> = {
+  method: "GET",
+  path: "/appointments",
+}
+
+const rescheduleDefinition: EndpointDefinition<
+  void,
+  RescheduleAppointmentRequest,
+  string
+> = {
+  method: "PUT",
+  path: (id: string) => `/appointments/${id}/reschedule`,
+}
+
+const updateStatusDefinition: EndpointDefinition<
+  void,
+  UpdateAppointmentStatusRequest,
+  string
+> = {
+  method: "PUT",
+  path: (id: string) => `/appointments/${id}/status`,
+}
+
 const definitions = {
   create: createDefinition,
-  history: {
-    method: "GET",
-    path: (id: string) => `/appointments/${id}/history`,
-  } as EndpointDefinition<AppointmentStatusHistory[], void, string>,
-  list: {
-    method: "GET",
-    path: "/appointments",
-  } as EndpointDefinition<Appointment[], void>,
-  updateStatus: {
-    method: "PUT",
-    path: (id: string) => `/appointments/${id}/status`,
-  } as EndpointDefinition<void, UpdateAppointmentStatusRequest, string>,
+  history: historyDefinition,
+  list: listDefinition,
+  reschedule: rescheduleDefinition,
+  updateStatus: updateStatusDefinition,
 }
 
 export const appointmentsEndpoints = defineResource(definitions)

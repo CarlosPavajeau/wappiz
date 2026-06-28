@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"wappiz/internal/events"
 	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/services/statemachine"
@@ -34,6 +35,9 @@ type Services struct {
 	// SlotFinder resolves bookable windows and validates appointment times
 	// against working hours and schedule overrides.
 	SlotFinder slotfinder.SlotFinderService
+
+	// Publisher persists domain events raised by route handlers.
+	Publisher *events.Publisher
 
 	// WebhookProcessor handles buffered processing of incoming WhatsApp webhook payloads.
 	WebhookProcessor webhookprocessor.Service
