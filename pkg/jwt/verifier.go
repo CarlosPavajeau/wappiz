@@ -23,8 +23,9 @@ type Verifier[T any] interface {
 type claimsFactory[T gojwt.Claims] func() T
 
 type verifierConfig struct {
-	issuer string
-	leeway time.Duration
+	issuer         string
+	leeway         time.Duration
+	strictDecoding bool
 }
 
 // VerifierOption customizes token claim validation.
@@ -61,7 +62,7 @@ func NewHS256Verifier[T gojwt.Claims](secret []byte, newClaims claimsFactory[T],
 		return nil, errors.New("claims factory is required")
 	}
 
-	config := verifierConfig{leeway: defaultLeeway}
+	config := verifierConfig{leeway: defaultLeeway, strictDecoding: true}
 	for _, opt := range opts {
 		opt(&config)
 	}
@@ -127,7 +128,7 @@ func (v *DBVerifier) VerifyToken(ctx context.Context, tokenStr string) (*Claims,
 	}
 
 	// Enforce algorithm allowlist before touching any key material.
-	// This prevents algorithm confusion attacks (e.g. RS256 → HS256, alg:none).
+	// This prevents algorithm confusion attacks (e.g. RS256 -> HS256, alg:none).
 	if !isAllowedAlg(alg) {
 		return nil, fmt.Errorf("algorithm %q is not permitted", alg)
 	}
@@ -191,7 +192,9 @@ func newParser(config verifierConfig, at []time.Time, validMethod string) (*gojw
 	opts := []gojwt.ParserOption{
 		gojwt.WithLeeway(config.leeway),
 		gojwt.WithValidMethods([]string{validMethod}),
-		gojwt.WithStrictDecoding(),
+	}
+	if config.strictDecoding {
+		opts = append(opts, gojwt.WithStrictDecoding())
 	}
 	if config.issuer != "" {
 		opts = append(opts, gojwt.WithIssuer(config.issuer))

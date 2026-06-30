@@ -5,6 +5,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"testing"
 	"time"
 
@@ -59,6 +60,28 @@ func TestHS256VerifierRejectsWrongAlgorithm(t *testing.T) {
 func TestHS256VerifierRejectsShortSecret(t *testing.T) {
 	_, err := NewHS256Verifier([]byte("short"), func() *testClaims { return &testClaims{} })
 	require.Error(t, err)
+}
+
+func TestParserAllowsExtraClaimsWhenStrictDecodingDisabled(t *testing.T) {
+	secret := []byte("0123456789abcdef0123456789abcdef")
+	now := time.Date(2026, 6, 30, 12, 0, 0, 0, time.UTC)
+	token, err := gojwt.NewWithClaims(gojwt.SigningMethodHS256, gojwt.MapClaims{
+		"exp":   now.Add(time.Hour).Unix(),
+		"id":    "user_123",
+		"role":  "admin",
+		"email": "user@example.com",
+	}).SignedString(secret)
+	require.NoError(t, err)
+
+	claims, err := parseVerifiedToken(token, func() *Claims { return &Claims{} }, verifierConfig{leeway: defaultLeeway}, []time.Time{now}, gojwt.SigningMethodHS256.Alg(), func(t *gojwt.Token) (any, error) {
+		if t.Method != gojwt.SigningMethodHS256 {
+			return nil, errors.New("unexpected signing method")
+		}
+		return secret, nil
+	})
+	require.NoError(t, err)
+	require.Equal(t, "user_123", claims.UserID)
+	require.Equal(t, "admin", claims.Role)
 }
 
 func TestParseECKey(t *testing.T) {
