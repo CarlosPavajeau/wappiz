@@ -100,7 +100,7 @@ func parseRSAKey(k jwkEntry) (*rsa.PublicKey, error) {
 		return nil, errors.New("RSA exponent out of range")
 	}
 	if eInt.Int64() < 3 || eInt.Int64()%2 == 0 {
-		return nil, errors.New("RSA exponent must be an odd integer greater than one")
+		return nil, errors.New("RSA exponent must be an odd integer >= 3")
 	}
 
 	pub := &rsa.PublicKey{N: n, E: int(eInt.Int64())}
