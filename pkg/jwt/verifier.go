@@ -126,6 +126,8 @@ func (v *DBVerifier) VerifyToken(ctx context.Context, tokenStr string) (*Claims,
 		return nil, errors.New("token is missing kid")
 	}
 
+	// Enforce algorithm allowlist before touching any key material.
+	// This prevents algorithm confusion attacks (e.g. RS256 → HS256, alg:none).
 	if !isAllowedAlg(alg) {
 		return nil, fmt.Errorf("algorithm %q is not permitted", alg)
 	}
