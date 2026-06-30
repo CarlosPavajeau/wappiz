@@ -34,8 +34,6 @@ type Claims struct {
 // tenant_id context value. Set it via InitTenantFinder at startup.
 type TenantIDLookup func(ctx context.Context, userID string) (uuid.UUID, error)
 
-// ─── JWKS key parsing ────────────────────────────────────────────────────────
-
 // jwkEntry is the wire representation of a single JSON Web Key.
 type jwkEntry struct {
 	Kty string `json:"kty"`
@@ -51,20 +49,41 @@ type jwkEntry struct {
 	Y   string `json:"y"` // not present in OKP
 }
 
-func parseJWK(k jwkEntry) (any, error) {
+type parsedJWK struct {
+	key any
+	alg string
+}
+
+func parseJWK(k jwkEntry) (parsedJWK, error) {
+	if k.Use != "" && k.Use != "sig" {
+		return parsedJWK{}, fmt.Errorf("unsupported key use %q", k.Use)
+	}
+
+	var key any
+	var err error
+
 	switch k.Kty {
 	case "RSA":
-		return parseRSAKey(k)
+		key, err = parseRSAKey(k)
 	case "EC":
-		return parseECKey(k)
+		key, err = parseECKey(k)
 	case "OKP":
-		return parseOKPKey(k)
+		key, err = parseOKPKey(k)
 	default:
-		return nil, fmt.Errorf("unsupported key type %q", k.Kty)
+		return parsedJWK{}, fmt.Errorf("unsupported key type %q", k.Kty)
 	}
+	if err != nil {
+		return parsedJWK{}, err
+	}
+
+	return parsedJWK{key: key, alg: k.Alg}, nil
 }
 
 func parseRSAKey(k jwkEntry) (*rsa.PublicKey, error) {
+	if k.N == "" || k.E == "" {
+		return nil, errors.New("RSA key is missing modulus or exponent")
+	}
+
 	nBytes, err := base64.RawURLEncoding.DecodeString(k.N)
 	if err != nil {
 		return nil, fmt.Errorf("decode n: %w", err)
@@ -80,6 +99,9 @@ func parseRSAKey(k jwkEntry) (*rsa.PublicKey, error) {
 	if !eInt.IsInt64() || eInt.Int64() > (1<<31-1) {
 		return nil, errors.New("RSA exponent out of range")
 	}
+	if eInt.Int64() < 3 || eInt.Int64()%2 == 0 {
+		return nil, errors.New("RSA exponent must be an odd integer >= 3")
+	}
 
 	pub := &rsa.PublicKey{N: n, E: int(eInt.Int64())}
 	if pub.N.BitLen() < 2048 {
@@ -89,6 +111,10 @@ func parseRSAKey(k jwkEntry) (*rsa.PublicKey, error) {
 }
 
 func parseECKey(k jwkEntry) (*ecdsa.PublicKey, error) {
+	if k.X == "" || k.Y == "" {
+		return nil, errors.New("EC key is missing coordinates")
+	}
+
 	var curve elliptic.Curve
 	switch k.Crv {
 	case "P-256":
@@ -110,18 +136,22 @@ func parseECKey(k jwkEntry) (*ecdsa.PublicKey, error) {
 		return nil, fmt.Errorf("decode y: %w", err)
 	}
 
-	pub := &ecdsa.PublicKey{
-		Curve: curve,
-		X:     new(big.Int).SetBytes(xBytes),
-		Y:     new(big.Int).SetBytes(yBytes),
+	point, err := uncompressedPoint(curve, xBytes, yBytes)
+	if err != nil {
+		return nil, err
 	}
-	if !curve.IsOnCurve(pub.X, pub.Y) {
-		return nil, errors.New("EC point is not on curve")
+
+	pub, err := ecdsa.ParseUncompressedPublicKey(curve, point)
+	if err != nil {
+		return nil, fmt.Errorf("parse EC public key: %w", err)
 	}
 	return pub, nil
 }
 
 func parseOKPKey(k jwkEntry) (ed25519.PublicKey, error) {
+	if k.X == "" {
+		return nil, errors.New("OKP key is missing x coordinate")
+	}
 	if k.Crv != "Ed25519" {
 		return nil, fmt.Errorf("unsupported OKP curve %q (only Ed25519 is supported)", k.Crv)
 	}
@@ -133,6 +163,19 @@ func parseOKPKey(k jwkEntry) (ed25519.PublicKey, error) {
 		return nil, fmt.Errorf("ed25519 public key must be %d bytes, got %d", ed25519.PublicKeySize, len(xBytes))
 	}
 	return xBytes, nil
+}
+
+func uncompressedPoint(curve elliptic.Curve, xBytes, yBytes []byte) ([]byte, error) {
+	byteLen := (curve.Params().BitSize + 7) / 8
+	if len(xBytes) > byteLen || len(yBytes) > byteLen {
+		return nil, errors.New("EC coordinate length exceeds curve size")
+	}
+
+	point := make([]byte, 1+2*byteLen)
+	point[0] = 4
+	copy(point[1+byteLen-len(xBytes):1+byteLen], xBytes)
+	copy(point[1+2*byteLen-len(yBytes):], yBytes)
+	return point, nil
 }
 
 // extractTokenHeader decodes the JWT header segment to read kid and alg
@@ -155,6 +198,9 @@ func extractTokenHeader(tokenStr string) (kid, alg string, err error) {
 	if err := json.Unmarshal(headerBytes, &h); err != nil {
 		return "", "", fmt.Errorf("parse header: %w", err)
 	}
+	if h.Alg == "" {
+		return "", "", errors.New("missing alg")
+	}
 	return h.Kid, h.Alg, nil
 }
 
@@ -169,8 +215,6 @@ func isAllowedAlg(alg string) bool {
 		return false
 	}
 }
-
-// ─── Package-level initialisation ────────────────────────────────────────────
 
 var defaultVerifier *DBVerifier
 var defaultTenantFinder TenantIDLookup
@@ -187,8 +231,6 @@ func InitTenantFinder(f TenantIDLookup) {
 func Init(dbtx db.DBTX, issuer string) {
 	defaultVerifier = NewDBVerifier(dbtx, issuer)
 }
-
-// ─── Gin middleware ───────────────────────────────────────────────────────────
 
 // AuthMiddleware is a Gin middleware that validates Bearer JWTs using public keys
 // stored in the database jwks table. Init must be called before routes are served.
@@ -269,8 +311,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		c.Next()
 	}
 }
-
-// ─── Context helpers ─────────────────────────────────────────────────────────
 
 func TenantIDFromContext(c *gin.Context) uuid.UUID {
 	return c.MustGet("tenant_id").(uuid.UUID)
