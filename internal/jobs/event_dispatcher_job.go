@@ -13,6 +13,7 @@ import (
 	eventsmetrics "wappiz/pkg/events/metrics"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
+	"wappiz/pkg/retry"
 )
 
 // EventDispatcherConfig holds dependencies for the event dispatcher job.
@@ -26,6 +27,7 @@ type eventDispatcherJob struct {
 	db         db.Database
 	connString string
 	dispatcher *events.Dispatcher
+	retrier    *retry.Retry
 }
 
 const (
@@ -38,6 +40,14 @@ func NewEventDispatcher(cfg EventDispatcherConfig) Job {
 		db:         cfg.DB,
 		connString: cfg.ConnString,
 		dispatcher: cfg.Dispatcher,
+		// Retries transient claim failures (e.g. DB briefly unreachable) before
+		// giving up; the fallback ticker in Run picks up where retries leave off.
+		retrier: retry.New(
+			retry.Attempts(3),
+			retry.Backoff(func(n int) time.Duration {
+				return time.Duration(n) * time.Second
+			}),
+		),
 	}
 }
 
@@ -137,15 +147,17 @@ func (j *eventDispatcherJob) process(ctx context.Context) error {
 
 	for ctx.Err() == nil {
 		claimID := uuid.New()
-		claimed, err := db.TxWithResult(ctx, j.db.Primary(), func(ctx context.Context, txx db.DBTX) ([]db.ClaimPendingDomainEventsRow, error) {
-			rows, err := db.Query.ClaimPendingDomainEvents(ctx, txx, db.ClaimPendingDomainEventsParams{
-				ClaimID:     claimID,
-				ExcludedIds: seen,
+		claimed, err := retry.DoWithResultContext(j.retrier, ctx, func() ([]db.ClaimPendingDomainEventsRow, error) {
+			return db.TxWithResult(ctx, j.db.Primary(), func(ctx context.Context, txx db.DBTX) ([]db.ClaimPendingDomainEventsRow, error) {
+				rows, err := db.Query.ClaimPendingDomainEvents(ctx, txx, db.ClaimPendingDomainEventsParams{
+					ClaimID:     claimID,
+					ExcludedIds: seen,
+				})
+				if err != nil {
+					return nil, fault.Wrap(err, fault.Internal("claim pending domain events"))
+				}
+				return rows, nil
 			})
-			if err != nil {
-				return nil, fault.Wrap(err, fault.Internal("claim pending domain events"))
-			}
-			return rows, nil
 		})
 		if err != nil {
 			return errors.Join(append(processErrs, err)...)
