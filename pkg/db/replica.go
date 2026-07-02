@@ -147,6 +147,10 @@ func (r *Replica) Begin(ctx context.Context) (DBTx, error) {
 
 	tracing.RecordErrorUnless(span, err, sql.ErrNoRows)
 
+	if err != nil {
+		return nil, err
+	}
+
 	// Wrap the transaction with tracing
 	return WrapTxWithContext(tx, r.name+"_tx", ctx), nil
 }
