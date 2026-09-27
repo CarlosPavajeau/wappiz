@@ -8,9 +8,9 @@ This project uses **Ultracite**, a zero-config preset that enforces strict code 
 
 ## Quick Reference
 
-- **Format code**: `bun x ultracite fix`
-- **Check for issues**: `bun x ultracite check`
-- **Diagnose setup**: `bun x ultracite doctor`
+- **Format code**: `pnpm exec ultracite fix`
+- **Check for issues**: `pnpm exec ultracite check`
+- **Diagnose setup**: `pnpm exec ultracite doctor`
 
 Oxlint + Oxfmt (the underlying engine) provides robust linting and formatting. Most issues are automatically fixable.
 
@@ -127,4 +127,4 @@ Oxlint + Oxfmt's linter will catch most issues automatically. Focus your attenti
 
 ---
 
-Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `bun x ultracite fix` before committing to ensure compliance.
+Most formatting and common issues are automatically fixed by Oxlint + Oxfmt. Run `pnpm exec ultracite fix` before committing to ensure compliance.
