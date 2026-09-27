@@ -1,4 +1,4 @@
-import { render } from "@react-email/components"
+import { render } from "react-email"
 import { Resend as Client } from "resend"
 
 import PasswordResetEmail from "../emails/password-reset"
