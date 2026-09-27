@@ -132,7 +132,10 @@ function ThemeHotkey() {
         return
       }
 
-      if (event.key.toLowerCase() !== "d") {
+      // `key` is typed as string but synthetic events (extensions, password
+      // managers, some IMEs) can dispatch keydown without it, so avoid
+      // calling methods on it.
+      if (event.key !== "d" && event.key !== "D") {
         return
       }
 
