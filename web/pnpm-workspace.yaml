@@ -14,8 +14,33 @@ catalog:
   typescript: ^5
   zod: ^4.1.13
 
-# pnpm blocks postinstall scripts by default. These need theirs to fetch
-# platform binaries; core-js and msw only print ads/telemetry prompts.
+# Supply-chain hardening. Most malicious releases are pulled from the
+# registry within hours, so refusing versions younger than 7 days keeps a
+# hijacked release from ever reaching a developer machine or CI. This applies
+# to transitive deps too; add a name to minimumReleaseAgeExclude only for a
+# deliberate, reviewed hotfix. Note: the first pnpm-lock.yaml changes after
+# enabling this may resolve to older versions than the newest available.
+minimumReleaseAge: 10080
+# pnpm defaults to skipping the age check for a package whose registry
+# metadata has no publish time. Fail instead: we only use npmjs.org, which
+# always reports it, so a missing time means something is off.
+minimumReleaseAgeIgnoreMissingTime: false
+# Fail if a package that was previously published via trusted publishing
+# (OIDC/provenance) suddenly ships a version without it, a common signature
+# of a stolen maintainer token. Versions older than a year get a pass so
+# packages that adopted provenance late still install. Keep this well above
+# minimumReleaseAge, otherwise every installable version is exempt.
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 525600
+# Only direct deps may resolve from git/tarball URLs; transitive deps must
+# come from the registry. Default is already true; pinned here so it survives
+# a future default change.
+blockExoticSubdeps: true
+
+# pnpm blocks postinstall scripts by default and fails the install when a dep
+# has an unreviewed one (strictDepBuilds). These need theirs to fetch platform
+# binaries; core-js and msw only print ads/telemetry prompts.
+strictDepBuilds: true
 allowBuilds:
   "@sentry/cli": true
   esbuild: true

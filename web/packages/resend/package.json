@@ -20,7 +20,7 @@
     "dotenv": "catalog:",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-email": "^5.2.10",
+    "react-email": "5.2.10",
     "resend": "^6.11.0"
   },
   "devDependencies": {
