@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3001",
     "build": "vite build && cp instrument.server.mjs .vercel/output",
-    "start": "vite preview"
+    "start": "vite preview",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",

@@ -1,6 +1,5 @@
 {
   "editor.defaultFormatter": "oxc.oxc-vscode",
-  "typescript.tsdk": "node_modules/typescript/lib",
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "emmet.showExpandedAbbreviation": "never",

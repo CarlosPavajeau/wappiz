@@ -11,6 +11,9 @@
       "default": "./src/*.ts"
     }
   },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "dependencies": {
     "@wappiz/env": "workspace:*",
     "js-cookie": "^3.0.5"

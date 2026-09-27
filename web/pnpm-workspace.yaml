@@ -11,7 +11,7 @@ catalog:
   react-dom: ^19.2.3
   sonner: ^2.0.5
   tailwindcss: ^4.1.18
-  typescript: ^5
+  typescript: ^7.0.2
   zod: ^4.1.13
 
 # Supply-chain hardening. Most malicious releases are pulled from the

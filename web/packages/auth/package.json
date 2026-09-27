@@ -9,7 +9,9 @@
       "default": "./src/*.ts"
     }
   },
-  "scripts": {},
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "dependencies": {
     "@polar-sh/better-auth": "^1.8.3",
     "@wappiz/db": "workspace:*",
@@ -22,6 +24,6 @@
   },
   "devDependencies": {
     "@wappiz/config": "workspace:*",
-    "typescript": "^5"
+    "typescript": "catalog:"
   }
 }
