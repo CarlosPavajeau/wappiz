@@ -9,12 +9,10 @@ import { useNavigate, useRouter } from "@tanstack/react-router"
 import {
   createColumnHelper,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
+  tableFeatures,
+  useTable,
 } from "@tanstack/react-table"
-import type { SortingState } from "@tanstack/react-table"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -56,7 +54,11 @@ import {
 import type { AdminUser } from "@/functions/list-users"
 import { banUser, unbanUser } from "@/functions/user-actions"
 
-const columnHelper = createColumnHelper<AdminUser>()
+// Sorting and pagination happen server side (see the route loader), so no
+// optional table feature is registered. Add one here, not in the component,
+// because the column helper is typed by this object.
+const features = tableFeatures({})
+const columnHelper = createColumnHelper<typeof features, AdminUser>()
 
 function UserRowActions({ user }: { user: AdminUser }) {
   const router = useRouter()
@@ -208,6 +210,74 @@ function UserAvatar({ name }: { name: string }) {
   )
 }
 
+const columns = columnHelper.columns([
+  columnHelper.display({
+    cell: ({ row }) => (
+      <div className="flex items-center gap-3">
+        <UserAvatar name={row.original.name} />
+        <div className="min-w-0">
+          <p className="truncate leading-none font-medium">
+            {row.original.name}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {row.original.email}
+          </p>
+        </div>
+      </div>
+    ),
+    header: "Usuario",
+    id: "user",
+  }),
+  columnHelper.accessor("role", {
+    cell: ({ getValue }) => {
+      const role = getValue() ?? "user"
+      return (
+        <Badge variant={role === "admin" ? "default" : "secondary"}>
+          {role}
+        </Badge>
+      )
+    },
+    header: "Rol",
+  }),
+  columnHelper.accessor("emailVerified", {
+    cell: ({ getValue }) =>
+      getValue() ? (
+        <Badge
+          variant="outline"
+          className="text-emerald-600 dark:text-emerald-400"
+        >
+          Verificado
+        </Badge>
+      ) : (
+        <Badge variant="outline" className="text-amber-600 dark:text-amber-400">
+          Pendiente
+        </Badge>
+      ),
+    header: "Email",
+  }),
+  columnHelper.accessor("banned", {
+    cell: ({ getValue }) =>
+      getValue() === true ? (
+        <Badge variant="destructive">Baneado</Badge>
+      ) : (
+        <Badge variant="outline">Activo</Badge>
+      ),
+    header: "Estado",
+  }),
+  columnHelper.accessor("createdAt", {
+    cell: ({ getValue }) => (
+      <span className="text-muted-foreground tabular-nums">
+        {formatShortDate(getValue())}
+      </span>
+    ),
+    header: "Registrado",
+  }),
+  columnHelper.display({
+    cell: ({ row }) => <UserRowActions user={row.original} />,
+    id: "actions",
+  }),
+])
+
 type UsersTableProps = {
   users: AdminUser[]
   total: number
@@ -224,97 +294,10 @@ export function UsersTable({
   routeFullPath,
 }: UsersTableProps) {
   const navigate = useNavigate({ from: routeFullPath })
-  const [sorting, setSorting] = useState<SortingState>([])
-
-  const columns = useMemo(
-    () => [
-      columnHelper.display({
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <UserAvatar name={row.original.name} />
-            <div className="min-w-0">
-              <p className="truncate leading-none font-medium">
-                {row.original.name}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {row.original.email}
-              </p>
-            </div>
-          </div>
-        ),
-        header: "Usuario",
-        id: "user",
-      }),
-      columnHelper.accessor("role", {
-        cell: ({ getValue }) => {
-          const role = getValue() ?? "user"
-          return (
-            <Badge variant={role === "admin" ? "default" : "secondary"}>
-              {role}
-            </Badge>
-          )
-        },
-        header: "Rol",
-      }),
-      columnHelper.accessor("emailVerified", {
-        cell: ({ getValue }) =>
-          getValue() ? (
-            <Badge
-              variant="outline"
-              className="text-emerald-600 dark:text-emerald-400"
-            >
-              Verificado
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="text-amber-600 dark:text-amber-400"
-            >
-              Pendiente
-            </Badge>
-          ),
-        header: "Email",
-      }),
-      columnHelper.accessor("banned", {
-        cell: ({ getValue }) =>
-          getValue() === true ? (
-            <Badge variant="destructive">Baneado</Badge>
-          ) : (
-            <Badge variant="outline">Activo</Badge>
-          ),
-        header: "Estado",
-      }),
-      columnHelper.accessor("createdAt", {
-        cell: ({ getValue }) => (
-          <span className="text-muted-foreground tabular-nums">
-            {formatShortDate(getValue())}
-          </span>
-        ),
-        header: "Registrado",
-      }),
-      columnHelper.display({
-        cell: ({ row }) => <UserRowActions user={row.original} />,
-        id: "actions",
-      }),
-    ],
-    []
-  )
 
   const pageCount = Math.ceil(total / limit)
 
-  const table = useReactTable({
-    columns,
-    data: users,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    manualPagination: true,
-    onSortingChange: setSorting,
-    pageCount,
-    state: {
-      pagination: { pageIndex: page - 1, pageSize: limit },
-      sorting,
-    },
-  })
+  const table = useTable({ columns, data: users, features })
 
   const goToPage = (p: number) => {
     void navigate({ search: (prev) => ({ ...prev, page: p }) })
@@ -346,7 +329,7 @@ export function UsersTable({
         <TableBody>
           {table.getRowModel().rows.map((row) => (
             <TableRow key={row.id}>
-              {row.getVisibleCells().map((cell) => (
+              {row.getAllCells().map((cell) => (
                 <TableCell key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
