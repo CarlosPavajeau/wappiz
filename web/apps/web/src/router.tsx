@@ -18,6 +18,7 @@ export const getRouter = () => {
     defaultPendingComponent: () => <DefaultLoader />,
     defaultPendingMinMs: 0,
     defaultPendingMs: 0,
+    defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     routeTree,
     scrollRestoration: true,

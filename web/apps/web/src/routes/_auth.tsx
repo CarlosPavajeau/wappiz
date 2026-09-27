@@ -11,10 +11,7 @@ import { useEffect, useState } from "react"
 import { getCurrentYear } from "@/functions/get-current-year"
 
 export const Route = createFileRoute("/_auth")({
-  loader: async () => {
-    const currentYear = await getCurrentYear()
-    return { currentYear }
-  },
+  loader: () => ({ currentYear: getCurrentYear() }),
   component: RouteComponent,
 })
 

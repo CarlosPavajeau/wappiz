@@ -9,10 +9,7 @@ import { PricingSection } from "@/components/landing/sections/pricing-section"
 import { getCurrentYear } from "@/functions/get-current-year"
 
 export const Route = createFileRoute("/")({
-  loader: async () => {
-    const currentYear = await getCurrentYear()
-    return { currentYear }
-  },
+  loader: () => ({ currentYear: getCurrentYear() }),
   component: HomeComponent,
   head: () => ({
     links: [
