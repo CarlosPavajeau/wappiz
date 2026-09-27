@@ -102,10 +102,12 @@ export const verifications = pgTable(
 )
 
 export const jwkss = pgTable("jwks", {
+  alg: text(),
   createdAt: timestamp("created_at", {
     precision: 6,
     withTimezone: true,
   }).notNull(),
+  crv: text(),
   expiresAt: timestamp("expires_at", { precision: 6, withTimezone: true }),
   id: text().primaryKey(),
   privateKey: text("private_key").notNull(),
