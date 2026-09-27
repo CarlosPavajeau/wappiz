@@ -9,42 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as AuthedRouteImport } from './routes/_authed'
-import { Route as AuthRouteImport } from './routes/_auth'
-import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
-import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
-import { Route as AuthedBannedRouteImport } from './routes/_authed/banned'
-import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
-import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as SplatRouteImport } from './routes/$'
+import { Route as AuthRouteImport } from './routes/_auth'
+import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
-import { Route as AuthedOnboardingIndexRouteImport } from './routes/_authed/onboarding.index'
+import { Route as AuthSignInRouteImport } from './routes/_auth/sign-in'
+import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
+import { Route as AuthedBannedRouteImport } from './routes/_authed/banned'
+import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
 import { Route as AuthedDashboardIndexRouteImport } from './routes/_authed/dashboard.index'
-import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AuthedDashboardUsersRouteImport } from './routes/_authed/dashboard.users'
-import { Route as AuthedDashboardSettingsRouteImport } from './routes/_authed/dashboard.settings'
-import { Route as AuthedDashboardServicesRouteImport } from './routes/_authed/dashboard.services'
 import { Route as AuthedDashboardFlowFieldsRouteImport } from './routes/_authed/dashboard.flow-fields'
-import { Route as AuthedDashboardResourcesIndexRouteImport } from './routes/_authed/dashboard.resources.index'
-import { Route as AuthedDashboardCustomersIndexRouteImport } from './routes/_authed/dashboard.customers.index'
+import { Route as AuthedDashboardServicesRouteImport } from './routes/_authed/dashboard.services'
+import { Route as AuthedDashboardSettingsRouteImport } from './routes/_authed/dashboard.settings'
+import { Route as AuthedDashboardUsersRouteImport } from './routes/_authed/dashboard.users'
+import { Route as AuthedOnboardingIndexRouteImport } from './routes/_authed/onboarding.index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthedDashboardBillingIndexRouteImport } from './routes/_authed/dashboard.billing.index'
-import { Route as AuthedOnboardingStepStepRouteImport } from './routes/_authed/onboarding.step.$step'
-import { Route as AuthedDashboardResourcesIdRouteImport } from './routes/_authed/dashboard.resources.$id'
+import { Route as AuthedDashboardCustomersIndexRouteImport } from './routes/_authed/dashboard.customers.index'
 import { Route as AuthedDashboardCustomersIdRouteImport } from './routes/_authed/dashboard.customers.$id'
+import { Route as AuthedDashboardResourcesIndexRouteImport } from './routes/_authed/dashboard.resources.index'
+import { Route as AuthedDashboardResourcesIdRouteImport } from './routes/_authed/dashboard.resources.$id'
+import { Route as AuthedOnboardingStepStepRouteImport } from './routes/_authed/onboarding.step.$step'
 
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthedRoute = AuthedRouteImport.update({
-  id: '/_authed',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/_auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SplatRoute = SplatRouteImport.update({
@@ -52,29 +44,22 @@ const SplatRoute = SplatRouteImport.update({
   path: '/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/_auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedOnboardingRoute = AuthedOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AuthedRoute,
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthedRoute,
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedBannedRoute = AuthedBannedRouteImport.update({
-  id: '/banned',
-  path: '/banned',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthSignUpRoute = AuthSignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthSignInRoute = AuthSignInRouteImport.update({
@@ -82,39 +67,29 @@ const AuthSignInRoute = AuthSignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AuthSignUpRoute = AuthSignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthedOnboardingIndexRoute = AuthedOnboardingIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthedOnboardingRoute,
+const AuthedBannedRoute = AuthedBannedRouteImport.update({
+  id: '/banned',
+  path: '/banned',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedOnboardingRoute = AuthedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedDashboardIndexRoute = AuthedDashboardIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AuthedDashboardRoute,
-} as any)
-const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
-  id: '/api/auth/$',
-  path: '/api/auth/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthedDashboardUsersRoute = AuthedDashboardUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AuthedDashboardRoute,
-} as any)
-const AuthedDashboardSettingsRoute = AuthedDashboardSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthedDashboardRoute,
-} as any)
-const AuthedDashboardServicesRoute = AuthedDashboardServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
   getParentRoute: () => AuthedDashboardRoute,
 } as any)
 const AuthedDashboardFlowFieldsRoute =
@@ -123,10 +98,35 @@ const AuthedDashboardFlowFieldsRoute =
     path: '/flow-fields',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
-const AuthedDashboardResourcesIndexRoute =
-  AuthedDashboardResourcesIndexRouteImport.update({
-    id: '/resources/',
-    path: '/resources/',
+const AuthedDashboardServicesRoute = AuthedDashboardServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => AuthedDashboardRoute,
+} as any)
+const AuthedDashboardSettingsRoute = AuthedDashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthedDashboardRoute,
+} as any)
+const AuthedDashboardUsersRoute = AuthedDashboardUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthedDashboardRoute,
+} as any)
+const AuthedOnboardingIndexRoute = AuthedOnboardingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthedOnboardingRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedDashboardBillingIndexRoute =
+  AuthedDashboardBillingIndexRouteImport.update({
+    id: '/billing/',
+    path: '/billing/',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
 const AuthedDashboardCustomersIndexRoute =
@@ -135,17 +135,17 @@ const AuthedDashboardCustomersIndexRoute =
     path: '/customers/',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
-const AuthedDashboardBillingIndexRoute =
-  AuthedDashboardBillingIndexRouteImport.update({
-    id: '/billing/',
-    path: '/billing/',
+const AuthedDashboardCustomersIdRoute =
+  AuthedDashboardCustomersIdRouteImport.update({
+    id: '/customers/$id',
+    path: '/customers/$id',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
-const AuthedOnboardingStepStepRoute =
-  AuthedOnboardingStepStepRouteImport.update({
-    id: '/step/$step',
-    path: '/step/$step',
-    getParentRoute: () => AuthedOnboardingRoute,
+const AuthedDashboardResourcesIndexRoute =
+  AuthedDashboardResourcesIndexRouteImport.update({
+    id: '/resources/',
+    path: '/resources/',
+    getParentRoute: () => AuthedDashboardRoute,
   } as any)
 const AuthedDashboardResourcesIdRoute =
   AuthedDashboardResourcesIdRouteImport.update({
@@ -153,11 +153,11 @@ const AuthedDashboardResourcesIdRoute =
     path: '/resources/$id',
     getParentRoute: () => AuthedDashboardRoute,
   } as any)
-const AuthedDashboardCustomersIdRoute =
-  AuthedDashboardCustomersIdRouteImport.update({
-    id: '/customers/$id',
-    path: '/customers/$id',
-    getParentRoute: () => AuthedDashboardRoute,
+const AuthedOnboardingStepStepRoute =
+  AuthedOnboardingStepStepRouteImport.update({
+    id: '/step/$step',
+    path: '/step/$step',
+    getParentRoute: () => AuthedOnboardingRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -319,25 +319,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed': {
-      id: '/_authed'
-      path: ''
+    '/': {
+      id: '/'
+      path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthRouteImport
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$': {
@@ -347,39 +333,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
+    '/_auth': {
+      id: '/_auth'
+      path: ''
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed/onboarding': {
-      id: '/_authed/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof AuthedOnboardingRouteImport
-      parentRoute: typeof AuthedRoute
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authed/dashboard': {
-      id: '/_authed/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthedDashboardRouteImport
-      parentRoute: typeof AuthedRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authed/banned': {
-      id: '/_authed/banned'
-      path: '/banned'
-      fullPath: '/banned'
-      preLoaderRoute: typeof AuthedBannedRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_auth/sign-up': {
-      id: '/_auth/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof AuthSignUpRouteImport
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/sign-in': {
@@ -389,53 +368,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthSignInRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/reset-password': {
-      id: '/_auth/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof AuthResetPasswordRouteImport
+    '/_auth/sign-up': {
+      id: '/_auth/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof AuthSignUpRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_authed/onboarding/': {
-      id: '/_authed/onboarding/'
-      path: '/'
-      fullPath: '/onboarding/'
-      preLoaderRoute: typeof AuthedOnboardingIndexRouteImport
-      parentRoute: typeof AuthedOnboardingRoute
+    '/_authed/banned': {
+      id: '/_authed/banned'
+      path: '/banned'
+      fullPath: '/banned'
+      preLoaderRoute: typeof AuthedBannedRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/dashboard': {
+      id: '/_authed/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthedDashboardRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/onboarding': {
+      id: '/_authed/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthedOnboardingRouteImport
+      parentRoute: typeof AuthedRoute
     }
     '/_authed/dashboard/': {
       id: '/_authed/dashboard/'
       path: '/'
       fullPath: '/dashboard/'
       preLoaderRoute: typeof AuthedDashboardIndexRouteImport
-      parentRoute: typeof AuthedDashboardRoute
-    }
-    '/api/auth/$': {
-      id: '/api/auth/$'
-      path: '/api/auth/$'
-      fullPath: '/api/auth/$'
-      preLoaderRoute: typeof ApiAuthSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authed/dashboard/users': {
-      id: '/_authed/dashboard/users'
-      path: '/users'
-      fullPath: '/dashboard/users'
-      preLoaderRoute: typeof AuthedDashboardUsersRouteImport
-      parentRoute: typeof AuthedDashboardRoute
-    }
-    '/_authed/dashboard/settings': {
-      id: '/_authed/dashboard/settings'
-      path: '/settings'
-      fullPath: '/dashboard/settings'
-      preLoaderRoute: typeof AuthedDashboardSettingsRouteImport
-      parentRoute: typeof AuthedDashboardRoute
-    }
-    '/_authed/dashboard/services': {
-      id: '/_authed/dashboard/services'
-      path: '/services'
-      fullPath: '/dashboard/services'
-      preLoaderRoute: typeof AuthedDashboardServicesRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
     '/_authed/dashboard/flow-fields': {
@@ -445,11 +410,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardFlowFieldsRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
-    '/_authed/dashboard/resources/': {
-      id: '/_authed/dashboard/resources/'
-      path: '/resources'
-      fullPath: '/dashboard/resources/'
-      preLoaderRoute: typeof AuthedDashboardResourcesIndexRouteImport
+    '/_authed/dashboard/services': {
+      id: '/_authed/dashboard/services'
+      path: '/services'
+      fullPath: '/dashboard/services'
+      preLoaderRoute: typeof AuthedDashboardServicesRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
+    '/_authed/dashboard/settings': {
+      id: '/_authed/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof AuthedDashboardSettingsRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
+    '/_authed/dashboard/users': {
+      id: '/_authed/dashboard/users'
+      path: '/users'
+      fullPath: '/dashboard/users'
+      preLoaderRoute: typeof AuthedDashboardUsersRouteImport
+      parentRoute: typeof AuthedDashboardRoute
+    }
+    '/_authed/onboarding/': {
+      id: '/_authed/onboarding/'
+      path: '/'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof AuthedOnboardingIndexRouteImport
+      parentRoute: typeof AuthedOnboardingRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed/dashboard/billing/': {
+      id: '/_authed/dashboard/billing/'
+      path: '/billing'
+      fullPath: '/dashboard/billing/'
+      preLoaderRoute: typeof AuthedDashboardBillingIndexRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
     '/_authed/dashboard/customers/': {
@@ -459,19 +459,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardCustomersIndexRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
-    '/_authed/dashboard/billing/': {
-      id: '/_authed/dashboard/billing/'
-      path: '/billing'
-      fullPath: '/dashboard/billing/'
-      preLoaderRoute: typeof AuthedDashboardBillingIndexRouteImport
+    '/_authed/dashboard/customers/$id': {
+      id: '/_authed/dashboard/customers/$id'
+      path: '/customers/$id'
+      fullPath: '/dashboard/customers/$id'
+      preLoaderRoute: typeof AuthedDashboardCustomersIdRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
-    '/_authed/onboarding/step/$step': {
-      id: '/_authed/onboarding/step/$step'
-      path: '/step/$step'
-      fullPath: '/onboarding/step/$step'
-      preLoaderRoute: typeof AuthedOnboardingStepStepRouteImport
-      parentRoute: typeof AuthedOnboardingRoute
+    '/_authed/dashboard/resources/': {
+      id: '/_authed/dashboard/resources/'
+      path: '/resources'
+      fullPath: '/dashboard/resources/'
+      preLoaderRoute: typeof AuthedDashboardResourcesIndexRouteImport
+      parentRoute: typeof AuthedDashboardRoute
     }
     '/_authed/dashboard/resources/$id': {
       id: '/_authed/dashboard/resources/$id'
@@ -480,12 +480,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardResourcesIdRouteImport
       parentRoute: typeof AuthedDashboardRoute
     }
-    '/_authed/dashboard/customers/$id': {
-      id: '/_authed/dashboard/customers/$id'
-      path: '/customers/$id'
-      fullPath: '/dashboard/customers/$id'
-      preLoaderRoute: typeof AuthedDashboardCustomersIdRouteImport
-      parentRoute: typeof AuthedDashboardRoute
+    '/_authed/onboarding/step/$step': {
+      id: '/_authed/onboarding/step/$step'
+      path: '/step/$step'
+      fullPath: '/onboarding/step/$step'
+      preLoaderRoute: typeof AuthedOnboardingStepStepRouteImport
+      parentRoute: typeof AuthedOnboardingRoute
     }
   }
 }
