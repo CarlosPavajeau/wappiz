@@ -1,7 +1,7 @@
 export type Customer = {
   id: string
   phoneNumber: string
-  name: string
+  name: string | null
   displayName: string
   isBlocked: boolean
   noShowCount: number
