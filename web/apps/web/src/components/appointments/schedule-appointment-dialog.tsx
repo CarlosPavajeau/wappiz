@@ -17,7 +17,7 @@ import type { Resource } from "@wappiz/api-client/types/resources"
 import type { Service } from "@wappiz/api-client/types/services"
 import { type } from "arktype"
 import { format } from "date-fns"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { ReactNode } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
@@ -176,6 +176,31 @@ export function ScheduleAppointmentDialog({
       setValue("serviceId", "")
     }
   }
+
+  // Links and lists refetch while the dialog is open (focus, invalidation),
+  // so a pair picked earlier can stop being valid. The pickers would then
+  // look empty while the form still submits the old ids, which the API
+  // rejects. Drop whichever side the latest data no longer supports.
+  useEffect(() => {
+    const next = reconcileSelection(
+      { resourceId: selectedResourceId, serviceId: selectedServiceId },
+      { linksReady, resources, serviceIdsByResource, services }
+    )
+    if (next.serviceId !== selectedServiceId) {
+      setValue("serviceId", next.serviceId)
+    }
+    if (next.resourceId !== selectedResourceId) {
+      setValue("resourceId", next.resourceId)
+    }
+  }, [
+    linksReady,
+    resources,
+    selectedResourceId,
+    selectedServiceId,
+    serviceIdsByResource,
+    services,
+    setValue,
+  ])
 
   const {
     error: createAppointmentError,
@@ -438,6 +463,56 @@ function resourcesEmptyText(
   return selectedServiceId === ""
     ? "No hay recursos con servicios asignados"
     : "Ningún recurso presta este servicio"
+}
+
+type Selection = {
+  resourceId: string
+  serviceId: string
+}
+
+type SelectionData = {
+  linksReady: boolean
+  resources: Resource[] | undefined
+  serviceIdsByResource: Map<string, Set<string>>
+  services: Service[] | undefined
+}
+
+/**
+ * Returns the selection with any side the current data no longer supports
+ * cleared. An undefined list means "unknown", not "empty", so it is left
+ * alone. An incompatible pair keeps the resource and drops the service,
+ * matching what `selectResource` does when the user picks by hand.
+ */
+function reconcileSelection(
+  selection: Selection,
+  { linksReady, resources, serviceIdsByResource, services }: SelectionData
+): Selection {
+  let { resourceId, serviceId } = selection
+  if (
+    serviceId !== "" &&
+    services !== undefined &&
+    !services.some((service) => service.id === serviceId)
+  ) {
+    serviceId = ""
+  }
+  if (
+    resourceId !== "" &&
+    resources !== undefined &&
+    !resources.some((resource) => resource.id === resourceId)
+  ) {
+    resourceId = ""
+  }
+  if (!linksReady || resourceId === "") {
+    return { resourceId, serviceId }
+  }
+  const offered = serviceIdsByResource.get(resourceId)
+  if (serviceId !== "" && !(offered?.has(serviceId) ?? false)) {
+    serviceId = ""
+  }
+  if ((offered?.size ?? 0) === 0) {
+    resourceId = ""
+  }
+  return { resourceId, serviceId }
 }
 
 type ResourceServiceLink = {
