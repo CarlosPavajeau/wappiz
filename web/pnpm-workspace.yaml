@@ -1,0 +1,24 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  "@types/react": ^19.2.10
+  "@types/react-dom": ^19.2.3
+  better-auth: 1.6.9
+  dotenv: ^17.2.2
+  react: ^19.2.3
+  react-dom: ^19.2.3
+  sonner: ^2.0.5
+  tailwindcss: ^4.1.18
+  typescript: ^5
+  zod: ^4.1.13
+
+# pnpm blocks postinstall scripts by default. These need theirs to fetch
+# platform binaries; core-js and msw only print ads/telemetry prompts.
+allowBuilds:
+  "@sentry/cli": true
+  esbuild: true
+  sharp: true
+  core-js: false
+  msw: false

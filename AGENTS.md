@@ -80,22 +80,22 @@ Run these from `web/`.
 
 ```bash
 # Development
-bun run dev          # Start all apps (web on port 3001)
-bun run dev:web      # Start web app only
+pnpm dev          # Start all apps (web on port 3001)
+pnpm dev:web      # Start web app only
 
 # Type checking & linting
-bun run check-types  # TypeScript type checking across workspace
-bun run check        # Oxlint + Oxfmt check (via Ultracite)
-bun run fix          # Auto-fix formatting and lint issues
+pnpm check-types  # TypeScript type checking across workspace
+pnpm check        # Oxlint + Oxfmt check (via Ultracite)
+pnpm fix          # Auto-fix formatting and lint issues
 
 # Build
-bun run build        # Build all apps
+pnpm build        # Build all apps
 
 # Database
-bun run db:push      # Push schema to DB (dev)
-bun run db:generate  # Generate migration files
-bun run db:migrate   # Run migrations
-bun run db:studio    # Open Drizzle Studio
+pnpm db:push      # Push schema to DB (dev)
+pnpm db:generate  # Generate migration files
+pnpm db:migrate   # Run migrations
+pnpm db:studio    # Open Drizzle Studio
 ```
 
 ## Web Notes
@@ -107,4 +107,4 @@ bun run db:studio    # Open Drizzle Studio
 - **Forms**: React Hook Form + Arktype for validation.
 - **Env vars**: Always add variables to `web/packages/env/src/server.ts` or `web.ts`; never access `process.env` directly in app code.
 - **Imports**: Avoid barrel files. Prefer direct imports. Tailwind class order is enforced by Oxfmt.
-- Use `bun run fix` before committing TypeScript changes.
+- Use `pnpm fix` before committing TypeScript changes.

@@ -33,6 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { api } from "@/lib/client-api"
+import { formatPhoneNumber } from "@/lib/intl"
 import { cn } from "@/lib/utils"
 
 const INCIDENT_CONFIG: Record<
@@ -106,7 +107,7 @@ function RouteComponent() {
     )
   }
 
-  const initials = (customer.displayName || customer.name)
+  const initials = customer.displayName
     .split(" ")
     .slice(0, 2)
     .map((w: string) => w[0])
@@ -148,7 +149,7 @@ function RouteComponent() {
                 strokeWidth={2}
                 aria-hidden="true"
               />
-              {customer.phoneNumber}
+              {formatPhoneNumber(customer.phoneNumber)}
             </span>
             {customer.displayName !== customer.name && (
               <>

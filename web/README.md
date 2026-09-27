@@ -16,20 +16,20 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 First, install the dependencies:
 
 ```bash
-bun install
+pnpm install
 ```
 
 Then, run the development server:
 
 ```bash
-bun run dev
+pnpm dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
 
 ## Git Hooks and Formatting
 
-- Format and lint fix: `bun run check`
+- Format and lint fix: `pnpm check`
 
 ## Project Structure
 
@@ -42,7 +42,7 @@ wappiz/
 
 ## Available Scripts
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run check`: Run Oxlint and Oxfmt
+- `pnpm dev`: Start all applications in development mode
+- `pnpm build`: Build all applications
+- `pnpm check-types`: Check TypeScript types across all apps
+- `pnpm check`: Run Oxlint and Oxfmt

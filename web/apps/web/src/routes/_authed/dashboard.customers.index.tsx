@@ -48,6 +48,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { api } from "@/lib/client-api"
+import { formatPhoneNumber } from "@/lib/intl"
 
 export const Route = createFileRoute("/_authed/dashboard/customers/")({
   component: RouteComponent,
@@ -220,7 +221,7 @@ function RouteComponent() {
                   </div>
                 </TableCell>
                 <TableCell className="hidden text-muted-foreground sm:table-cell">
-                  {customer.phoneNumber}
+                  {formatPhoneNumber(customer.phoneNumber)}
                 </TableCell>
                 <TableCell>
                   {customer.isBlocked ? (
