@@ -27,7 +27,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "^22.19.17",
+    "@types/node": "^24.13.6",
     "@wappiz/config": "workspace:*",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
