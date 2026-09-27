@@ -95,7 +95,9 @@ function RootDocument() {
       <head>
         {/* Anti-flash: set correct theme class before CSS/React hydrate */}
         <script
-          // intentional anti-flash inline script
+          // Static string with no user input: applies the stored theme class
+          // before hydration so the page does not flash the wrong theme.
+          // oxlint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('cetus-theme');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d)}catch(e){}})()`,
           }}

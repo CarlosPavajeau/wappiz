@@ -9,53 +9,78 @@ type ThemeContextValue = {
 }
 
 const storageKey = "cetus-theme"
+const darkQuery = "(prefers-color-scheme: dark)"
 
 const ThemeContext = React.createContext<ThemeContextValue | null>(null)
 
+function isTheme(value: string | null): value is Theme {
+  return value === "light" || value === "dark" || value === "system"
+}
+
+// The preference lives in localStorage and the OS setting in matchMedia; both
+// are external stores. Reading them through useSyncExternalStore keeps the
+// server render on "system"/light, lets hydration pick up the real values,
+// and derives `resolvedTheme` instead of mirroring it into state from an
+// effect. Same-tab writes are announced through `themeListeners`; other tabs
+// arrive via the `storage` event.
+const themeListeners = new Set<() => void>()
+
+function subscribeToTheme(onChange: () => void) {
+  themeListeners.add(onChange)
+  window.addEventListener("storage", onChange)
+  return () => {
+    themeListeners.delete(onChange)
+    window.removeEventListener("storage", onChange)
+  }
+}
+
+function readStoredTheme(): Theme {
+  const stored = localStorage.getItem(storageKey)
+  return isTheme(stored) ? stored : "system"
+}
+
+function readServerTheme(): Theme {
+  return "system"
+}
+
+function subscribeToOsPreference(onChange: () => void) {
+  const mq = matchMedia(darkQuery)
+  mq.addEventListener("change", onChange)
+  return () => mq.removeEventListener("change", onChange)
+}
+
+function readOsPrefersDark() {
+  return matchMedia(darkQuery).matches
+}
+
+function readServerPrefersDark() {
+  return false
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = React.useState<Theme>("system")
-  const [resolvedTheme, setResolvedTheme] = React.useState<"light" | "dark">(
-    "light"
+  const theme = React.useSyncExternalStore(
+    subscribeToTheme,
+    readStoredTheme,
+    readServerTheme
   )
+  const osPrefersDark = React.useSyncExternalStore(
+    subscribeToOsPreference,
+    readOsPrefersDark,
+    readServerPrefersDark
+  )
+  const resolvedTheme: ThemeContextValue["resolvedTheme"] =
+    theme === "dark" || (theme === "system" && osPrefersDark) ? "dark" : "light"
 
-  // On mount, read persisted preference
+  // Sync class on documentElement when the resolved theme changes
   React.useEffect(() => {
-    const stored = localStorage.getItem(storageKey) as Theme | null
-    if (stored === "light" || stored === "dark" || stored === "system") {
-      setThemeState(stored)
-    }
-  }, [])
-
-  // Sync class on documentElement when theme changes
-  React.useEffect(() => {
-    const isDark =
-      theme === "dark" ||
-      (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches)
-    const next = isDark ? "dark" : "light"
-    document.documentElement.classList.toggle("dark", isDark)
-    setResolvedTheme(next)
-  }, [theme])
-
-  // Listen to OS preference changes when theme is "system"
-  React.useEffect(() => {
-    if (theme !== "system") {
-      return
-    }
-
-    const mq = matchMedia("(prefers-color-scheme: dark)")
-    const handler = (e: MediaQueryListEvent) => {
-      const isDark = e.matches
-      document.documentElement.classList.toggle("dark", isDark)
-      setResolvedTheme(isDark ? "dark" : "light")
-    }
-
-    mq.addEventListener("change", handler)
-    return () => mq.removeEventListener("change", handler)
-  }, [theme])
+    document.documentElement.classList.toggle("dark", resolvedTheme === "dark")
+  }, [resolvedTheme])
 
   const setTheme = useCallback((next: Theme) => {
     localStorage.setItem(storageKey, next)
-    setThemeState(next)
+    for (const listener of themeListeners) {
+      listener()
+    }
   }, [])
 
   const value = useMemo(

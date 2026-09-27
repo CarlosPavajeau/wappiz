@@ -45,12 +45,10 @@ export function CalendarMonthView({
   const days = eachDayOfInterval({ end: gridEnd, start: gridStart })
   const byDate = useMemo(() => groupByDate(apts), [apts])
 
-  const agendaDays = useMemo(() => {
-    const monthDays = eachDayOfInterval({ end: monthEnd, start: monthStart })
-    return monthDays.filter(
-      (d) => isToday(d) || (byDate[toDateKey(d)]?.length ?? 0) > 0
-    )
-  }, [monthStart, monthEnd, byDate])
+  const agendaDays = eachDayOfInterval({
+    end: monthEnd,
+    start: monthStart,
+  }).filter((d) => isToday(d) || (byDate[toDateKey(d)]?.length ?? 0) > 0)
 
   return (
     <div className="flex h-full flex-col">

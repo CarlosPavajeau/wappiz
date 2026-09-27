@@ -26,9 +26,9 @@ function RouteComponent() {
     const message =
       error === "INVALID_TOKEN"
         ? "El enlace no es válido."
-        : !token
-          ? "El enlace ha expirado."
-          : error
+        : token
+          ? error
+          : "El enlace ha expirado."
 
     return (
       <div className="w-full max-w-sm">

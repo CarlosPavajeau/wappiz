@@ -1,36 +1,23 @@
 import { defineConfig } from "oxfmt"
 import ultracite from "ultracite/oxfmt"
 
+// oxfmt has no `extends`, so the preset is merged by spreading it. Keys below
+// override the preset; everything else (arrowParens, printWidth, sortImports,
+// sortPackageJson, ...) comes from ultracite.
 export default defineConfig({
-  arrowParens: "always",
-  bracketSameLine: false,
-  bracketSpacing: true,
-  endOfLine: "lf",
-  experimentalSortImports: {
-    ignoreCase: true,
-    newlinesBetween: true,
-    order: "asc",
-  },
-  experimentalSortPackageJson: true,
-  extends: [ultracite],
+  ...ultracite,
   ignorePatterns: [
+    ...(ultracite.ignorePatterns ?? []),
     "*.gen.ts",
     "*.md",
     "**/migrations/**",
     ".agents/**",
     ".claude/**",
   ],
-  jsxSingleQuote: false,
-  printWidth: 80,
-  quoteProps: "as-needed",
   semi: false,
-  singleQuote: false,
   sortTailwindcss: {
-    functions: ["clsx", "cn"],
+    ...ultracite.sortTailwindcss,
     preserveWhitespace: true,
     stylesheet: "./apps/web/src/index.css",
   },
-  tabWidth: 2,
-  trailingComma: "es5",
-  useTabs: false,
 })

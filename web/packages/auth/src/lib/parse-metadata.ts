@@ -35,7 +35,7 @@ function parseNumber(value: string | undefined): number | null {
     return null
   }
 
-  const parsed = Number.parseInt(value, 10)
+  const parsed = Math.trunc(Number(value))
 
-  return Number.isNaN(parsed) ? null : parsed
+  return Number.isFinite(parsed) ? parsed : null
 }

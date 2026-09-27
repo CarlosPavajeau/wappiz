@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 
 import { Section, SectionContent } from "@/components/landing/layout/section"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
 
 export const Route = createFileRoute("/_authed/banned")({
@@ -43,14 +43,13 @@ function RouteComponent() {
               Tu acceso ha sido revocado por el equipo de wappiz. Si crees que
               esto es un error, escríbenos al siguiente correo electrónico:
               <br />
-              <Button
-                render={<a href="mailto:contact@cantte.com" target="_blank" />}
-                variant="link"
-                nativeButton={false}
-                size="lg"
+              <a
+                href="mailto:contact@cantte.com"
+                target="_blank"
+                className={buttonVariants({ size: "lg", variant: "link" })}
               >
                 contact@cantte.com
-              </Button>
+              </a>
             </p>
 
             <div className="pt-2">

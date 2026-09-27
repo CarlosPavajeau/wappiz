@@ -149,14 +149,11 @@ export function AppSidebar() {
     from: "/_authed",
   })
   const { data: tenant, isLoading } = useTenant()
-  const { isMobile, openMobile, setOpenMobile } = useSidebar()
+  const { isMobile, setOpenMobile } = useSidebar()
 
-  const toggleSidebar = () => {
+  const closeMobileSidebar = () => {
     if (isMobile) {
-      setOpenMobile(!openMobile)
-    } else {
       setOpenMobile(false)
-      setOpenMobile(!openMobile)
     }
   }
 
@@ -173,7 +170,7 @@ export function AppSidebar() {
               <NavMenu
                 role={user.user.role ?? undefined}
                 pathname={pathname}
-                onNavigate={toggleSidebar}
+                onNavigate={closeMobileSidebar}
               />
             </SidebarMenu>
           </SidebarGroupContent>

@@ -181,9 +181,8 @@ export function StepResourceForm() {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldTitle>Días de trabajo</FieldTitle>
-                <div
+                <fieldset
                   className="grid grid-cols-7 gap-1.5"
-                  role="group"
                   aria-label="Días de trabajo"
                 >
                   {DAYS.map((day) => {
@@ -192,8 +191,7 @@ export function StepResourceForm() {
                       <button
                         key={day.value}
                         type="button"
-                        role="checkbox"
-                        aria-checked={isSelected}
+                        aria-pressed={isSelected}
                         onClick={() => {
                           const next = isSelected
                             ? field.value
@@ -213,7 +211,7 @@ export function StepResourceForm() {
                       </button>
                     )
                   })}
-                </div>
+                </fieldset>
                 <FieldError errors={[fieldState.error]} />
               </Field>
             )}

@@ -69,7 +69,9 @@ function HistoryItem({ entry }: HistoryItemProps) {
           <p className="text-xs text-muted-foreground">{entry.changedBy}</p>
         ) : null}
         {entry.reason ? (
-          <p className="text-xs text-foreground/70 italic">"{entry.reason}"</p>
+          <p className="text-xs text-foreground/70 italic">
+            &quot;{entry.reason}&quot;
+          </p>
         ) : null}
         <time
           className="text-xs text-muted-foreground/60"

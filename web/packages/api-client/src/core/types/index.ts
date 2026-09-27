@@ -38,7 +38,7 @@ export type FetchRequestConfig = {
 }
 
 export type FetchClient = {
-  request<T>(config: FetchRequestConfig): Promise<T>
+  request: <T>(config: FetchRequestConfig) => Promise<T>
 }
 
 export type RequestOptions = {

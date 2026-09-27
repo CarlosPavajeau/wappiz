@@ -9,6 +9,8 @@ type Options = {
   apiKey: string
 }
 
+// Not a React component: the rule misfires on the JSX passed to `render`.
+// oxlint-disable-next-line react/prefer-function-component
 export class Resend {
   public readonly client: Client
   private readonly replyTo = "contact@cantte.com"

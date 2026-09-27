@@ -25,7 +25,7 @@ const COLOMBIA_NATIONAL_LENGTH = 10
  * since guessing a foreign layout would be worse than none.
  */
 export function formatPhoneNumber(value: string): string {
-  const digits = value.replaceAll(/\D/g, "")
+  const digits = value.replaceAll(/\D/gu, "")
   if (digits === "") {
     return value
   }

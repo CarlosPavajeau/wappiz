@@ -152,7 +152,7 @@ export class HttpClient implements FetchClient {
 
       const response = await fetch(url, {
         body:
-          config.data !== undefined ? JSON.stringify(config.data) : undefined,
+          config.data === undefined ? undefined : JSON.stringify(config.data),
         headers: requestHeaders,
         method: config.method,
         signal,

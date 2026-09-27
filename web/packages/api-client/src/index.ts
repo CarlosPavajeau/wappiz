@@ -1,6 +1,5 @@
 import { HttpClient } from "./core/http-client"
-import { ApiError } from "./core/types"
-import type { ApiClientConfig, ProblemDetail, TokenPair } from "./core/types"
+import type { ApiClientConfig, TokenPair } from "./core/types"
 import { adminResource } from "./endpoints/admin"
 import { appointmentsEndpoints } from "./endpoints/appointments"
 import { billingEndpoints } from "./endpoints/billings"
@@ -11,8 +10,8 @@ import { servicesEndpoint } from "./endpoints/services"
 import { tenantFlowFieldEndpoints } from "./endpoints/tenant-flow-fields"
 import { tenantEndpoints } from "./endpoints/tenants"
 
-export { ApiError }
-export type { ProblemDetail }
+export { ApiError } from "./core/types"
+export type { ProblemDetail } from "./core/types"
 
 const RESOURCES = {
   admin: adminResource,

@@ -627,14 +627,14 @@ function matchesName(item: { name: string }, query: string): boolean {
 function normalizeText(value: string): string {
   return value
     .normalize("NFD")
-    .replaceAll(/[̀-ͯ]/g, "")
+    .replaceAll(/[̀-ͯ]/gu, "")
     .toLowerCase()
     .trim()
 }
 
 /** Keeps only digits so "+57 300-123" matches "573001230000". */
 function digitsOf(value: string): string {
-  return value.replaceAll(/\D/g, "")
+  return value.replaceAll(/\D/gu, "")
 }
 
 function defaultValuesFor(date: Date): ScheduleAppointmentFormValues {
