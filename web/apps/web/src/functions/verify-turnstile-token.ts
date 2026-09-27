@@ -7,7 +7,7 @@ const schema = type({
 })
 
 export const verifyTurnstileToken = createServerFn({ method: "POST" })
-  .inputValidator(schema)
+  .validator(schema)
   .handler(async ({ data }) => {
     const secretKey = env.CLOUDFLARE_TURNSTILE_SECRET_KEY
     if (!secretKey) {

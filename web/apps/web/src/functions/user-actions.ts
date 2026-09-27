@@ -8,7 +8,7 @@ import { authMiddleware } from "@/middleware/auth"
 
 export const banUser = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator((data: { userId: string; banReason?: string }) => data)
+  .validator((data: { userId: string; banReason?: string }) => data)
   .handler(async ({ data: { userId, banReason } }) => {
     const headers = await getRequestHeaders()
     return auth.api.banUser({ body: { banReason, userId }, headers })
@@ -16,7 +16,7 @@ export const banUser = createServerFn({ method: "POST" })
 
 export const unbanUser = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
-  .inputValidator((data: { userId: string }) => data)
+  .validator((data: { userId: string }) => data)
   .handler(async ({ data: { userId } }) => {
     const headers = await getRequestHeaders()
     return auth.api.unbanUser({ body: { userId }, headers })

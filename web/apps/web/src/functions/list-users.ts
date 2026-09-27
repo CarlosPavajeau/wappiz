@@ -25,7 +25,7 @@ const toIso = (v: Date | string | null | undefined): string | null =>
 
 export const listUsers = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
-  .inputValidator((data: { page: number; limit: number }) => data)
+  .validator((data: { page: number; limit: number }) => data)
   .handler(async ({ data: { page, limit } }) => {
     const headers = await getRequestHeaders()
     const result = await auth.api.listUsers({
