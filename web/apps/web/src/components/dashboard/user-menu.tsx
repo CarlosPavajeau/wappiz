@@ -1,7 +1,4 @@
-import {
-  CreditCardIcon,
-  Logout,
-} from "@hugeicons/core-free-icons"
+import { CreditCardIcon, Logout } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"
 import { Link, useNavigate, useRouteContext } from "@tanstack/react-router"
