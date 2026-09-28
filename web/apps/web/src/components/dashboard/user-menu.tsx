@@ -1,8 +1,6 @@
 import {
   CreditCardIcon,
-  Invoice01Icon,
   Logout,
-  User,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation } from "@tanstack/react-query"

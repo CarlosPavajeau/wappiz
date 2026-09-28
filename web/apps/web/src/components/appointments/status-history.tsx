@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import type { AppointmentStatusHistory } from "@wappiz/api-client/types/appointments"
+import type { AppointmentStatusHistory as AppointmentStatusHistoryType } from "@wappiz/api-client/types/appointments"
 import { format } from "date-fns"
 
 import { Skeleton } from "@/components/ui/skeleton"
@@ -45,7 +45,7 @@ export function AppointmentStatusHistory({ appointmentId }: Props) {
 }
 
 type HistoryItemProps = {
-  entry: AppointmentStatusHistory
+  entry: AppointmentStatusHistoryType
 }
 
 function HistoryItem({ entry }: HistoryItemProps) {

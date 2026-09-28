@@ -21,7 +21,7 @@ export type AdminUser = {
 }
 
 const toIso = (v: Date | string | null | undefined): string | null =>
-  v == null ? null : new Date(v).toISOString()
+  v === null ? null : new Date(v).toISOString()
 
 export const listUsers = createServerFn({ method: "GET" })
   .middleware([authMiddleware])

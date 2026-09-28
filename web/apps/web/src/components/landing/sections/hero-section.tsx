@@ -1,4 +1,4 @@
-import { ArrowRight01Icon, Calendar01Icon } from "@hugeicons/core-free-icons"
+import { ArrowRight01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { usePostHog } from "@posthog/react"
 import { Link } from "@tanstack/react-router"

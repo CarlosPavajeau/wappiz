@@ -1,5 +1,3 @@
-"use client"
-
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import {
   InformationCircleIcon,
@@ -7,7 +5,6 @@ import {
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useRouter } from "@tanstack/react-router"
 import type { Service } from "@wappiz/api-client/types/services"
 import { type } from "arktype"
 import { useState } from "react"
