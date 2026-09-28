@@ -27,7 +27,7 @@ export const listUsers = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .validator((data: { page: number; limit: number }) => data)
   .handler(async ({ data: { page, limit } }) => {
-    const headers = await getRequestHeaders()
+    const headers = getRequestHeaders()
     const result = await auth.api.listUsers({
       headers,
       query: { limit, offset: (page - 1) * limit },

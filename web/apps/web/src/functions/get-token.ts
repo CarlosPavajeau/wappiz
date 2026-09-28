@@ -7,7 +7,7 @@ import { authClient } from "@/lib/auth-client"
 export const getToken = createIsomorphicFn()
   .server(async () => {
     const { token } = await auth.api.getToken({
-      headers: await getRequestHeaders(),
+      headers: getRequestHeaders(),
     })
     return token
   })

@@ -10,7 +10,7 @@ export const banUser = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((data: { userId: string; banReason?: string }) => data)
   .handler(async ({ data: { userId, banReason } }) => {
-    const headers = await getRequestHeaders()
+    const headers = getRequestHeaders()
     return auth.api.banUser({ body: { banReason, userId }, headers })
   })
 
@@ -18,6 +18,6 @@ export const unbanUser = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((data: { userId: string }) => data)
   .handler(async ({ data: { userId } }) => {
-    const headers = await getRequestHeaders()
+    const headers = getRequestHeaders()
     return auth.api.unbanUser({ body: { userId }, headers })
   })
