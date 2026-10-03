@@ -14,6 +14,12 @@ catalog:
   typescript: ^7.0.2
   zod: ^4.1.13
 
+# Packages that pull TanStack Start in as a peer (better-auth via
+# @wappiz/auth) would otherwise resolve their own, older copy. Keep a single
+# version across the workspace so a security upgrade reaches every importer.
+overrides:
+  "@tanstack/react-start": ^1.168.58
+
 # Supply-chain hardening. Most malicious releases are pulled from the
 # registry within hours, so refusing versions younger than 7 days keeps a
 # hijacked release from ever reaching a developer machine or CI. This applies
