@@ -98,6 +98,7 @@ go_library(
         "schedule_overrides_insert.sql_generated.go",
         "services_delete.sql_generated.go",
         "services_find_by_id.sql_generated.go",
+        "services_find_by_id_including_inactive.sql_generated.go",
         "services_find_by_resource_id.sql_generated.go",
         "services_find_by_tenant.sql_generated.go",
         "services_find_with_assigned_resource.sql_generated.go",
