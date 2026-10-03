@@ -148,12 +148,17 @@ func TestHandle_PublicBooking(t *testing.T) {
 		require.Equal(t, string(events.AppointmentCreatedSourcePublic), source)
 	})
 
-	t.Run("rejects a taken slot with 409", func(t *testing.T) {
+	t.Run("rejects a taken slot with 409 without creating the customer", func(t *testing.T) {
 		f := newFixture(t, ready)
 
 		require.Equal(t, http.StatusCreated, f.book(t, "573001234567").Code)
 		w := f.book(t, "573009876543")
 		require.Equal(t, http.StatusConflict, w.Code, w.Body.String())
+
+		var customers int
+		require.NoError(t, f.database.Primary().QueryRowContext(context.Background(),
+			`SELECT count(*) FROM customers WHERE phone_number = '573009876543'`).Scan(&customers))
+		require.Zero(t, customers)
 	})
 
 	t.Run("returns 404 when the page is disabled", func(t *testing.T) {

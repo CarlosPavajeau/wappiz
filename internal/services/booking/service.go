@@ -52,7 +52,7 @@ func New(cfg Config) *Service {
 
 type CreateParams struct {
 	TenantID   uuid.UUID
-	CustomerID uuid.UUID
+	Customer   Customer
 	ResourceID uuid.UUID
 	ServiceID  uuid.UUID
 	StartsAt   time.Time
@@ -71,40 +71,16 @@ type Appointment struct {
 
 // Create validates and persists a confirmed appointment, increments the
 // tenant's monthly counter against its plan limit and publishes
-// appointment.created, all in one transaction. Every failure a caller can
-// act on is returned as a fault with a public message.
+// appointment.created, all in one transaction. The customer is resolved
+// inside that transaction too, so a rejected booking never creates or
+// changes a customer. Every failure a caller can act on is returned as a
+// fault with a public message.
 func (s *Service) Create(ctx context.Context, p CreateParams) (Appointment, error) {
 	if p.StartsAt.Before(time.Now()) {
 		return Appointment{}, fault.New("appointment date is in the past",
 			fault.Code(codes.AppErrorsDateInPast),
 			fault.Internal("startsAt is before now"),
 			fault.Public("La fecha de la cita no puede estar en el pasado"),
-		)
-	}
-
-	customer, err := db.Query.FindCustomerByID(ctx, s.db.Primary(), p.CustomerID)
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			return Appointment{}, fault.Wrap(err, fault.Internal("find customer by id"))
-		}
-		return Appointment{}, fault.Wrap(err,
-			fault.Code(codes.ErrorsNotFound),
-			fault.Internal("customer not found for tenant"),
-			fault.Public("El cliente no existe"),
-		)
-	}
-	if customer.TenantID != p.TenantID {
-		return Appointment{}, fault.New("customer not found for tenant",
-			fault.Code(codes.ErrorsNotFound),
-			fault.Internal("customer belongs to another tenant"),
-			fault.Public("El cliente no existe"),
-		)
-	}
-	if customer.IsBlocked {
-		return Appointment{}, fault.New("customer is blocked",
-			fault.Code(codes.AppErrorsClientBlocked),
-			fault.Internal("blocked customer cannot create appointments"),
-			fault.Public("El cliente está bloqueado"),
 		)
 	}
 
@@ -193,19 +169,6 @@ func (s *Service) Create(ctx context.Context, p CreateParams) (Appointment, erro
 		)
 	}
 
-	hasCustomerOverlap, err := db.Query.HasCustomerOverlap(ctx, s.db.Primary(), db.HasCustomerOverlapParams{
-		TenantID:   p.TenantID,
-		CustomerID: p.CustomerID,
-		StartsAt:   startsAt,
-		EndsAt:     endsAt,
-	})
-	if err != nil {
-		return Appointment{}, fault.Wrap(err, fault.Internal("check customer overlap"))
-	}
-	if hasCustomerOverlap {
-		return Appointment{}, overlapError()
-	}
-
 	appointmentLimit, err := s.findAppointmentLimit(ctx, p.TenantID)
 	if err != nil {
 		return Appointment{}, fault.Wrap(err, fault.Internal("find appointment limit"))
@@ -213,12 +176,44 @@ func (s *Service) Create(ctx context.Context, p CreateParams) (Appointment, erro
 
 	appointmentID := uuid.New()
 	err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
+		customer, err := p.Customer.resolve(ctx, txx, p.TenantID)
+		if err != nil {
+			return err
+		}
+		if customer.TenantID != p.TenantID {
+			return fault.New("customer not found for tenant",
+				fault.Code(codes.ErrorsNotFound),
+				fault.Internal("customer belongs to another tenant"),
+				fault.Public("El cliente no existe"),
+			)
+		}
+		if customer.IsBlocked {
+			return fault.New("customer is blocked",
+				fault.Code(codes.AppErrorsClientBlocked),
+				fault.Internal("blocked customer cannot create appointments"),
+				fault.Public("El cliente está bloqueado"),
+			)
+		}
+
+		hasCustomerOverlap, err := db.Query.HasCustomerOverlap(ctx, txx, db.HasCustomerOverlapParams{
+			TenantID:   p.TenantID,
+			CustomerID: customer.ID,
+			StartsAt:   startsAt,
+			EndsAt:     endsAt,
+		})
+		if err != nil {
+			return fault.Wrap(err, fault.Internal("check customer overlap"))
+		}
+		if hasCustomerOverlap {
+			return overlapError()
+		}
+
 		if err := db.Query.InsertAppointment(ctx, txx, db.InsertAppointmentParams{
 			ID:             appointmentID,
 			TenantID:       p.TenantID,
 			ResourceID:     p.ResourceID,
 			ServiceID:      p.ServiceID,
-			CustomerID:     p.CustomerID,
+			CustomerID:     customer.ID,
 			StartsAt:       startsAt,
 			EndsAt:         endsAt,
 			PriceAtBooking: svc.Price,
@@ -244,7 +239,7 @@ func (s *Service) Create(ctx context.Context, p CreateParams) (Appointment, erro
 		evt, err := events.NewAppointmentCreated(events.AppointmentCreatedPayload{
 			AppointmentID: appointmentID,
 			TenantID:      p.TenantID,
-			CustomerID:    p.CustomerID,
+			CustomerID:    customer.ID,
 			ServiceID:     p.ServiceID,
 			ResourceID:    p.ResourceID,
 			StartsAt:      startsAt,

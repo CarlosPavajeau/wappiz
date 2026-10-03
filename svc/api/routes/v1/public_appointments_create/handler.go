@@ -1,7 +1,6 @@
 package public_appointments_create
 
 import (
-	"database/sql"
 	"net/http"
 	"strings"
 	"time"
@@ -96,24 +95,9 @@ func (h *Handler) Handle(c *gin.Context) error {
 		)
 	}
 
-	customer, err := booking.FindOrCreateCustomer(ctx, h.DB.Primary(), tenant.ID, phoneNumber)
-	if err != nil {
-		return err
-	}
-	// Only fill in a missing name: the number is not verified, so a
-	// stranger must not be able to rename an existing customer.
-	if !customer.Name.Valid || strings.TrimSpace(customer.Name.String) == "" {
-		if err := db.Query.UpdateCustomer(ctx, h.DB.Primary(), db.UpdateCustomerParams{
-			Name: sql.NullString{String: customerName, Valid: true},
-			ID:   customer.ID,
-		}); err != nil {
-			return fault.Wrap(err, fault.Internal("set customer name"))
-		}
-	}
-
 	appointment, err := h.Booking.Create(ctx, booking.CreateParams{
 		TenantID:   tenant.ID,
-		CustomerID: customer.ID,
+		Customer:   booking.CustomerByPhone{PhoneNumber: phoneNumber, Name: customerName},
 		ResourceID: req.ResourceID,
 		ServiceID:  req.ServiceID,
 		StartsAt:   req.StartsAt,

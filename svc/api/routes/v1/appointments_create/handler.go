@@ -38,7 +38,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	appointment, err := h.Booking.Create(c.Request.Context(), booking.CreateParams{
 		TenantID:   middleware.TenantIDFromContext(c),
-		CustomerID: req.CustomerID,
+		Customer:   booking.ExistingCustomer{ID: req.CustomerID},
 		ResourceID: req.ResourceID,
 		ServiceID:  req.ServiceID,
 		StartsAt:   req.StartsAt,
