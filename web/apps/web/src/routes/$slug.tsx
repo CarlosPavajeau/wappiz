@@ -15,9 +15,7 @@ import { publicTenantQuery } from "@/queries/public-booking"
 export const Route = createFileRoute("/$slug")({
   loader: async ({ context, params }) => {
     try {
-      return await context.queryClient.query(
-        publicTenantQuery(params.slug)
-      )
+      return await context.queryClient.query(publicTenantQuery(params.slug))
     } catch (error) {
       if (error instanceof ApiError && error.status === 404) {
         throw notFound()
