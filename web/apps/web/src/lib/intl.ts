@@ -38,6 +38,17 @@ export function formatPhoneNumber(value: string): string {
   return `+${COLOMBIA_DIAL_CODE} ${national.slice(0, 3)} ${national.slice(3, 6)} ${national.slice(6)}`
 }
 
+/**
+ * Parses what a customer typed as a Colombian mobile number, returning its
+ * 10 national digits (`3001234567`) or `null`. Spaces, dashes and a leading
+ * `+57`/`57` are tolerated because autofill and pasted numbers carry them.
+ * Only mobiles (starting with 3) qualify: the number must reach WhatsApp.
+ */
+export function parseColombianMobile(value: string): string | null {
+  const national = toColombianNational(value.replaceAll(/\D/gu, ""))
+  return national?.startsWith("3") ? national : null
+}
+
 function toColombianNational(digits: string): string | null {
   if (digits.length === COLOMBIA_NATIONAL_LENGTH) {
     return digits
