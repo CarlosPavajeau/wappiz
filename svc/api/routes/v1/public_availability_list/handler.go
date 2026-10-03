@@ -153,7 +153,7 @@ func parseQuery(c *gin.Context, loc *time.Location, now time.Time) (query, error
 			fault.Public("La fecha no puede estar en el pasado"),
 		)
 	}
-	if date.After(today.AddDate(0, 0, publicbooking.BookingWindowDays)) {
+	if !date.Before(publicbooking.BookingWindowEnd(now, loc)) {
 		return query{}, badRequest("date beyond booking window",
 			fmt.Sprintf("Solo puedes reservar hasta %d días en adelante", publicbooking.BookingWindowDays))
 	}

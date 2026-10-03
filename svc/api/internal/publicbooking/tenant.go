@@ -18,6 +18,14 @@ import (
 // public page. It bounds the work a single anonymous caller can request.
 const BookingWindowDays = 60
 
+// BookingWindowEnd is the exclusive end of the booking window: midnight in
+// loc after the last bookable day. Availability and booking share it so a
+// direct caller cannot book a time the public page never offers.
+func BookingWindowEnd(now time.Time, loc *time.Location) time.Time {
+	local := now.In(loc)
+	return time.Date(local.Year(), local.Month(), local.Day()+BookingWindowDays+1, 0, 0, 0, 0, loc)
+}
+
 // Tenant is a tenant whose public booking page is enabled, with its
 // timezone already resolved.
 type Tenant struct {

@@ -88,7 +88,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		return err
 	}
 
-	if req.StartsAt.After(time.Now().AddDate(0, 0, publicbooking.BookingWindowDays+1)) {
+	if !req.StartsAt.Before(publicbooking.BookingWindowEnd(time.Now(), tenant.Location)) {
 		return fault.New("date beyond booking window",
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("startsAt is beyond the public booking window"),

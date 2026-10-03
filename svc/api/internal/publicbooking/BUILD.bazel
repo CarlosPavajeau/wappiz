@@ -18,7 +18,10 @@ go_library(
 
 go_test(
     name = "publicbooking_test",
-    srcs = ["phone_test.go"],
+    srcs = [
+        "phone_test.go",
+        "tenant_test.go",
+    ],
     embed = [":publicbooking"],
     deps = ["@com_github_stretchr_testify//require"],
 )
