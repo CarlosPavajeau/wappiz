@@ -1,0 +1,9 @@
+load("@rules_go//go:def.bzl", "go_library")
+
+go_library(
+    name = "turnstile",
+    srcs = ["turnstile.go"],
+    importpath = "wappiz/internal/services/turnstile",
+    visibility = ["//:__subpackages__"],
+    deps = ["//pkg/fault"],
+)

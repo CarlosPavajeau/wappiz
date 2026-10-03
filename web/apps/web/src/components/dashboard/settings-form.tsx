@@ -1,12 +1,14 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import {
+  Calendar03Icon,
   ChatBotIcon,
   Mail01Icon,
   Shield01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
+import { ApiError } from "@wappiz/api-client"
 import type { TenantSettings } from "@wappiz/api-client/types/tenants"
 import { type } from "arktype"
 import { Controller, useForm } from "react-hook-form"
@@ -24,11 +26,15 @@ import {
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
+import { tenantQuery } from "@/queries/tenants"
 
 import { Spinner } from "../ui/spinner"
+import { PublicBookingLink } from "./public-booking-link"
+import { PublicBookingWhatsappAlert } from "./public-booking-whatsapp-alert"
 
 const settingsSchema = type({
   "autoBlockAfterLateCancel?": type("number > 0").configure({
@@ -45,6 +51,7 @@ const settingsSchema = type({
   "lateCancelHours?": type("number >= 0").configure({
     message: "Debe ser 0 o más",
   }),
+  "publicBookingEnabled?": "boolean",
   "sendWarningBeforeBlock?": "boolean",
   "welcomeMessage?": "string | undefined",
 })
@@ -53,10 +60,13 @@ type SettingsFormValues = typeof settingsSchema.infer
 
 type Props = {
   defaultValues: TenantSettings
+  slug: string
+  whatsappReady: boolean
 }
 
-export function SettingsForm({ defaultValues }: Props) {
+export function SettingsForm({ defaultValues, slug, whatsappReady }: Props) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const isMobile = useIsMobile()
 
   const {
@@ -71,12 +81,21 @@ export function SettingsForm({ defaultValues }: Props) {
   const { mutateAsync: updateSettings } = useMutation({
     mutationFn: (values: SettingsFormValues) =>
       api.tenants.updateSettings(values),
-    onError: () => {
-      toast.error("Error al guardar los ajustes. Intenta de nuevo.")
+    onError: (error) => {
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Error al guardar los ajustes. Intenta de nuevo."
+      )
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Ajustes guardados correctamente.")
-      router.invalidate()
+      // The dashboard and sidebar read the tenant from the query cache, not
+      // this route's loader.
+      await Promise.all([
+        queryClient.invalidateQueries(tenantQuery),
+        router.invalidate(),
+      ])
     },
   })
 
@@ -112,6 +131,14 @@ export function SettingsForm({ defaultValues }: Props) {
               aria-hidden="true"
             />
             Políticas
+          </TabsTrigger>
+          <TabsTrigger value="reservas">
+            <HugeiconsIcon
+              icon={Calendar03Icon}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            Reservas
           </TabsTrigger>
         </TabsList>
 
@@ -330,6 +357,57 @@ export function SettingsForm({ defaultValues }: Props) {
                   </Field>
                 )}
               />
+            </FieldGroup>
+          </FieldSet>
+        </TabsContent>
+
+        <TabsContent value="reservas" className="min-w-0 pt-6 sm:pt-0 sm:pl-8">
+          <FieldSet>
+            <FieldLegend className="sr-only">
+              Página pública de reservas
+            </FieldLegend>
+            <FieldGroup>
+              <PublicBookingWhatsappAlert
+                publicBookingEnabled={defaultValues.publicBookingEnabled}
+                whatsappReady={whatsappReady}
+              />
+
+              <Controller
+                control={control}
+                name="publicBookingEnabled"
+                render={({ field }) => (
+                  <Field orientation="horizontal">
+                    <Switch
+                      id="publicBookingEnabled"
+                      checked={field.value ?? false}
+                      // Turning it off must stay possible; turning it on is
+                      // rejected by the API until WhatsApp can send.
+                      disabled={!whatsappReady && !field.value}
+                      onCheckedChange={(checked) => field.onChange(checked)}
+                    />
+                    <FieldLabel htmlFor="publicBookingEnabled">
+                      Activar página pública de reservas
+                    </FieldLabel>
+                  </Field>
+                )}
+              />
+              {!whatsappReady && !defaultValues.publicBookingEnabled && (
+                <FieldDescription>
+                  Conecta y activa tu WhatsApp para poder activar la página de
+                  reservas.
+                </FieldDescription>
+              )}
+
+              <Field>
+                <FieldLabel>Enlace de reservas</FieldLabel>
+                <FieldDescription>
+                  Compártelo en Instagram, TikTok o donde quieras. Tus clientes
+                  podrán ver tus servicios y agendar sin escribirte primero; la
+                  confirmación les llega por WhatsApp. Solo funciona mientras la
+                  página y tu WhatsApp estén activos.
+                </FieldDescription>
+                <PublicBookingLink slug={slug} />
+              </Field>
             </FieldGroup>
           </FieldSet>
         </TabsContent>

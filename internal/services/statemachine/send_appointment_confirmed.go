@@ -19,7 +19,7 @@ func (s *service) sendAppointmentConfirmed(ctx context.Context, msg IncomingMess
 		return err
 	}
 
-	svc, err := db.Query.FindServiceByID(ctx, s.db.Primary(), appt.ServiceID)
+	svc, err := db.Query.FindServiceByIDIncludingInactive(ctx, s.db.Primary(), appt.ServiceID)
 	if err != nil {
 		return err
 	}

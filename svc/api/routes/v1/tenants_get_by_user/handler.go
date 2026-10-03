@@ -7,6 +7,7 @@ import (
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/svc/api/internal/middleware"
+	"wappiz/svc/api/internal/publicbooking"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -19,6 +20,9 @@ type Response struct {
 	TimeZone string            `json:"time_zone"`
 	Currency string            `json:"currency"`
 	Settings db.TenantSettings `json:"settings"`
+	// WhatsappReady tells the dashboard whether booking confirmations can be
+	// delivered; the public page stays hidden while it is false.
+	WhatsappReady bool `json:"whatsappReady"`
 }
 
 type Handler struct {
@@ -47,13 +51,19 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	}
 
+	whatsappReady, err := publicbooking.CanSendWhatsapp(c.Request.Context(), h.DB, tenant.ID)
+	if err != nil {
+		return err
+	}
+
 	c.JSON(http.StatusOK, Response{
-		ID:       tenant.ID,
-		Name:     tenant.Name,
-		Slug:     tenant.Slug,
-		TimeZone: tenant.Timezone,
-		Currency: tenant.Currency,
-		Settings: settings,
+		ID:            tenant.ID,
+		Name:          tenant.Name,
+		Slug:          tenant.Slug,
+		TimeZone:      tenant.Timezone,
+		Currency:      tenant.Currency,
+		Settings:      settings,
+		WhatsappReady: whatsappReady,
 	})
 	return nil
 }

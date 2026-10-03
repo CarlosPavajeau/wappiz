@@ -103,6 +103,8 @@ export type EndpointDefinition<
 > = {
   method: HttpMethod
   path: string | ((params: TParams) => string)
+  /** Unauthenticated endpoint: never attach the auth header */
+  public?: boolean
   _phantom?: { response: TResponse; body: TBody; params: TParams }
 }
 

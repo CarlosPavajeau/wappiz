@@ -1,4 +1,7 @@
--- name: InsertTenant :exec
+-- name: InsertTenant :execrows
+-- A taken slug inserts nothing (0 rows) instead of raising, so callers can
+-- retry with another slug inside the same transaction; a unique violation
+-- would abort it.
 INSERT INTO tenants(
     id,
     name,
@@ -19,4 +22,5 @@ INSERT INTO tenants(
     $6,
     true,
     $7
-);
+)
+ON CONFLICT (slug) DO NOTHING;

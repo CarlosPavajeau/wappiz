@@ -25,7 +25,11 @@ function RouteComponent() {
         </p>
       </div>
 
-      <SettingsForm defaultValues={tenant.settings} />
+      <SettingsForm
+        defaultValues={tenant.settings}
+        slug={tenant.slug}
+        whatsappReady={tenant.whatsappReady}
+      />
     </div>
   )
 }

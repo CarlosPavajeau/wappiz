@@ -1,0 +1,27 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "publicbooking",
+    srcs = [
+        "phone.go",
+        "tenant.go",
+    ],
+    importpath = "wappiz/svc/api/internal/publicbooking",
+    visibility = ["//svc/api:__subpackages__"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/db",
+        "//pkg/fault",
+        "@com_github_google_uuid//:uuid",
+    ],
+)
+
+go_test(
+    name = "publicbooking_test",
+    srcs = [
+        "phone_test.go",
+        "tenant_test.go",
+    ],
+    embed = [":publicbooking"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

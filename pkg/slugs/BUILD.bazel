@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "slugs",
+    srcs = ["reserved.go"],
+    importpath = "wappiz/pkg/slugs",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "slugs_test",
+    srcs = ["reserved_test.go"],
+    embed = [":slugs"],
+    deps = ["@com_github_stretchr_testify//require"],
+)

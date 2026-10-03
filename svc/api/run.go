@@ -11,9 +11,11 @@ import (
 	"wappiz/internal/events"
 	"wappiz/internal/events/handlers"
 	"wappiz/internal/jobs"
+	"wappiz/internal/services/booking"
 	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/services/statemachine"
+	"wappiz/internal/services/turnstile"
 	"wappiz/internal/services/webhookprocessor"
 	"wappiz/pkg/buildinfo"
 	"wappiz/pkg/clock"
@@ -160,6 +162,15 @@ func Run(ctx context.Context, cfg Config) error {
 		Environment: cfg.Environment,
 	})
 
+	bookingSvc := booking.New(booking.Config{
+		DB:          database,
+		SlotFinder:  slotFinder,
+		Publisher:   pub,
+		Environment: cfg.Environment,
+	})
+
+	turnstileSvc := turnstile.New(turnstile.Config{SecretKey: cfg.TurnstileSecretKey})
+
 	ctr, err := counter.NewRedis(counter.RedisConfig{
 		RedisURL: cfg.RedisURL,
 	})
@@ -190,6 +201,13 @@ func Run(ctx context.Context, cfg Config) error {
 
 	g := gin.New()
 
+	// Gin trusts every proxy by default, letting any caller pick its own
+	// ClientIP via X-Forwarded-For and dodge the per-IP rate limits.
+	if err := g.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+		return fmt.Errorf("invalid TRUSTED_PROXIES: %w", err)
+	}
+	g.TrustedPlatform = cfg.TrustedPlatform
+
 	g.Use(
 		gin.Recovery(),
 		server.WithLogging(),
@@ -206,6 +224,8 @@ func Run(ctx context.Context, cfg Config) error {
 		Whatsapp:         waSvc,
 		StateMachine:     stateMachineSvc,
 		SlotFinder:       slotFinder,
+		Booking:          bookingSvc,
+		Turnstile:        turnstileSvc,
 		Publisher:        pub,
 		WebhookProcessor: webhookProcessorSvc,
 		AdminEmail:       cfg.AdminEmail,

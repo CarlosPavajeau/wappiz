@@ -3,8 +3,10 @@ import { createFileRoute, useRouteContext } from "@tanstack/react-router"
 import { AppointmentSkeleton } from "@/components/appointments/appointment-card"
 import { AppointmentsCalendar } from "@/components/appointments/calendar"
 import { PendingActivations } from "@/components/appointments/pending-activations"
+import { PublicBookingWhatsappAlert } from "@/components/dashboard/public-booking-whatsapp-alert"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useTenant } from "@/hooks/use-tenant"
 
 export const Route = createFileRoute("/_authed/dashboard/")({
   component: RouteComponent,
@@ -17,8 +19,22 @@ function RouteComponent() {
   })
 
   return (
-    <div>
-      {isSuperAdmin ? <PendingActivations /> : <AppointmentsCalendar />}
+    <div>{isSuperAdmin ? <PendingActivations /> : <TenantDashboard />}</div>
+  )
+}
+
+function TenantDashboard() {
+  const { data: tenant } = useTenant()
+
+  return (
+    <div className="flex flex-col gap-4">
+      {tenant && (
+        <PublicBookingWhatsappAlert
+          publicBookingEnabled={tenant.settings.publicBookingEnabled}
+          whatsappReady={tenant.whatsappReady}
+        />
+      )}
+      <AppointmentsCalendar />
     </div>
   )
 }

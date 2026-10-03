@@ -22,6 +22,7 @@ type Dependencies struct {
 func RegisterAll(dispatcher *events.Dispatcher, deps Dependencies) {
 	dispatcher.Register(NewAppointmentCanceledEmailHandler(deps.Database, deps.Mailer))
 	dispatcher.Register(NewAppointmentCreatedEmailHandler(deps.Database, deps.Mailer))
+	dispatcher.Register(NewAppointmentCreatedWhatsAppHandler(deps.Database, deps.Whatsapp, deps.Crypto))
 	dispatcher.Register(NewAppointmentRescheduledEmailHandler(deps.Database, deps.Mailer))
 	dispatcher.Register(NewAppointmentRescheduledWhatsAppHandler(deps.Database, deps.Whatsapp, deps.Crypto))
 }

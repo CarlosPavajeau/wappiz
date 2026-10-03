@@ -36,6 +36,16 @@ func UserIDRatelimitIdentifier(c *gin.Context) (string, bool) {
 	return id, true
 }
 
+// ClientIPRatelimitIdentifier keys the limit on the caller's IP address, for
+// unauthenticated routes. The IP comes from [gin.Context.ClientIP], so the
+// engine's trusted proxies must be configured for it to resist spoofed
+// X-Forwarded-For headers (the API does this from TRUSTED_PROXIES and
+// TRUSTED_PLATFORM in svc/api/run.go).
+func ClientIPRatelimitIdentifier(c *gin.Context) (string, bool) {
+	ip := c.ClientIP()
+	return ip, ip != ""
+}
+
 func WithRatelimit(config RatelimitConfig) gin.HandlerFunc {
 	identifier := config.Identifier
 	if identifier == nil {

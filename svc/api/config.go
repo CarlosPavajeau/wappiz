@@ -82,11 +82,25 @@ type Config struct {
 	ResendAPIKey string `env:"RESEND_API_KEY, required"`
 	// ResendFromEmail is the sender address used for outgoing emails (RESEND_FROM_EMAIL).
 	ResendFromEmail string `env:"RESEND_FROM_EMAIL, required"`
+	// TurnstileSecretKey is the Cloudflare Turnstile secret used to verify
+	// captcha tokens on public booking requests (CLOUDFLARE_TURNSTILE_SECRET_KEY).
+	TurnstileSecretKey string `env:"CLOUDFLARE_TURNSTILE_SECRET_KEY, required"`
 	// JWTIssuer is the expected "iss" claim value for incoming JWTs (JWT_ISSUER).
 	// Optional — when empty the issuer claim is not validated.
-	JWTIssuer     string `env:"JWT_ISSUER"`
-	Observability Observability
-	Webhook       WebhookConfig
+	JWTIssuer string `env:"JWT_ISSUER"`
+	// TrustedProxies lists the comma-separated IPs or CIDRs of the reverse
+	// proxies in front of the API (TRUSTED_PROXIES). X-Forwarded-For is only
+	// honoured when the direct peer is one of them. Empty trusts no proxy, so
+	// the client IP is the TCP peer address and cannot be spoofed by a header;
+	// per-IP rate limits on the public routes depend on this.
+	TrustedProxies []string `env:"TRUSTED_PROXIES"`
+	// TrustedPlatform names a header set by the edge platform that carries the
+	// real client IP, e.g. "CF-Connecting-IP" behind Cloudflare
+	// (TRUSTED_PLATFORM). It is read unconditionally, so only set it when the
+	// API is reachable exclusively through that platform.
+	TrustedPlatform string `env:"TRUSTED_PLATFORM"`
+	Observability   Observability
+	Webhook         WebhookConfig
 	// Environment can be sandbox or production, used to filter active plans in the database
 	Environment string `env:"ENVIRONMENT, default=production"`
 }

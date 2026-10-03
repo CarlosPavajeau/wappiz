@@ -25,6 +25,9 @@ import (
 	"wappiz/svc/api/routes/v1/onboarding_step_whatsapp"
 	"wappiz/svc/api/routes/v1/plans_get_by_external_id"
 	"wappiz/svc/api/routes/v1/plans_list_active"
+	"wappiz/svc/api/routes/v1/public_appointments_create"
+	"wappiz/svc/api/routes/v1/public_availability_list"
+	"wappiz/svc/api/routes/v1/public_tenants_get"
 	"wappiz/svc/api/routes/v1/resources_assign_services"
 	"wappiz/svc/api/routes/v1/resources_create"
 	"wappiz/svc/api/routes/v1/resources_create_override"
@@ -66,6 +69,8 @@ import (
 //     role="admin"; others receive 403 Forbidden.
 //   - WhatsApp signature — webhook processing routes validate the
 //     X-Hub-Signature-256 header against [Services.AppSecret].
+//   - Public booking — /v1/public routes need no token and are rate limited
+//     per client IP instead; booking additionally requires a captcha.
 //
 // Routes are registered via [RegisterRoute] which reads the method and path
 // directly from each handler, keeping routing declarations co-located with
@@ -104,7 +109,7 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &services_update.Handler{DB: svc.Database})
 
 	// v1/appointments
-	RegisterRoute(auth, &appointments_create.Handler{DB: svc.Database, Environment: svc.Environment, SlotFinder: svc.SlotFinder})
+	RegisterRoute(auth, &appointments_create.Handler{Booking: svc.Booking})
 	RegisterRoute(auth, &appointments_search.Handler{DB: svc.Database})
 	RegisterRoute(auth, &appointments_get_status_history.Handler{DB: svc.Database})
 	RegisterRoute(auth, &appointments_reschedule.Handler{DB: svc.Database, Publisher: svc.Publisher, SlotFinder: svc.SlotFinder})
@@ -159,6 +164,32 @@ func Register(g *gin.Engine, svc *Services) {
 		Crypto: svc.Crypto,
 	})
 	RegisterRoute(admin, &admin_reject_tenant.Handler{DB: svc.Database, Mailer: svc.Mailer})
+
+	// v1/public — the booking page customers reach from social media links.
+	public := g.Group("/", server.WithRatelimit(server.RatelimitConfig{
+		Service:    svc.Ratelimit,
+		Name:       "public-requests-per-ip",
+		Limit:      120,
+		Duration:   time.Minute,
+		Identifier: server.ClientIPRatelimitIdentifier,
+	}))
+	RegisterRoute(public, &public_tenants_get.Handler{DB: svc.Database})
+	RegisterRoute(public, &public_availability_list.Handler{DB: svc.Database, SlotFinder: svc.SlotFinder})
+
+	// Bookings write data and trigger a WhatsApp message, so they get a much
+	// tighter budget on top of the captcha.
+	publicBooking := public.Group("/", server.WithRatelimit(server.RatelimitConfig{
+		Service:    svc.Ratelimit,
+		Name:       "public-bookings-per-ip",
+		Limit:      10,
+		Duration:   time.Hour,
+		Identifier: server.ClientIPRatelimitIdentifier,
+	}))
+	RegisterRoute(publicBooking, &public_appointments_create.Handler{
+		DB:        svc.Database,
+		Booking:   svc.Booking,
+		Turnstile: svc.Turnstile,
+	})
 
 	// webhooks
 	RegisterRoute(g, &webhooks_verify_webhook.Handler{})

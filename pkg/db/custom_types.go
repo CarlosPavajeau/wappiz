@@ -15,6 +15,9 @@ type TenantSettings struct {
 	AutoBlockAfterNoShows    int    `json:"autoBlockAfterNoShows"`    // default: 3
 	AutoBlockAfterLateCancel int    `json:"autoBlockAfterLateCancel"` // default: 3
 	SendWarningBeforeBlock   bool   `json:"sendWarningBeforeBlock"`
+	// PublicBookingEnabled exposes the tenant's public booking page at
+	// /<slug>. Off by default so a tenant opts in once it is ready.
+	PublicBookingEnabled bool `json:"publicBookingEnabled"`
 }
 
 type PlanFeatures struct {

@@ -1,4 +1,4 @@
-load("@rules_go//go:def.bzl", "go_library")
+load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "tenants_update",
@@ -11,6 +11,17 @@ go_library(
         "//pkg/fault",
         "//pkg/server",
         "//svc/api/internal/middleware",
+        "//svc/api/internal/publicbooking",
         "@com_github_gin_gonic_gin//:gin",
+    ],
+)
+
+go_test(
+    name = "tenants_update_test",
+    srcs = ["handler_test.go"],
+    embed = [":tenants_update"],
+    deps = [
+        "//pkg/db",
+        "@com_github_stretchr_testify//require",
     ],
 )

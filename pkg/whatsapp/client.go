@@ -78,6 +78,32 @@ func (c *httpClient) SendList(ctx context.Context, to, phoneNumberID, accessToke
 	return c.send(ctx, phoneNumberID, accessToken, req)
 }
 
+// SendTemplate sends a pre-approved template message. Unlike the other send
+// methods it is delivered even when the recipient has not messaged the
+// business in the last 24 hours.
+func (c *httpClient) SendTemplate(ctx context.Context, to, phoneNumberID, accessToken string, tpl Template) error {
+	out := &OutTemplate{
+		Name:     tpl.Name,
+		Language: TemplateLanguage{Code: tpl.Language},
+	}
+	if len(tpl.BodyParams) > 0 {
+		params := make([]TemplateParameter, len(tpl.BodyParams))
+		for i, p := range tpl.BodyParams {
+			params[i] = TemplateParameter{Type: "text", Text: p}
+		}
+		out.Components = []TemplateComponent{{Type: "body", Parameters: params}}
+	}
+
+	req := SendMessageRequest{
+		MessagingProduct: "whatsapp",
+		RecipientType:    "individual",
+		To:               to,
+		Type:             "template",
+		Template:         out,
+	}
+	return c.send(ctx, phoneNumberID, accessToken, req)
+}
+
 // send marshals payload to JSON and POSTs it to the Cloud API messages endpoint
 // for the given phoneNumberID, authenticated with accessToken.
 // Returns an error for any HTTP 4xx/5xx response, wrapping the response body

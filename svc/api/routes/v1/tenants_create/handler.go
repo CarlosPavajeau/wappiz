@@ -11,6 +11,7 @@ import (
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/server"
+	"wappiz/pkg/slugs"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -46,18 +47,22 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	userID := c.MustGet("user_id").(string)
 	base := slugify(req.Name)
+	if base == "" {
+		// Names written only in non-Latin characters slugify to nothing.
+		base = "negocio"
+	}
 
 	tenantID, err := db.TxWithResult(c.Request.Context(), h.DB.Primary(), func(ctx context.Context, txx db.DBTX) (uuid.UUID, error) {
-		var err error
 		tenantID := uuid.New()
 
+		inserted := false
 		for attempt := range slugMaxRetries {
 			slug := base
-			if attempt > 0 {
+			if attempt > 0 || slugs.IsReserved(base) {
 				slug = fmt.Sprintf("%s-%s", base, randomSuffix(5))
 			}
 
-			err = db.Query.InsertTenant(ctx, txx, db.InsertTenantParams{
+			rows, err := db.Query.InsertTenant(ctx, txx, db.InsertTenantParams{
 				ID:           tenantID,
 				Name:         req.Name,
 				Slug:         slug,
@@ -66,14 +71,20 @@ func (h *Handler) Handle(c *gin.Context) error {
 				MonthResetAt: time.Time{},
 				Settings:     nil,
 			})
-
-			if err == nil {
+			if err != nil {
+				return uuid.Nil, err
+			}
+			if rows > 0 {
+				inserted = true
 				break
 			}
 		}
 
-		if err != nil {
-			return uuid.Nil, err
+		if !inserted {
+			return uuid.Nil, fault.New("no free tenant slug",
+				fault.Internal("every slug candidate was already taken"),
+				fault.Public("No pudimos crear tu negocio. Intenta de nuevo."),
+			)
 		}
 
 		if err := db.Query.LinkTenantUser(ctx, txx, db.LinkTenantUserParams{

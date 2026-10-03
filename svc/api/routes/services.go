@@ -2,9 +2,11 @@ package routes
 
 import (
 	"wappiz/internal/events"
+	"wappiz/internal/services/booking"
 	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/services/statemachine"
+	"wappiz/internal/services/turnstile"
 	"wappiz/internal/services/webhookprocessor"
 	"wappiz/pkg/crypto"
 	"wappiz/pkg/db"
@@ -44,6 +46,12 @@ type Services struct {
 	// SlotFinder resolves bookable windows and validates appointment times
 	// against working hours and schedule overrides.
 	SlotFinder slotfinder.SlotFinderService
+
+	// Booking validates and persists appointments created outside the bot.
+	Booking *booking.Service
+
+	// Turnstile verifies captcha tokens on public, unauthenticated routes.
+	Turnstile turnstile.Verifier
 
 	// Publisher persists domain events raised by route handlers.
 	Publisher *events.Publisher

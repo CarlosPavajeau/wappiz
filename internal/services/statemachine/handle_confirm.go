@@ -172,6 +172,7 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 				ResourceID:    *sessionData.ResourceID,
 				StartsAt:      startsAt,
 				EndsAt:        endsAt,
+				Source:        events.AppointmentCreatedSourceBot,
 			})
 			if evtErr != nil {
 				return fault.Wrap(evtErr, fault.Internal("build appointment.created event"))

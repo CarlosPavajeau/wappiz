@@ -6,14 +6,11 @@ go_library(
     importpath = "wappiz/svc/api/routes/v1/appointments_create",
     visibility = ["//visibility:public"],
     deps = [
-        "//internal/services/slotfinder",
-        "//pkg/codes",
-        "//pkg/db",
-        "//pkg/fault",
+        "//internal/events",
+        "//internal/services/booking",
         "//pkg/server",
         "//svc/api/internal/middleware",
         "@com_github_gin_gonic_gin//:gin",
         "@com_github_google_uuid//:uuid",
-        "@com_github_jackc_pgx_v5//pgconn",
     ],
 )

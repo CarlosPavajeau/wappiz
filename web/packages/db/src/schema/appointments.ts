@@ -90,25 +90,11 @@ export const appointments = pgTable(
     index("idx_appointments_unattended")
       .using("btree", table.startsAt.asc().nullsLast())
       .where(sql`(status = 'confirmed'::appointment_status)`),
-    index("no_customer_overlap")
-      .using(
-        "gist",
-        table.tenantId.asc().nullsLast(),
-        table.customerId.asc().nullsLast(),
-        sql`tstzrange(starts_at, ends_at)`
-      )
-      .where(
-        sql`(status <> ALL (ARRAY['cancelled'::appointment_status, 'no_show'::appointment_status]))`
-      ),
-    index("no_overlap")
-      .using(
-        "gist",
-        table.resourceId.asc().nullsLast(),
-        sql`tstzrange(starts_at, ends_at)`
-      )
-      .where(
-        sql`(status <> ALL (ARRAY['cancelled'::appointment_status, 'no_show'::appointment_status]))`
-      ),
+    // Overlapping appointments are rejected by the EXCLUDE constraints
+    // no_overlap (per resource) and no_customer_overlap (per customer).
+    // Drizzle cannot model exclusion constraints, so they live in
+    // migration 20261003*_appointments_overlap_exclusion and, for the Go
+    // test schema, in scripts/schema-extras.sql.
   ]
 )
 
