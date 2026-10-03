@@ -44,7 +44,7 @@ func (s *service) handleCancelConfirm(ctx context.Context, msg IncomingMessage, 
 			"No encontramos esa cita. Por favor intenta de nuevo.")
 	}
 
-	svc, err := db.Query.FindServiceByID(ctx, s.db.Primary(), appointment.ServiceID)
+	svc, err := db.Query.FindServiceByIDIncludingInactive(ctx, s.db.Primary(), appointment.ServiceID)
 	if err != nil {
 		logger.Warn("[scheduling] failed to find service for cancel confirmation",
 			"appointment_id", appointmentID,

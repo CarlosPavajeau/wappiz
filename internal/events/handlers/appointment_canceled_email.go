@@ -51,7 +51,7 @@ func (h *AppointmentCanceledEmailHandler) Handle(ctx context.Context, event even
 		return fault.Wrap(err, fault.Internal("find customer by id"))
 	}
 
-	service, err := db.Query.FindServiceByID(ctx, h.db.Primary(), payload.ServiceID)
+	service, err := db.Query.FindServiceByIDIncludingInactive(ctx, h.db.Primary(), payload.ServiceID)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("find service by id"))
 	}
