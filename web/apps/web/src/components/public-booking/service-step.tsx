@@ -5,7 +5,6 @@ import {
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import type { PublicService } from "@wappiz/api-client/types/public-booking"
-import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -56,15 +55,34 @@ function searchServices(services: PublicService[], query: string) {
   return [...byName, ...byDescription]
 }
 
+/**
+ * Owned by the booking flow so it survives this step unmounting: coming back
+ * from a later step must land the customer where they left the catalog.
+ */
+export type CatalogView = {
+  expanded: boolean
+  query: string
+}
+
+export const initialCatalogView: CatalogView = { expanded: false, query: "" }
+
 type Props = {
   currency: string
   onSelect: (service: PublicService) => void
+  onViewChange: (view: CatalogView) => void
   services: PublicService[]
+  view: CatalogView
 }
 
-export function ServiceStep({ currency, onSelect, services }: Props) {
-  const [query, setQuery] = useState("")
-  const [expanded, setExpanded] = useState(false)
+export function ServiceStep({
+  currency,
+  onSelect,
+  onViewChange,
+  services,
+  view,
+}: Props) {
+  const { expanded, query } = view
+  const setQuery = (next: string) => onViewChange({ ...view, query: next })
 
   if (services.length === 0) {
     return (
@@ -163,7 +181,7 @@ export function ServiceStep({ currency, onSelect, services }: Props) {
         <Button
           variant="ghost"
           className="self-center"
-          onClick={() => setExpanded(true)}
+          onClick={() => onViewChange({ ...view, expanded: true })}
         >
           Ver todos los servicios ({services.length})
         </Button>

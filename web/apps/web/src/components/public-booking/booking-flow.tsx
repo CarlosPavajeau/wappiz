@@ -12,7 +12,8 @@ import { BookingConfirmed } from "./booking-confirmed"
 import { DetailsStep } from "./details-step"
 import { ResourceStep } from "./resource-step"
 import { offersResourceChoice, resourcesFor } from "./resources"
-import { ServiceStep } from "./service-step"
+import { initialCatalogView, ServiceStep } from "./service-step"
+import type { CatalogView } from "./service-step"
 import { SlotStep } from "./slot-step"
 import type { SlotSelection } from "./slot-step"
 
@@ -62,6 +63,8 @@ type Props = {
 
 export function BookingFlow({ tenant }: Props) {
   const [step, setStep] = useState<Step>({ kind: "service" })
+  const [catalogView, setCatalogView] =
+    useState<CatalogView>(initialCatalogView)
 
   const pickSlotFor = (service: PublicService, resourceId: string | null) =>
     setStep({
@@ -98,7 +101,9 @@ export function BookingFlow({ tenant }: Props) {
         <ServiceStep
           currency={tenant.currency}
           onSelect={selectService}
+          onViewChange={setCatalogView}
           services={tenant.services}
+          view={catalogView}
         />
       )}
 
@@ -150,7 +155,10 @@ export function BookingFlow({ tenant }: Props) {
       {step.kind === "confirmed" && (
         <BookingConfirmed
           booking={step.booking}
-          onBookAnother={() => setStep({ kind: "service" })}
+          onBookAnother={() => {
+            setCatalogView(initialCatalogView)
+            setStep({ kind: "service" })
+          }}
           phoneNumber={step.phoneNumber}
           timeZone={tenant.timezone}
         />
