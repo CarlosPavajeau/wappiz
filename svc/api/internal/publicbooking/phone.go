@@ -6,25 +6,31 @@ import (
 	"wappiz/pkg/fault"
 )
 
-// E.164 numbers carry at most 15 digits including the country code; the
-// shortest national numbers plus country code are 8.
+// Only Colombian mobiles are bookable for now: confirmations go out over
+// WhatsApp, and Colombian mobiles are exactly 10 digits starting with 3.
 const (
-	minPhoneDigits = 8
-	maxPhoneDigits = 15
+	colombiaDialCode     = "57"
+	colombiaMobileDigits = 10
+	colombiaMobilePrefix = "3"
 )
 
-// ParsePhoneNumber normalises a customer-typed international number to the
+// ParsePhoneNumber normalises a customer-typed Colombian mobile number to the
 // digits-only form WhatsApp reports in webhooks (e.g. "573001234567"), so a
 // customer booking from the page and from the bot resolves to the same row.
 // Visual separators and a leading "+" or "00" are accepted; anything else is
-// rejected rather than silently dropped.
+// rejected rather than silently dropped. A bare national number
+// ("3001234567") is accepted only without an international prefix, since
+// "+300…" would name a different country.
 func ParsePhoneNumber(raw string) (string, error) {
 	s := strings.TrimSpace(raw)
+	international := true
 	switch {
 	case strings.HasPrefix(s, "+"):
 		s = s[1:]
 	case strings.HasPrefix(s, "00"):
 		s = s[2:]
+	default:
+		international = false
 	}
 
 	var digits strings.Builder
@@ -38,18 +44,25 @@ func ParsePhoneNumber(raw string) (string, error) {
 		}
 	}
 
-	n := digits.Len()
-	if n < minPhoneDigits || n > maxPhoneDigits || strings.HasPrefix(digits.String(), "0") {
+	national, ok := strings.CutPrefix(digits.String(), colombiaDialCode)
+	if !ok || len(national) != colombiaMobileDigits {
+		if international {
+			return "", invalidPhone()
+		}
+		national = digits.String()
+	}
+
+	if len(national) != colombiaMobileDigits || !strings.HasPrefix(national, colombiaMobilePrefix) {
 		return "", invalidPhone()
 	}
 
-	return digits.String(), nil
+	return colombiaDialCode + national, nil
 }
 
 func invalidPhone() error {
 	return fault.New("invalid phone number",
 		fault.Code(codes.ErrorsBadRequest),
-		fault.Internal("phone number is not a valid international number"),
-		fault.Public("Ingresa un número de WhatsApp válido con el código de país"),
+		fault.Internal("phone number is not a Colombian mobile number"),
+		fault.Public("Ingresa un celular colombiano de 10 dígitos"),
 	)
 }
