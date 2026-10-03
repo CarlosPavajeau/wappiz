@@ -15,7 +15,7 @@ import { publicTenantQuery } from "@/queries/public-booking"
 export const Route = createFileRoute("/$slug")({
   loader: async ({ context, params }) => {
     try {
-      return await context.queryClient.ensureQueryData(
+      return await context.queryClient.query(
         publicTenantQuery(params.slug)
       )
     } catch (error) {
