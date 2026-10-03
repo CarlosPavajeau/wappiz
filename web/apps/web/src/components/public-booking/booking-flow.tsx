@@ -10,6 +10,8 @@ import { todayIn } from "@/lib/time-zone"
 
 import { BookingConfirmed } from "./booking-confirmed"
 import { DetailsStep } from "./details-step"
+import { ResourceStep } from "./resource-step"
+import { offersResourceChoice, resourcesFor } from "./resources"
 import { ServiceStep } from "./service-step"
 import { SlotStep } from "./slot-step"
 import type { SlotSelection } from "./slot-step"
@@ -20,6 +22,7 @@ import type { SlotSelection } from "./slot-step"
  */
 type Step =
   | { kind: "service" }
+  | { kind: "resource"; service: PublicService }
   | { kind: "slot"; selection: SlotSelection; service: PublicService }
   | {
       kind: "details"
@@ -29,12 +32,29 @@ type Step =
     }
   | { booking: BookAppointmentResponse; kind: "confirmed"; phoneNumber: string }
 
-const STEP_NUMBER = {
-  confirmed: 3,
-  details: 3,
-  service: 1,
-  slot: 2,
-} as const satisfies Record<Step["kind"], number>
+type ProgressStep = Exclude<Step, { kind: "confirmed" }>
+
+/**
+ * The "who" step only exists for services with more than one resource, so
+ * the total depends on the chosen service. Before one is chosen, count it if
+ * any service would show it.
+ */
+function progress(step: ProgressStep, tenant: PublicTenant) {
+  const withResource =
+    step.kind === "service"
+      ? tenant.services.some((service) => offersResourceChoice(tenant, service))
+      : offersResourceChoice(tenant, step.service)
+  const total = withResource ? 4 : 3
+
+  const current = {
+    details: total,
+    resource: 2,
+    service: 1,
+    slot: withResource ? 3 : 2,
+  } satisfies Record<ProgressStep["kind"], number>
+
+  return { current: current[step.kind], total }
+}
 
 type Props = {
   tenant: PublicTenant
@@ -43,12 +63,22 @@ type Props = {
 export function BookingFlow({ tenant }: Props) {
   const [step, setStep] = useState<Step>({ kind: "service" })
 
-  const selectService = (service: PublicService) =>
+  const pickSlotFor = (service: PublicService, resourceId: string | null) =>
     setStep({
       kind: "slot",
-      selection: { day: todayIn(tenant.timezone), resourceId: null },
+      selection: { day: todayIn(tenant.timezone), resourceId },
       service,
     })
+
+  const selectService = (service: PublicService) =>
+    offersResourceChoice(tenant, service)
+      ? setStep({ kind: "resource", service })
+      : pickSlotFor(service, null)
+
+  const backFromSlot = (service: PublicService) =>
+    offersResourceChoice(tenant, service)
+      ? setStep({ kind: "resource", service })
+      : setStep({ kind: "service" })
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-8 sm:py-12">
@@ -60,9 +90,7 @@ export function BookingFlow({ tenant }: Props) {
           {tenant.name}
         </h1>
         {step.kind !== "confirmed" && (
-          <p className="text-sm text-muted-foreground">
-            Paso {STEP_NUMBER[step.kind]} de 3
-          </p>
+          <StepProgress step={step} tenant={tenant} />
         )}
       </header>
 
@@ -74,9 +102,18 @@ export function BookingFlow({ tenant }: Props) {
         />
       )}
 
+      {step.kind === "resource" && (
+        <ResourceStep
+          onBack={() => setStep({ kind: "service" })}
+          onPick={(resourceId) => pickSlotFor(step.service, resourceId)}
+          resources={resourcesFor(tenant, step.service)}
+          service={step.service}
+        />
+      )}
+
       {step.kind === "slot" && (
         <SlotStep
-          onBack={() => setStep({ kind: "service" })}
+          onBack={() => backFromSlot(step.service)}
           onPick={(slot) =>
             setStep({
               kind: "details",
@@ -126,5 +163,20 @@ export function BookingFlow({ tenant }: Props) {
         </a>
       </footer>
     </div>
+  )
+}
+
+function StepProgress({
+  step,
+  tenant,
+}: {
+  step: ProgressStep
+  tenant: PublicTenant
+}) {
+  const { current, total } = progress(step, tenant)
+  return (
+    <p className="text-sm text-muted-foreground">
+      Paso {current} de {total}
+    </p>
   )
 }

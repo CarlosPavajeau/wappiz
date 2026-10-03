@@ -38,6 +38,17 @@ export function formatTimeIn(instant: string, timeZone: string): string {
   }).format(new Date(instant))
 }
 
+/** The 0–23 hour of an instant on the business's wall clock. */
+export function hourIn(instant: string, timeZone: string): number {
+  return Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      hourCycle: "h23",
+      timeZone,
+    }).format(new Date(instant))
+  )
+}
+
 /** "miércoles, 10 de junio" for an instant, on the business's calendar. */
 export function formatDateIn(instant: string, timeZone: string): string {
   return new Intl.DateTimeFormat("es-CO", {
