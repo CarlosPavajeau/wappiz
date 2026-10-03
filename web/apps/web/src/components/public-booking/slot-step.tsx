@@ -269,8 +269,9 @@ function SlotList({
       return hour >= part.from && hour < part.to
     }),
   }))
+  // A refetch can empty the chosen part; fall back so remaining slots stay visible.
   const activePart =
-    parts.find(({ id }) => id === chosenPart) ??
+    parts.find((part) => part.id === chosenPart && part.slots.length > 0) ??
     parts.find((part) => part.slots.length > 0)
 
   return (
