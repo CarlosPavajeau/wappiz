@@ -6,7 +6,7 @@ import {
   Shield01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "@tanstack/react-router"
 import { ApiError } from "@wappiz/api-client"
 import type { TenantSettings } from "@wappiz/api-client/types/tenants"
@@ -30,6 +30,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
+import { tenantQuery } from "@/queries/tenants"
 
 import { Spinner } from "../ui/spinner"
 import { PublicBookingLink } from "./public-booking-link"
@@ -65,6 +66,7 @@ type Props = {
 
 export function SettingsForm({ defaultValues, slug, whatsappReady }: Props) {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const isMobile = useIsMobile()
 
   const {
@@ -86,9 +88,14 @@ export function SettingsForm({ defaultValues, slug, whatsappReady }: Props) {
           : "Error al guardar los ajustes. Intenta de nuevo."
       )
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Ajustes guardados correctamente.")
-      router.invalidate()
+      // The dashboard and sidebar read the tenant from the query cache, not
+      // this route's loader.
+      await Promise.all([
+        queryClient.invalidateQueries(tenantQuery),
+        router.invalidate(),
+      ])
     },
   })
 
