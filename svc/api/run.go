@@ -201,6 +201,13 @@ func Run(ctx context.Context, cfg Config) error {
 
 	g := gin.New()
 
+	// Gin trusts every proxy by default, letting any caller pick its own
+	// ClientIP via X-Forwarded-For and dodge the per-IP rate limits.
+	if err := g.SetTrustedProxies(cfg.TrustedProxies); err != nil {
+		return fmt.Errorf("invalid TRUSTED_PROXIES: %w", err)
+	}
+	g.TrustedPlatform = cfg.TrustedPlatform
+
 	g.Use(
 		gin.Recovery(),
 		server.WithLogging(),
