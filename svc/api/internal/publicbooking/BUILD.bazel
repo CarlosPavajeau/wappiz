@@ -12,6 +12,7 @@ go_library(
         "//pkg/codes",
         "//pkg/db",
         "//pkg/fault",
+        "@com_github_google_uuid//:uuid",
     ],
 )
 

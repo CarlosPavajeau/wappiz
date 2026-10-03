@@ -30,6 +30,10 @@ type Event struct {
 	EventType Type
 	Payload   []byte // raw JSON payload
 	CreatedAt time.Time
+	// Attempts is how many earlier deliveries of this event failed. It is
+	// shared by every handler of the event, since failures are recorded
+	// per event rather than per handler.
+	Attempts int
 }
 
 // Handler processes events of a specific type. HandlerID must remain stable

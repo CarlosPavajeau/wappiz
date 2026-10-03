@@ -11,6 +11,7 @@ go_library(
         "//pkg/fault",
         "//pkg/server",
         "//svc/api/internal/middleware",
+        "//svc/api/internal/publicbooking",
         "@com_github_gin_gonic_gin//:gin",
     ],
 )

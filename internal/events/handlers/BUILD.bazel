@@ -18,6 +18,7 @@ go_library(
         "//pkg/datetime",
         "//pkg/db",
         "//pkg/fault",
+        "//pkg/logger",
         "//pkg/mailer",
         "//pkg/whatsapp",
     ],
@@ -32,5 +33,8 @@ go_test(
         "appointment_rescheduled_email_test.go",
     ],
     embed = [":handlers"],
-    deps = ["@com_github_stretchr_testify//require"],
+    deps = [
+        "//internal/events",
+        "@com_github_stretchr_testify//require",
+    ],
 )

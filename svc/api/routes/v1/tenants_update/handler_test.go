@@ -38,3 +38,28 @@ func TestRequestApplyTo(t *testing.T) {
 		require.Equal(t, "573001234567", got.OwnerPhone)
 	})
 }
+
+func TestRequestEnablesPublicBooking(t *testing.T) {
+	cases := []struct {
+		name    string
+		body    string
+		current bool
+		want    bool
+	}{
+		{name: "turning it on", body: `{"publicBookingEnabled": true}`, current: false, want: true},
+		{name: "already on", body: `{"publicBookingEnabled": true}`, current: true, want: false},
+		{name: "turning it off", body: `{"publicBookingEnabled": false}`, current: true, want: false},
+		{name: "omitted", body: `{"botName": "Asistente"}`, current: false, want: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var req Request
+			require.NoError(t, json.Unmarshal([]byte(tc.body), &req))
+
+			got := req.enablesPublicBooking(db.TenantSettings{PublicBookingEnabled: tc.current})
+
+			require.Equal(t, tc.want, got)
+		})
+	}
+}

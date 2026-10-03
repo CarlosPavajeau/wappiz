@@ -7,6 +7,7 @@ import (
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/svc/api/internal/middleware"
+	"wappiz/svc/api/internal/publicbooking"
 
 	"github.com/gin-gonic/gin"
 	"wappiz/pkg/server"
@@ -40,6 +41,12 @@ func (r Request) applyTo(settings db.TenantSettings) db.TenantSettings {
 	set(&settings.SendWarningBeforeBlock, r.SendWarningBeforeBlock)
 	set(&settings.PublicBookingEnabled, r.PublicBookingEnabled)
 	return settings
+}
+
+// enablesPublicBooking reports whether the request turns the public booking
+// page on. Saving other settings while it is already on is not re-checked.
+func (r Request) enablesPublicBooking(current db.TenantSettings) bool {
+	return r.PublicBookingEnabled != nil && *r.PublicBookingEnabled && !current.PublicBookingEnabled
 }
 
 func set[T any](dst *T, value *T) {
@@ -76,6 +83,22 @@ func (h *Handler) Handle(c *gin.Context) error {
 	current, err := db.UnmarshalNullableJSONTo[db.TenantSettings](tenant.Settings)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("failed to parse tenant settings"))
+	}
+
+	// Public bookings are confirmed only over WhatsApp, so the page cannot be
+	// turned on until the tenant can actually send that confirmation.
+	if req.enablesPublicBooking(current) {
+		canSend, err := publicbooking.CanSendWhatsapp(c.Request.Context(), h.DB, tenantID)
+		if err != nil {
+			return err
+		}
+		if !canSend {
+			return fault.New("whatsapp not ready for public booking",
+				fault.Code(codes.ErrorsBadRequest),
+				fault.Internal("public booking requires an active whatsapp configuration"),
+				fault.Public("Conecta y activa tu WhatsApp antes de activar la página de reservas"),
+			)
+		}
 	}
 
 	newSettings, err := json.Marshal(req.applyTo(current))

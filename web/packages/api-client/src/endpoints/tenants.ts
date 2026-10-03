@@ -3,6 +3,7 @@ import type { EndpointDefinition } from "../core/types"
 import type {
   CreateTenantRequest,
   Tenant,
+  TenantByUser,
   UpdateTenantSettingsRequest,
 } from "../types/tenants"
 
@@ -10,7 +11,7 @@ const definitions = {
   byUser: {
     method: "GET",
     path: "/tenants/by-user",
-  } as EndpointDefinition<Tenant>,
+  } as EndpointDefinition<TenantByUser>,
   create: {
     method: "POST",
     path: "/tenants",

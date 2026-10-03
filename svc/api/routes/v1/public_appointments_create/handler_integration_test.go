@@ -35,7 +35,16 @@ type fixture struct {
 	startsAt   time.Time
 }
 
-func newFixture(t *testing.T, publicBookingEnabled bool, captchaOK bool) fixture {
+type fixtureOptions struct {
+	publicBookingEnabled bool
+	whatsappReady        bool
+	captchaOK            bool
+}
+
+// ready is a tenant that accepts public bookings from a human caller.
+var ready = fixtureOptions{publicBookingEnabled: true, whatsappReady: true, captchaOK: true}
+
+func newFixture(t *testing.T, opts fixtureOptions) fixture {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
@@ -46,7 +55,11 @@ func newFixture(t *testing.T, publicBookingEnabled bool, captchaOK bool) fixture
 
 	_, err := database.Primary().ExecContext(ctx,
 		`INSERT INTO tenants (id, name, slug, month_reset_at, settings) VALUES ($1, 'Barber Kings', $2, now(), $3)`,
-		tenantID, slug, fmt.Sprintf(`{"publicBookingEnabled": %t}`, publicBookingEnabled))
+		tenantID, slug, fmt.Sprintf(`{"publicBookingEnabled": %t}`, opts.publicBookingEnabled))
+	require.NoError(t, err)
+	_, err = database.Primary().ExecContext(ctx,
+		`INSERT INTO tenant_whatsapp_configs (tenant_id, phone_number_id, access_token, is_active) VALUES ($1, $2, 'token', $3)`,
+		tenantID, "pn-"+slug, opts.whatsappReady)
 	require.NoError(t, err)
 	_, err = database.Primary().ExecContext(ctx,
 		`INSERT INTO services (id, tenant_id, name, duration_minutes, price) VALUES ($1, $2, 'Corte', 30, 25000)`,
@@ -80,7 +93,7 @@ func newFixture(t *testing.T, publicBookingEnabled bool, captchaOK bool) fixture
 			Publisher:   events.NewPublisher(),
 			Environment: "sandbox",
 		}),
-		Turnstile: fakeTurnstile{ok: captchaOK},
+		Turnstile: fakeTurnstile{ok: opts.captchaOK},
 	}
 	r := gin.New()
 	r.Use(middleware.WithErrorHandling())
@@ -118,7 +131,7 @@ func (f fixture) book(t *testing.T, phone string) *httptest.ResponseRecorder {
 
 func TestHandle_PublicBooking(t *testing.T) {
 	t.Run("books, creates the customer and publishes a public event", func(t *testing.T) {
-		f := newFixture(t, true, true)
+		f := newFixture(t, ready)
 
 		w := f.book(t, "+57 300 123 4567")
 		require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
@@ -136,7 +149,7 @@ func TestHandle_PublicBooking(t *testing.T) {
 	})
 
 	t.Run("rejects a taken slot with 409", func(t *testing.T) {
-		f := newFixture(t, true, true)
+		f := newFixture(t, ready)
 
 		require.Equal(t, http.StatusCreated, f.book(t, "573001234567").Code)
 		w := f.book(t, "573009876543")
@@ -144,14 +157,26 @@ func TestHandle_PublicBooking(t *testing.T) {
 	})
 
 	t.Run("returns 404 when the page is disabled", func(t *testing.T) {
-		f := newFixture(t, false, true)
+		f := newFixture(t, fixtureOptions{whatsappReady: true, captchaOK: true})
 
 		w := f.book(t, "573001234567")
 		require.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
 	})
 
+	t.Run("returns 404 when whatsapp cannot send the confirmation", func(t *testing.T) {
+		f := newFixture(t, fixtureOptions{publicBookingEnabled: true, captchaOK: true})
+
+		w := f.book(t, "573001234567")
+		require.Equal(t, http.StatusNotFound, w.Code, w.Body.String())
+
+		var bookings int
+		require.NoError(t, f.database.Primary().QueryRowContext(context.Background(),
+			`SELECT count(*) FROM appointments`).Scan(&bookings))
+		require.Zero(t, bookings)
+	})
+
 	t.Run("rejects a failed captcha with 400", func(t *testing.T) {
-		f := newFixture(t, true, false)
+		f := newFixture(t, fixtureOptions{publicBookingEnabled: true, whatsappReady: true})
 
 		w := f.book(t, "573001234567")
 		require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())

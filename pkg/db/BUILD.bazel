@@ -129,6 +129,7 @@ go_library(
         "traced_tx.go",
         "tx.go",
         "users_find_by_id.sql_generated.go",
+        "whatsapp_config.go",
         "working_hours_delete.sql_generated.go",
         "working_hours_delete_by_resource.sql_generated.go",
         "working_hours_find_by_resource.sql_generated.go",

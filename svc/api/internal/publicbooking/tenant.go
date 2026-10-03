@@ -10,6 +10,8 @@ import (
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
+
+	"github.com/google/uuid"
 )
 
 // BookingWindowDays is how many days ahead customers can book from the
@@ -42,6 +44,15 @@ func FindTenant(ctx context.Context, database db.Database, slug string) (Tenant,
 	if !settings.PublicBookingEnabled {
 		return Tenant{}, notFound("public booking disabled")
 	}
+	// The booking confirmation is only delivered over WhatsApp, so the page
+	// must not take bookings it cannot confirm.
+	canSend, err := CanSendWhatsapp(ctx, database, tenant.ID)
+	if err != nil {
+		return Tenant{}, err
+	}
+	if !canSend {
+		return Tenant{}, notFound("whatsapp messaging not ready")
+	}
 
 	loc, err := time.LoadLocation(tenant.Timezone)
 	if err != nil {
@@ -49,6 +60,19 @@ func FindTenant(ctx context.Context, database db.Database, slug string) (Tenant,
 	}
 
 	return Tenant{Tenant: tenant, Location: loc}, nil
+}
+
+// CanSendWhatsapp reports whether the tenant can deliver the WhatsApp
+// confirmation that every public booking promises.
+func CanSendWhatsapp(ctx context.Context, database db.Database, tenantID uuid.UUID) (bool, error) {
+	waConfig, err := db.Query.FindTenantWhatsappConfig(ctx, database.Primary(), tenantID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, fault.Wrap(err, fault.Internal("find tenant whatsapp config"))
+	}
+	return waConfig.CanSend(), nil
 }
 
 func notFound(internal string) error {
