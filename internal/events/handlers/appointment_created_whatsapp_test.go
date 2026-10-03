@@ -1,11 +1,8 @@
 package handlers
 
 import (
-	"context"
 	"testing"
 	"time"
-
-	"wappiz/internal/events"
 
 	"github.com/stretchr/testify/require"
 )
@@ -42,22 +39,5 @@ func TestBuildAppointmentConfirmedTemplate(t *testing.T) {
 		})
 
 		require.NotEmpty(t, tpl.BodyParams[0])
-	})
-}
-
-func TestAppointmentCreatedWhatsAppHandlerRetryLimit(t *testing.T) {
-	// A malformed payload fails before any dependency is touched.
-	h := &AppointmentCreatedWhatsAppHandler{}
-	event := func(attempts int) events.Event {
-		return events.Event{EventType: events.TypeAppointmentCreated, Payload: []byte("{"), Attempts: attempts}
-	}
-
-	t.Run("fails so the event is retried", func(t *testing.T) {
-		require.Error(t, h.Handle(context.Background(), event(0)))
-		require.Error(t, h.Handle(context.Background(), event(1)))
-	})
-
-	t.Run("gives up on the last attempt", func(t *testing.T) {
-		require.NoError(t, h.Handle(context.Background(), event(2)))
 	})
 }

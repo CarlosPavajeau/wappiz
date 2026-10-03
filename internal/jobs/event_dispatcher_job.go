@@ -189,7 +189,6 @@ func (j *eventDispatcherJob) processClaim(ctx context.Context, claimID uuid.UUID
 			EventType: events.Type(row.EventType),
 			Payload:   []byte(row.Payload),
 			CreatedAt: row.CreatedAt,
-			Attempts:  int(row.Attempts),
 		}
 
 		dispatchErr := j.dispatch(ctx, event)
