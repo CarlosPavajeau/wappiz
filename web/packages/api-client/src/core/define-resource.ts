@@ -71,7 +71,8 @@ function createEndpointFn(
       options = args[argIndex] as RequestOptions
     }
 
-    const { skipAuth, params, headers, signal } = options
+    const { params, headers, signal } = options
+    const skipAuth = def.public === true ? true : options.skipAuth
 
     try {
       return await client.request({

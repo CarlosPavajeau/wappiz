@@ -18,6 +18,11 @@
 //	// Interactive list (max 10 rows per section)
 //	err := c.SendList(ctx, recipientPhone, phoneNumberID, accessToken, "Choose a slot:", sections)
 //
+//	// Pre-approved template (works outside the 24h customer service window)
+//	err := c.SendTemplate(ctx, recipientPhone, phoneNumberID, accessToken, whatsapp.Template{
+//	    Name: "appointment_confirmed", Language: "es", BodyParams: []string{"Ana"},
+//	})
+//
 // Each send method requires the phoneNumberID and accessToken of the tenant's
 // WhatsApp Business Account, allowing a single client instance to send on
 // behalf of multiple tenants.
@@ -46,4 +51,7 @@ type Client interface {
 	// SendList sends an interactive list message with selectable rows grouped
 	// into sections (up to 10 rows per section).
 	SendList(ctx context.Context, to, phoneNumberID, accessToken, body string, sections []Section) error
+	// SendTemplate sends a pre-approved template message. It is the only
+	// send method allowed outside the 24-hour customer service window.
+	SendTemplate(ctx context.Context, to, phoneNumberID, accessToken string, tpl Template) error
 }

@@ -84,6 +84,7 @@ type SendMessageRequest struct {
 	Type             string          `json:"type"`
 	Text             *OutText        `json:"text,omitempty"`
 	Interactive      *OutInteractive `json:"interactive,omitempty"`
+	Template         *OutTemplate    `json:"template,omitempty"`
 }
 
 type OutText struct {
@@ -128,4 +129,33 @@ type ListRow struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description,omitempty"`
+}
+
+// Template identifies a pre-approved message template and the values for its
+// body placeholders. Templates are the only way to start a conversation with
+// a customer outside the 24-hour customer service window.
+type Template struct {
+	Name       string   // Template name as registered in the WhatsApp Business Account.
+	Language   string   // Language code the template was approved in (e.g. "es").
+	BodyParams []string // Values for {{1}}, {{2}}, ... in the template body, in order.
+}
+
+type OutTemplate struct {
+	Name       string              `json:"name"`
+	Language   TemplateLanguage    `json:"language"`
+	Components []TemplateComponent `json:"components,omitempty"`
+}
+
+type TemplateLanguage struct {
+	Code string `json:"code"`
+}
+
+type TemplateComponent struct {
+	Type       string              `json:"type"`
+	Parameters []TemplateParameter `json:"parameters"`
+}
+
+type TemplateParameter struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
 }

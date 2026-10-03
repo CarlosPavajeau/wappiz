@@ -40,6 +40,11 @@ func (h *AppointmentCreatedEmailHandler) Handle(ctx context.Context, event event
 	if err := json.Unmarshal(event.Payload, &payload); err != nil {
 		return fault.Wrap(err, fault.Internal("unmarshal appointment.created payload"))
 	}
+	// The owner (or their staff) created it from the dashboard; there is
+	// nothing to tell them.
+	if payload.Source == events.AppointmentCreatedSourceAdmin {
+		return nil
+	}
 
 	ownerEmail, err := db.Query.FindTenantOwnerEmail(ctx, h.db.Primary(), payload.TenantID)
 	if err != nil {

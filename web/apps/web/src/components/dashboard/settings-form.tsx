@@ -1,5 +1,6 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
 import {
+  Calendar03Icon,
   ChatBotIcon,
   Mail01Icon,
   Shield01Icon,
@@ -24,11 +25,13 @@ import {
   FieldSet,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { api } from "@/lib/client-api"
 
 import { Spinner } from "../ui/spinner"
+import { PublicBookingLink } from "./public-booking-link"
 
 const settingsSchema = type({
   "autoBlockAfterLateCancel?": type("number > 0").configure({
@@ -45,6 +48,7 @@ const settingsSchema = type({
   "lateCancelHours?": type("number >= 0").configure({
     message: "Debe ser 0 o más",
   }),
+  "publicBookingEnabled?": "boolean",
   "sendWarningBeforeBlock?": "boolean",
   "welcomeMessage?": "string | undefined",
 })
@@ -53,9 +57,10 @@ type SettingsFormValues = typeof settingsSchema.infer
 
 type Props = {
   defaultValues: TenantSettings
+  slug: string
 }
 
-export function SettingsForm({ defaultValues }: Props) {
+export function SettingsForm({ defaultValues, slug }: Props) {
   const router = useRouter()
   const isMobile = useIsMobile()
 
@@ -112,6 +117,14 @@ export function SettingsForm({ defaultValues }: Props) {
               aria-hidden="true"
             />
             Políticas
+          </TabsTrigger>
+          <TabsTrigger value="reservas">
+            <HugeiconsIcon
+              icon={Calendar03Icon}
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            Reservas
           </TabsTrigger>
         </TabsList>
 
@@ -330,6 +343,43 @@ export function SettingsForm({ defaultValues }: Props) {
                   </Field>
                 )}
               />
+            </FieldGroup>
+          </FieldSet>
+        </TabsContent>
+
+        <TabsContent value="reservas" className="min-w-0 pt-6 sm:pt-0 sm:pl-8">
+          <FieldSet>
+            <FieldLegend className="sr-only">
+              Página pública de reservas
+            </FieldLegend>
+            <FieldGroup>
+              <Controller
+                control={control}
+                name="publicBookingEnabled"
+                render={({ field }) => (
+                  <Field orientation="horizontal">
+                    <Switch
+                      id="publicBookingEnabled"
+                      checked={field.value ?? false}
+                      onCheckedChange={(checked) => field.onChange(checked)}
+                    />
+                    <FieldLabel htmlFor="publicBookingEnabled">
+                      Activar página pública de reservas
+                    </FieldLabel>
+                  </Field>
+                )}
+              />
+
+              <Field>
+                <FieldLabel>Enlace de reservas</FieldLabel>
+                <FieldDescription>
+                  Compártelo en Instagram, TikTok o donde quieras. Tus clientes
+                  podrán ver tus servicios y agendar sin escribirte primero; la
+                  confirmación les llega por WhatsApp. Solo funciona mientras la
+                  página esté activa.
+                </FieldDescription>
+                <PublicBookingLink slug={slug} />
+              </Field>
             </FieldGroup>
           </FieldSet>
         </TabsContent>

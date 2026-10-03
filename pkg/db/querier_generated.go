@@ -285,6 +285,19 @@ type Querier interface {
 	//  ORDER BY a.starts_at
 	//  LIMIT 5
 	FindAppointmentsByCustomerID(ctx context.Context, db DBTX, arg FindAppointmentsByCustomerIDParams) ([]FindAppointmentsByCustomerIDRow, error)
+	//FindBookableResourceServicesByTenant
+	//
+	//  SELECT r.id AS resource_id,
+	//         r.name AS resource_name,
+	//         COALESCE(r.avatar_url, '') AS resource_avatar_url,
+	//         rs.service_id
+	//  FROM resources r
+	//           JOIN resource_services rs ON rs.resource_id = r.id
+	//           JOIN services s ON s.id = rs.service_id AND s.is_active = true
+	//  WHERE r.tenant_id = $1
+	//    AND r.is_active = true
+	//  ORDER BY r.sort_order, r.created_at, rs.service_id
+	FindBookableResourceServicesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]FindBookableResourceServicesByTenantRow, error)
 	//FindCompletedDomainEventHandlers
 	//
 	//  SELECT handler_id
@@ -1136,7 +1149,9 @@ type Querier interface {
 	//      $8
 	//  )
 	InsertService(ctx context.Context, db DBTX, arg InsertServiceParams) error
-	//InsertTenant
+	// A taken slug inserts nothing (0 rows) instead of raising, so callers can
+	// retry with another slug inside the same transaction; a unique violation
+	// would abort it.
 	//
 	//  INSERT INTO tenants(
 	//      id,
@@ -1159,7 +1174,8 @@ type Querier interface {
 	//      true,
 	//      $7
 	//  )
-	InsertTenant(ctx context.Context, db DBTX, arg InsertTenantParams) error
+	//  ON CONFLICT (slug) DO NOTHING
+	InsertTenant(ctx context.Context, db DBTX, arg InsertTenantParams) (int64, error)
 	//InsertTenantFlowField
 	//
 	//  INSERT INTO tenant_flow_fields (

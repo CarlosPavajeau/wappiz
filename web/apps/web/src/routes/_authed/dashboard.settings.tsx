@@ -25,7 +25,7 @@ function RouteComponent() {
         </p>
       </div>
 
-      <SettingsForm defaultValues={tenant.settings} />
+      <SettingsForm defaultValues={tenant.settings} slug={tenant.slug} />
     </div>
   )
 }

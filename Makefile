@@ -17,6 +17,7 @@ generate-sql:
 	@rm -rf ./pkg/db/schema && mkdir -p ./pkg/db/schema
 	@awk -v dir=./pkg/db/schema -f ./scripts/split-schema.awk \
 		$$(find ./web/packages/db/out -name "migration.sql" -type f | head -1)
+	@cp ./scripts/schema-extras.sql ./pkg/db/schema/zz_schema_extras.sql
 	@rm -rf ./web/packages/db/out
 
 .PHONY: generate
@@ -44,3 +45,32 @@ build:  ## Build all artifacts (binaries land in ./bin)
 	bazel build //...
 	@mkdir -p bin
 	@cp -f "$$(bazel cquery --ui_event_filters=-info --noshow_progress //:wappiz --output=files)" bin/wappiz && chmod +w bin/wappiz
+
+##@ Local Docker stack
+
+.PHONY: dev-up
+dev-up: ## Start Postgres, Redis and the API in Docker (API on :8080)
+	@test -f .env.docker || cp .env.docker.example .env.docker
+	docker compose up -d --build
+
+LOCAL_DATABASE_URL := postgres://wappiz:wappiz@localhost:5432/wappiz?sslmode=disable
+
+# Runs drizzle-kit directly, not through turbo: turbo's strict env mode drops
+# DATABASE_URL, and drizzle.config.ts would then fall back to the URL in
+# web/apps/web/.env (production). The guard aborts unless the URL drizzle will
+# use resolves to localhost.
+.PHONY: dev-migrate
+dev-migrate: ## Apply Drizzle migrations to the local Docker database
+	cd web/packages/db && DATABASE_URL='$(LOCAL_DATABASE_URL)' node -e "\
+		require('dotenv').config({ path: '../../apps/web/.env', quiet: true }); \
+		const host = new URL(process.env.DATABASE_URL).hostname; \
+		if (host !== 'localhost') { console.error('refusing to migrate non-local database: ' + host); process.exit(1) }"
+	cd web/packages/db && DATABASE_URL='$(LOCAL_DATABASE_URL)' pnpm exec drizzle-kit migrate
+
+.PHONY: dev-logs
+dev-logs: ## Follow the API container logs
+	docker compose logs -f api
+
+.PHONY: dev-down
+dev-down: ## Stop the local Docker stack (data is kept)
+	docker compose down

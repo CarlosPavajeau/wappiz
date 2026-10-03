@@ -53,7 +53,13 @@ var esMonths = map[string]string{
 // America/Bogota timezone, with all English weekday and month names replaced
 // by their Spanish equivalents.
 func FormatTime(t time.Time, layout string) string {
-	s := t.In(bogotaLoc).Format(layout)
+	return FormatTimeIn(t, bogotaLoc, layout)
+}
+
+// FormatTimeIn is [FormatTime] for an arbitrary location, for callers that
+// know the tenant's timezone.
+func FormatTimeIn(t time.Time, loc *time.Location, layout string) string {
+	s := t.In(loc).Format(layout)
 
 	for en, es := range esWeekdays {
 		s = strings.ReplaceAll(s, en, es)

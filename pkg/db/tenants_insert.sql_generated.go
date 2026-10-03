@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const insertTenant = `-- name: InsertTenant :exec
+const insertTenant = `-- name: InsertTenant :execrows
 INSERT INTO tenants(
     id,
     name,
@@ -34,6 +34,7 @@ INSERT INTO tenants(
     true,
     $7
 )
+ON CONFLICT (slug) DO NOTHING
 `
 
 type InsertTenantParams struct {
@@ -46,7 +47,9 @@ type InsertTenantParams struct {
 	Settings     []byte    `db:"settings"`
 }
 
-// InsertTenant
+// A taken slug inserts nothing (0 rows) instead of raising, so callers can
+// retry with another slug inside the same transaction; a unique violation
+// would abort it.
 //
 //	INSERT INTO tenants(
 //	    id,
@@ -69,8 +72,9 @@ type InsertTenantParams struct {
 //	    true,
 //	    $7
 //	)
-func (q *Queries) InsertTenant(ctx context.Context, db DBTX, arg InsertTenantParams) error {
-	_, err := db.ExecContext(ctx, insertTenant,
+//	ON CONFLICT (slug) DO NOTHING
+func (q *Queries) InsertTenant(ctx context.Context, db DBTX, arg InsertTenantParams) (int64, error) {
+	result, err := db.ExecContext(ctx, insertTenant,
 		arg.ID,
 		arg.Name,
 		arg.Slug,
@@ -79,5 +83,8 @@ func (q *Queries) InsertTenant(ctx context.Context, db DBTX, arg InsertTenantPar
 		arg.MonthResetAt,
 		arg.Settings,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

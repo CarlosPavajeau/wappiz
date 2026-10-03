@@ -16,6 +16,7 @@ export type TenantSettings = {
   autoBlockAfterNoShows: number
   autoBlockAfterLateCancel: number
   sendWarningBeforeBlock: boolean
+  publicBookingEnabled: boolean
 }
 
 export type CreateTenantRequest = {

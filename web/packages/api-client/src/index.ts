@@ -5,6 +5,7 @@ import { appointmentsEndpoints } from "./endpoints/appointments"
 import { billingEndpoints } from "./endpoints/billings"
 import { customersEndpoints } from "./endpoints/customers"
 import { onboardingResource } from "./endpoints/onboarding"
+import { publicBookingEndpoints } from "./endpoints/public-booking"
 import { resourcesEndpoints } from "./endpoints/resources"
 import { servicesEndpoint } from "./endpoints/services"
 import { tenantFlowFieldEndpoints } from "./endpoints/tenant-flow-fields"
@@ -19,6 +20,7 @@ const RESOURCES = {
   billing: billingEndpoints,
   customers: customersEndpoints,
   onboarding: onboardingResource,
+  publicBooking: publicBookingEndpoints,
   resources: resourcesEndpoints,
   services: servicesEndpoint,
   tenants: tenantEndpoints,

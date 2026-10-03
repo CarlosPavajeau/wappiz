@@ -8,15 +8,27 @@ import (
 	"wappiz/pkg/fault"
 )
 
+// AppointmentCreatedSource identifies the channel an appointment was booked
+// through. Handlers use it to avoid notifying a customer on the same channel
+// they just booked on (the bot already confirms in-chat).
+type AppointmentCreatedSource string
+
+const (
+	AppointmentCreatedSourceBot    AppointmentCreatedSource = "bot"
+	AppointmentCreatedSourceAdmin  AppointmentCreatedSource = "admin"
+	AppointmentCreatedSourcePublic AppointmentCreatedSource = "public"
+)
+
 // AppointmentCreatedPayload is the structured payload for TypeAppointmentCreated.
 type AppointmentCreatedPayload struct {
-	AppointmentID uuid.UUID `json:"appointment_id"`
-	TenantID      uuid.UUID `json:"tenant_id"`
-	CustomerID    uuid.UUID `json:"customer_id"`
-	ServiceID     uuid.UUID `json:"service_id"`
-	ResourceID    uuid.UUID `json:"resource_id"`
-	StartsAt      time.Time `json:"starts_at"`
-	EndsAt        time.Time `json:"ends_at"`
+	AppointmentID uuid.UUID                `json:"appointment_id"`
+	TenantID      uuid.UUID                `json:"tenant_id"`
+	CustomerID    uuid.UUID                `json:"customer_id"`
+	ServiceID     uuid.UUID                `json:"service_id"`
+	ResourceID    uuid.UUID                `json:"resource_id"`
+	StartsAt      time.Time                `json:"starts_at"`
+	EndsAt        time.Time                `json:"ends_at"`
+	Source        AppointmentCreatedSource `json:"source,omitempty"`
 }
 
 // AppointmentCanceledPayload is the structured payload for TypeAppointmentCanceled.

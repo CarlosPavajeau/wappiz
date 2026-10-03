@@ -1,0 +1,59 @@
+# Local development stack: Postgres + Redis + the Go API.
+#
+#   make dev-up        # start everything (builds the API image)
+#   make dev-migrate   # apply the Drizzle migrations to the local database
+#   make dev-down      # stop (add -v to docker compose down to wipe data)
+#
+# The API reads its secrets from .env.docker (see .env.docker.example).
+name: wappiz
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: wappiz
+      POSTGRES_USER: wappiz
+      POSTGRES_PASSWORD: wappiz
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/docker/postgres-init.sql:/docker-entrypoint-initdb.d/00-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wappiz -d wappiz"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      args:
+        APP_VERSION: local
+    env_file: .env.docker
+    environment:
+      DATABASE_URL: postgres://wappiz:wappiz@postgres:5432/wappiz?sslmode=disable
+      REDIS_URL: redis://redis:6379
+    # The server currently ignores PORT and always listens on :80
+    # (svc/api/run.go builds http.Server without Addr).
+    ports:
+      - "8080:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data:

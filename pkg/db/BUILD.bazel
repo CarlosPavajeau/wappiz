@@ -84,6 +84,7 @@ go_library(
         "queries.go",
         "replica.go",
         "resource_services_delete.sql_generated.go",
+        "resource_services_find_bookable_by_tenant.sql_generated.go",
         "resource_services_insert.sql_generated.go",
         "resources_count_by_tenant.sql_generated.go",
         "resources_delete.sql_generated.go",
