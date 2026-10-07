@@ -100,6 +100,15 @@ type Querier interface {
 	//      updated_at   = NOW()
 	//  WHERE tenant_id = $1
 	CompleteOnboardingProgress(ctx context.Context, db DBTX, tenantID uuid.UUID) error
+	// Deleted resources are soft-deleted (is_active = false) and must not use
+	// up plan quota. Aggregates without GROUP BY so a tenant with no resources
+	// yields 0 instead of no rows.
+	//
+	//  SELECT count(*)
+	//  FROM resources
+	//  WHERE tenant_id = $1
+	//    AND is_active = true
+	CountActiveResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (int64, error)
 	//CountCustomerLateCancels
 	//
 	//  SELECT late_cancel_count AS late_cancels
@@ -114,13 +123,6 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	CountCustomerNoShows(ctx context.Context, db DBTX, arg CountCustomerNoShowsParams) (int32, error)
-	// Aggregates without GROUP BY so a tenant with no resources yields 0
-	// instead of no rows.
-	//
-	//  SELECT count(*)
-	//  FROM resources
-	//  WHERE tenant_id = $1
-	CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (int64, error)
 	// Must apply exactly the same filters as SearchCustomers.
 	//
 	//  SELECT count(*)

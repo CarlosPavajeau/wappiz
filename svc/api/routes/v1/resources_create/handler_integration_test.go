@@ -124,6 +124,19 @@ func TestHandle_ResourceLimits(t *testing.T) {
 		require.Equal(t, http.StatusCreated, f.createResource(t))
 	})
 
+	t.Run("billing flag on frees quota when a resource is deleted", func(t *testing.T) {
+		t.Parallel()
+		f := newFixture(t, featureflags.Static(featureflags.Billing))
+
+		require.Equal(t, http.StatusCreated, f.createResource(t))
+		_, err := f.database.Primary().ExecContext(context.Background(),
+			`UPDATE resources SET is_active = false WHERE tenant_id = $1`, f.tenantID)
+		require.NoError(t, err)
+
+		require.Equal(t, http.StatusCreated, f.createResource(t))
+		require.Equal(t, http.StatusForbidden, f.createResource(t))
+	})
+
 	t.Run("billing flag on serialises concurrent creations", func(t *testing.T) {
 		t.Parallel()
 		f := newFixture(t, featureflags.Static(featureflags.Billing))

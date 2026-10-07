@@ -88,9 +88,9 @@ func (s *service) EnsureCanCreateResource(ctx context.Context, tx db.DBTX, tenan
 		limit = *features.MaxResources
 	}
 
-	count, err := db.Query.CountResourcesByTenant(ctx, tx, tenantID)
+	count, err := db.Query.CountActiveResourcesByTenant(ctx, tx, tenantID)
 	if err != nil {
-		return fault.Wrap(err, fault.Internal("count resources by tenant"))
+		return fault.Wrap(err, fault.Internal("count active resources by tenant"))
 	}
 
 	if count >= int64(limit) {
