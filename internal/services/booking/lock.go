@@ -11,6 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
+// ErrTargetDeleted is returned by [LockTargets] when the resource or service
+// was deleted after the caller validated it, so channels can tell the
+// customer the option is gone instead of reporting a generic failure.
+var ErrTargetDeleted = errors.New("resource or service was deleted")
+
 // LockTargets share-locks the resource and service an appointment is being
 // written for and fails if either was deleted. Call it inside the
 // transaction that writes the appointment: deletion locks the same rows
@@ -24,7 +29,7 @@ func LockTargets(ctx context.Context, tx db.DBTX, tenantID, resourceID, serviceI
 		if !errors.Is(err, sql.ErrNoRows) {
 			return fault.Wrap(err, fault.Internal("lock resource"))
 		}
-		return fault.Wrap(err,
+		return fault.Wrap(ErrTargetDeleted,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource was deleted"),
 			fault.Public("El recurso fue eliminado"),
@@ -38,7 +43,7 @@ func LockTargets(ctx context.Context, tx db.DBTX, tenantID, resourceID, serviceI
 		if !errors.Is(err, sql.ErrNoRows) {
 			return fault.Wrap(err, fault.Internal("lock service"))
 		}
-		return fault.Wrap(err,
+		return fault.Wrap(ErrTargetDeleted,
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("service was deleted"),
 			fault.Public("El servicio fue eliminado"),

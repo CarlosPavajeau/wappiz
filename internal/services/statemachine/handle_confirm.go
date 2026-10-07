@@ -2,9 +2,12 @@ package statemachine
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"time"
 	"wappiz/internal/events"
+	"wappiz/internal/services/booking"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
@@ -39,6 +42,9 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 
 		svc, err := db.Query.FindServiceByID(ctx, s.db.Primary(), *sessionData.ServiceID)
 		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return s.handleTargetUnavailableOnConfirm(ctx, msg, session)
+			}
 			return fault.Wrap(err, fault.Internal("find service by id"))
 		}
 
@@ -87,6 +93,13 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 		}
 
 		err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
+			// The checks above ran outside this transaction; the lock makes a
+			// deletion committed since then fail the write instead of leaving
+			// an appointment on a deleted resource or service.
+			if err := booking.LockTargets(ctx, txx, tenant.ID, *sessionData.ResourceID, *sessionData.ServiceID); err != nil {
+				return err
+			}
+
 			if sessionData.RescheduleAppointmentID == nil {
 				if err := db.Query.InsertAppointment(ctx, txx, db.InsertAppointmentParams{
 					ID:             appointmentID,
@@ -178,6 +191,9 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return s.publisher.Publish(ctx, txx, evt)
 		})
 		if err != nil {
+			if errors.Is(err, booking.ErrTargetDeleted) {
+				return s.handleTargetUnavailableOnConfirm(ctx, msg, session)
+			}
 			if isAppointmentOverlapConstraintError(err) {
 				logger.Warn("[scheduling] appointment overlap detected on confirm, informing customer",
 					"session_id", session.ID,
