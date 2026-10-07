@@ -51,10 +51,10 @@ func (h *Handler) Handle(c *gin.Context) error {
 		)
 
 	}
-	if r.TenantID != tenantID {
+	if r.TenantID != tenantID || r.DeletedAt.Valid {
 		return fault.New("resource not found",
 			fault.Code(codes.ErrorsNotFound),
-			fault.Internal("resource belongs to a different tenant"),
+			fault.Internal("resource belongs to a different tenant or is deleted"),
 			fault.Public("El recurso no existe"),
 		)
 
