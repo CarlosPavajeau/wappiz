@@ -228,7 +228,8 @@ func Run(ctx context.Context, cfg Config) error {
 
 	g.Use(
 		gin.Recovery(),
-		server.WithLogging(),
+		// Health probes fire every few seconds from orchestrators and monitors.
+		server.WithLogging("/health/"),
 		server.WithRequestID(),
 		middleware.WithErrorHandling(),
 		otelgin.Middleware("api"),

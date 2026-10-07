@@ -154,3 +154,28 @@ func (r *Replica) Begin(ctx context.Context) (DBTx, error) {
 	// Wrap the transaction with tracing
 	return WrapTxWithContext(tx, r.name+"_tx", ctx), nil
 }
+
+// PingContext verifies a connection to the database is still alive,
+// establishing one if necessary. Used by readiness probes.
+func (r *Replica) PingContext(ctx context.Context) error {
+	ctx, span := tracing.Start(ctx, "PingContext")
+	defer span.End()
+
+	// Track metrics
+	start := time.Now()
+	err := r.db.PingContext(ctx)
+
+	// Record latency and operation count
+	duration := time.Since(start).Seconds()
+	status := statusSuccess
+	if err != nil {
+		status = statusError
+	}
+
+	metrics.DatabaseOperationsLatency.WithLabelValues(r.name, "ping", status).Observe(duration)
+	metrics.DatabaseOperationsTotal.WithLabelValues(r.name, "ping", status).Inc()
+
+	tracing.RecordErrorUnless(span, err, sql.ErrNoRows)
+
+	return err
+}

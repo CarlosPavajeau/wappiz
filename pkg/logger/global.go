@@ -44,6 +44,18 @@ func AddHandler(newHandler slog.Handler) {
 	logger = slog.New(&MultiHandler{[]slog.Handler{logger.Handler(), newHandler}})
 }
 
+// SetHandler replaces the [slog.Handler] used by the global logger, dropping
+// any handlers registered before. Pair it with [GetHandler] to swap the
+// handler temporarily and restore it afterwards, e.g. to capture output in
+// tests without leaking handlers across runs.
+//
+// Safe for concurrent use.
+func SetHandler(h slog.Handler) {
+	mu.Lock()
+	defer mu.Unlock()
+	logger = slog.New(h)
+}
+
 // AddBaseAttrs appends attributes that will be included in every log entry.
 // Use this to add service-level context like version, environment, or instance ID.
 //
