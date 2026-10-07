@@ -7,7 +7,7 @@ CREATE TABLE "customers" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"no_show_count" integer DEFAULT 0 NOT NULL,
 	"late_cancel_count" integer DEFAULT 0 NOT NULL,
-	"documentId" varchar(20),
+	"document_id" varchar(20),
 	"birth_date" date,
 	"email" varchar(255),
 	"address" varchar(255),
