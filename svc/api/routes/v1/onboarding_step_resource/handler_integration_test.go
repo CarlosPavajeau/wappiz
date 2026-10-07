@@ -17,16 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type fakeFlags struct{ billing bool }
-
-func (f fakeFlags) IsEnabled(_ context.Context, flag featureflags.Flag, _ uuid.UUID) bool {
-	return flag == featureflags.Billing && f.billing
-}
-func (fakeFlags) Close() error { return nil }
-
 // submitStep posts the resource step for a tenant that already owns one
 // resource and has moved past the step, i.e. a resubmission.
-func submitStep(t *testing.T, billing bool) int {
+func submitStep(t *testing.T, flags featureflags.Service) int {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 	ctx := context.Background()
@@ -48,7 +41,7 @@ func submitStep(t *testing.T, billing bool) int {
 		DB: database,
 		Plans: plans.New(plans.Config{
 			DB:          database,
-			Flags:       fakeFlags{billing: billing},
+			Flags:       flags,
 			Environment: "sandbox",
 		}),
 	}
@@ -75,11 +68,11 @@ func TestHandle_ResourceQuota(t *testing.T) {
 
 	t.Run("billing flag off ignores plan limits", func(t *testing.T) {
 		t.Parallel()
-		require.Equal(t, http.StatusOK, submitStep(t, false))
+		require.Equal(t, http.StatusOK, submitStep(t, featureflags.Static()))
 	})
 
 	t.Run("billing flag on enforces free plan limit", func(t *testing.T) {
 		t.Parallel()
-		require.Equal(t, http.StatusForbidden, submitStep(t, true))
+		require.Equal(t, http.StatusForbidden, submitStep(t, featureflags.Static(featureflags.Billing)))
 	})
 }

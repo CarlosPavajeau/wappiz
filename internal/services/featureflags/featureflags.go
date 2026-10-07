@@ -85,6 +85,26 @@ func (s *service) Close() error {
 	return s.client.Close()
 }
 
+// Static returns a Service that reports the given flags as enabled for every
+// tenant and any other flag as disabled. It never talks to PostHog, which
+// makes it the double for tests that need a flag on.
+func Static(enabled ...Flag) Service {
+	set := make(map[Flag]struct{}, len(enabled))
+	for _, flag := range enabled {
+		set[flag] = struct{}{}
+	}
+	return static(set)
+}
+
+type static map[Flag]struct{}
+
+func (s static) IsEnabled(_ context.Context, flag Flag, _ uuid.UUID) bool {
+	_, ok := s[flag]
+	return ok
+}
+
+func (static) Close() error { return nil }
+
 type disabled struct{}
 
 func (disabled) IsEnabled(context.Context, Flag, uuid.UUID) bool { return false }

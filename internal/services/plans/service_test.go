@@ -9,14 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type flagsOff struct{}
-
-func (flagsOff) IsEnabled(context.Context, featureflags.Flag, uuid.UUID) bool { return false }
-func (flagsOff) Close() error                                                 { return nil }
-
 func TestService_BillingFlagOff(t *testing.T) {
 	// A nil database proves the flag short-circuits before any plan lookup.
-	svc := New(Config{Flags: flagsOff{}})
+	// Limits with the flag on need Postgres, whose harness is internal to
+	// svc/api: they are covered by the resources_create, onboarding and
+	// public booking integration tests.
+	svc := New(Config{Flags: featureflags.Static()})
 	ctx := context.Background()
 
 	t.Run("resources are unlimited", func(t *testing.T) {

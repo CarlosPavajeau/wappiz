@@ -17,3 +17,17 @@ func TestNew(t *testing.T) {
 		require.NoError(t, flags.Close())
 	})
 }
+
+func TestStatic(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("listed flags are enabled for every tenant", func(t *testing.T) {
+		flags := Static(Billing)
+		require.True(t, flags.IsEnabled(ctx, Billing, uuid.New()))
+		require.True(t, flags.IsEnabled(ctx, Billing, uuid.New()))
+	})
+
+	t.Run("no flags means everything is disabled", func(t *testing.T) {
+		require.False(t, Static().IsEnabled(ctx, Billing, uuid.New()))
+	})
+}

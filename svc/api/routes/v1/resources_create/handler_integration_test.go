@@ -21,20 +21,13 @@ import (
 
 const testEnvironment = "sandbox"
 
-type fakeFlags struct{ billing bool }
-
-func (f fakeFlags) IsEnabled(_ context.Context, flag featureflags.Flag, _ uuid.UUID) bool {
-	return flag == featureflags.Billing && f.billing
-}
-func (fakeFlags) Close() error { return nil }
-
 type fixture struct {
 	database db.Database
 	router   *gin.Engine
 	tenantID uuid.UUID
 }
 
-func newFixture(t *testing.T, billing bool) fixture {
+func newFixture(t *testing.T, flags featureflags.Service) fixture {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
@@ -49,7 +42,7 @@ func newFixture(t *testing.T, billing bool) fixture {
 		DB: database,
 		Plans: plans.New(plans.Config{
 			DB:          database,
-			Flags:       fakeFlags{billing: billing},
+			Flags:       flags,
 			Environment: testEnvironment,
 		}),
 	}
@@ -98,7 +91,7 @@ func TestHandle_ResourceLimits(t *testing.T) {
 
 	t.Run("billing flag off ignores plan limits", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, false)
+		f := newFixture(t, featureflags.Static())
 
 		require.Equal(t, http.StatusCreated, f.createResource(t))
 		require.Equal(t, http.StatusCreated, f.createResource(t))
@@ -106,7 +99,7 @@ func TestHandle_ResourceLimits(t *testing.T) {
 
 	t.Run("billing flag on applies free plan limit without subscription", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, true)
+		f := newFixture(t, featureflags.Static(featureflags.Billing))
 
 		require.Equal(t, http.StatusCreated, f.createResource(t))
 		require.Equal(t, http.StatusForbidden, f.createResource(t))
@@ -114,7 +107,7 @@ func TestHandle_ResourceLimits(t *testing.T) {
 
 	t.Run("billing flag on applies the active plan limit", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, true)
+		f := newFixture(t, featureflags.Static(featureflags.Billing))
 		f.subscribe(t, `{"maxResources": 2}`)
 
 		require.Equal(t, http.StatusCreated, f.createResource(t))
@@ -124,7 +117,7 @@ func TestHandle_ResourceLimits(t *testing.T) {
 
 	t.Run("billing flag on with unlimited plan", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, true)
+		f := newFixture(t, featureflags.Static(featureflags.Billing))
 		f.subscribe(t, `{}`)
 
 		require.Equal(t, http.StatusCreated, f.createResource(t))
@@ -133,11 +126,11 @@ func TestHandle_ResourceLimits(t *testing.T) {
 
 	t.Run("billing flag on serialises concurrent creations", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, true)
+		f := newFixture(t, featureflags.Static(featureflags.Billing))
 		ctx := context.Background()
 		svc := plans.New(plans.Config{
 			DB:          f.database,
-			Flags:       fakeFlags{billing: true},
+			Flags:       featureflags.Static(featureflags.Billing),
 			Environment: testEnvironment,
 		})
 
