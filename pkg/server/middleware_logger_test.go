@@ -35,8 +35,12 @@ func (b *syncBuffer) String() string {
 func TestWithLogging_SkipsPathPrefixes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
+	// Swap rather than add the handler, and restore it on cleanup, so the
+	// capture neither leaks into later runs (-count=N) nor mixes with stdout.
 	out := &syncBuffer{mu: sync.Mutex{}, buf: bytes.Buffer{}}
-	logger.AddHandler(slog.NewJSONHandler(out, nil))
+	prev := logger.GetHandler()
+	logger.SetHandler(slog.NewJSONHandler(out, nil))
+	t.Cleanup(func() { logger.SetHandler(prev) })
 
 	r := gin.New()
 	r.Use(WithLogging("/health/"))
