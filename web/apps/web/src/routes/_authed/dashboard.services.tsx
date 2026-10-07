@@ -11,6 +11,7 @@ import type React from "react"
 import { useCallback, useState } from "react"
 
 import { CreateServiceDialog } from "@/components/services/create-service-dialog"
+import { DeleteServiceDialog } from "@/components/services/delete-service-dialog"
 import { ServiceCard } from "@/components/services/service-card"
 import { UpdateServiceDialog } from "@/components/services/update-service-dialog"
 import { Badge } from "@/components/ui/badge"
@@ -94,6 +95,7 @@ function ServicesTableView({ services }: { services: Service[] }) {
                 {priceFormatter.format(service.price)}
               </Badge>
               <UpdateServiceDialog service={service} />
+              <DeleteServiceDialog service={service} />
             </div>
           </li>
         ))}
@@ -108,7 +110,7 @@ function ServicesTableView({ services }: { services: Service[] }) {
               <TableHead>Precio</TableHead>
               <TableHead>Duración</TableHead>
               <TableHead>Buffer</TableHead>
-              <TableHead className="w-10" />
+              <TableHead className="w-px" />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,7 +140,10 @@ function ServicesTableView({ services }: { services: Service[] }) {
                     : "—"}
                 </TableCell>
                 <TableCell>
-                  <UpdateServiceDialog service={service} />
+                  <div className="flex items-center justify-end gap-1">
+                    <UpdateServiceDialog service={service} />
+                    <DeleteServiceDialog service={service} />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

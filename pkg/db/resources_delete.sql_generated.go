@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const deleteResource = `-- name: DeleteResource :exec
+const deleteResource = `-- name: DeleteResource :execrows
 UPDATE resources
 SET deleted_at = now()
 WHERE id = $1
@@ -24,14 +24,18 @@ type DeleteResourceParams struct {
 	TenantID uuid.UUID `db:"tenant_id"`
 }
 
-// DeleteResource
+// Zero affected rows means the resource does not exist, belongs to another
+// tenant or is already deleted.
 //
 //	UPDATE resources
 //	SET deleted_at = now()
 //	WHERE id = $1
 //	  AND tenant_id = $2
 //	  AND deleted_at IS NULL
-func (q *Queries) DeleteResource(ctx context.Context, db DBTX, arg DeleteResourceParams) error {
-	_, err := db.ExecContext(ctx, deleteResource, arg.ID, arg.TenantID)
-	return err
+func (q *Queries) DeleteResource(ctx context.Context, db DBTX, arg DeleteResourceParams) (int64, error) {
+	result, err := db.ExecContext(ctx, deleteResource, arg.ID, arg.TenantID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

@@ -10,7 +10,7 @@ import (
 	"wappiz/internal/services/plans"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
-	"wappiz/svc/api/internal/testutil"
+	"wappiz/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

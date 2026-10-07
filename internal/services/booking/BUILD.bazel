@@ -4,6 +4,7 @@ go_library(
     name = "booking",
     srcs = [
         "customer.go",
+        "lock.go",
         "service.go",
     ],
     importpath = "wappiz/internal/services/booking",

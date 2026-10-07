@@ -34,4 +34,8 @@ const (
 	AppErrorsClientBlocked      URN = "err:application:client_blocked"
 	AppErrorsAppointmentOverlap URN = "err:application:appointment_overlap"
 	AppErrorsEmailAlreadyInUse  URN = "err:application:email_already_in_use"
+
+	// AppErrorsHasUpcomingAppointments indicates a resource or service cannot be
+	// deleted while appointments that still need it are pending.
+	AppErrorsHasUpcomingAppointments URN = "err:application:has_upcoming_appointments"
 )

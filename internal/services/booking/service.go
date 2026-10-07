@@ -181,6 +181,10 @@ func (s *Service) Create(ctx context.Context, p CreateParams) (Appointment, erro
 
 	appointmentID := uuid.New()
 	err = db.Tx(ctx, s.db.Primary(), func(ctx context.Context, txx db.DBTX) error {
+		if err := LockTargets(ctx, txx, p.TenantID, p.ResourceID, p.ServiceID); err != nil {
+			return err
+		}
+
 		customer, err := p.Customer.resolve(ctx, txx, p.TenantID)
 		if err != nil {
 			return err

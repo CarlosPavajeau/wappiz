@@ -7,7 +7,7 @@ import (
 	"testing"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
-	"wappiz/svc/api/internal/testutil"
+	"wappiz/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -66,6 +66,56 @@ func TestHandle(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, deleted)
 		require.True(t, active)
+	})
+
+	// insertAppointment books the service for a fresh resource and customer,
+	// starting at now() + startsIn.
+	insertAppointment := func(serviceID uuid.UUID, status, startsIn string) {
+		_, err := database.Primary().ExecContext(ctx,
+			`WITH r AS (
+			     INSERT INTO resources (tenant_id, name, type)
+			     VALUES ($1, 'Carlos', 'barber') RETURNING id
+			 ), c AS (
+			     INSERT INTO customers (tenant_id, phone_number)
+			     VALUES ($1, $5) RETURNING id
+			 )
+			 INSERT INTO appointments (tenant_id, resource_id, service_id, customer_id, starts_at, ends_at,
+			                           status, price_at_booking, cancelled_at)
+			 SELECT $1, r.id, $2, c.id, now() + $4::interval, now() + $4::interval + interval '30 minutes',
+			        $3::text::appointment_status, 20000, CASE WHEN $3::text = 'cancelled' THEN now() END
+			 FROM r, c`,
+			tenantID, serviceID, status, startsIn, uuid.NewString()[:15])
+		require.NoError(t, err)
+	}
+
+	isDeleted := func(id uuid.UUID) bool {
+		var deleted bool
+		err := database.Primary().QueryRowContext(ctx,
+			`SELECT deleted_at IS NOT NULL FROM services WHERE id = $1`, id).Scan(&deleted)
+		require.NoError(t, err)
+		return deleted
+	}
+
+	t.Run("blocks deletion while appointments are upcoming", func(t *testing.T) {
+		id := insert(tenantID, false)
+		insertAppointment(id, "pending", "1 day")
+
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, httptest.NewRequest(http.MethodDelete, "/v1/services/"+id.String(), nil))
+		require.Equal(t, http.StatusConflict, w.Code)
+		require.Contains(t, w.Body.String(), "err:application:has_upcoming_appointments")
+		require.Contains(t, w.Body.String(), "Este servicio tiene 1 cita programada.")
+		require.False(t, isDeleted(id))
+	})
+
+	t.Run("ignores finished, cancelled and past appointments", func(t *testing.T) {
+		id := insert(tenantID, false)
+		insertAppointment(id, "completed", "-2 hours")
+		insertAppointment(id, "cancelled", "1 day")
+		insertAppointment(id, "pending", "-3 hours")
+
+		require.Equal(t, http.StatusOK, call(id))
+		require.True(t, isDeleted(id))
 	})
 
 	t.Run("returns not found for a deleted service", func(t *testing.T) {

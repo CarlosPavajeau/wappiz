@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card"
 import { priceFormatter } from "@/lib/intl"
 
+import { DeleteServiceDialog } from "./delete-service-dialog"
 import { UpdateServiceDialog } from "./update-service-dialog"
 
 export function ServiceCard({ service }: { service: Service }) {
@@ -30,6 +31,7 @@ export function ServiceCard({ service }: { service: Service }) {
             {priceFormatter.format(service.price)}
           </Badge>
           <UpdateServiceDialog service={service} />
+          <DeleteServiceDialog service={service} />
         </CardAction>
       </CardHeader>
 
