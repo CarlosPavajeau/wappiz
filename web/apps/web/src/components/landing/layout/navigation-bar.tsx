@@ -4,7 +4,11 @@ import { Link } from "@tanstack/react-router"
 
 import { Button } from "@/components/ui/button"
 
-export function NavigationBar() {
+type NavigationBarProps = {
+  isAuthenticated: boolean
+}
+
+export function NavigationBar({ isAuthenticated }: NavigationBarProps) {
   return (
     <nav
       aria-label="Navegación principal"
@@ -25,14 +29,25 @@ export function NavigationBar() {
           <span className="text-lg font-semibold tracking-tight">wappiz</span>
         </Link>
         <div className="flex items-center gap-3">
-          <Button
-            render={<Link to="/sign-in" />}
-            nativeButton={false}
-            size="sm"
-            variant="default"
-          >
-            Iniciar sesión
-          </Button>
+          {isAuthenticated ? (
+            <Button
+              render={<Link to="/dashboard" />}
+              nativeButton={false}
+              size="sm"
+              variant="default"
+            >
+              Ir al dashboard
+            </Button>
+          ) : (
+            <Button
+              render={<Link to="/sign-in" />}
+              nativeButton={false}
+              size="sm"
+              variant="default"
+            >
+              Iniciar sesión
+            </Button>
+          )}
         </div>
       </div>
     </nav>
