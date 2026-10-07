@@ -1,18 +1,8 @@
 import { arktypeResolver } from "@hookform/resolvers/arktype"
-import {
-  Alert02Icon,
-  PlusSignIcon,
-  Refresh03Icon,
-} from "@hugeicons/core-free-icons"
+import { Alert02Icon, PlusSignIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query"
+import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query"
 import { ApiError } from "@wappiz/api-client"
-import type { Customer } from "@wappiz/api-client/types/customers"
 import type { Resource } from "@wappiz/api-client/types/resources"
 import type { Service } from "@wappiz/api-client/types/services"
 import { type } from "arktype"
@@ -22,6 +12,7 @@ import type { ReactNode } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { toast } from "sonner"
 
+import { CustomerCombobox } from "@/components/appointments/customer-combobox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import {
@@ -50,7 +41,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
-import { formatPhoneNumber } from "@/lib/intl"
 import { listResourceServicesQuery } from "@/queries/resources"
 
 const scheduleAppointmentSchema = type({
@@ -90,20 +80,6 @@ export function ScheduleAppointmentDialog({
 }: Props) {
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
-
-  const {
-    data: customers,
-    isError: isCustomersError,
-    isFetching: isFetchingCustomers,
-    isLoading: isLoadingCustomers,
-    refetch: refetchCustomers,
-  } = useQuery({
-    enabled: open,
-    queryFn: () => api.customers.list(),
-    queryKey: ["customers"],
-    staleTime: 5 * 60 * 1000,
-  })
-  const customersLoaded = customers !== undefined && !isCustomersError
 
   const { control, handleSubmit, reset, setValue } =
     useForm<ScheduleAppointmentFormValues>({
@@ -270,60 +246,14 @@ export function ScheduleAppointmentDialog({
               control={control}
               name="customerId"
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid || isCustomersError}>
+                <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>Cliente</FieldLabel>
-                  <SearchableCombobox
-                    disabled={isLoadingCustomers || isCustomersError}
-                    emptyText="No se encontraron clientes"
-                    invalid={fieldState.invalid || isCustomersError}
-                    items={customers ?? []}
-                    labelOf={(customer) => customer.displayName}
-                    matches={matchesCustomer}
+                  <CustomerCombobox
+                    invalid={fieldState.invalid}
                     onChange={field.onChange}
-                    placeholder="Buscar por nombre o teléfono"
-                    renderItem={(customer) => (
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate">{customer.displayName}</span>
-                        {customer.displayName !== customer.phoneNumber && (
-                          <span className="truncate text-xs text-muted-foreground">
-                            {formatPhoneNumber(customer.phoneNumber)}
-                          </span>
-                        )}
-                      </span>
-                    )}
                     value={field.value}
                   />
                   <FieldError errors={[fieldState.error]} />
-                  {isLoadingCustomers && (
-                    <p className="text-xs text-muted-foreground">
-                      Cargando clientes...
-                    </p>
-                  )}
-                  {isCustomersError && (
-                    <div className="flex items-center justify-between gap-2 rounded-md border border-destructive/25 bg-destructive/5 px-3 py-2">
-                      <p className="text-xs text-destructive">
-                        No se pudieron cargar los clientes.
-                      </p>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        disabled={isFetchingCustomers}
-                        onClick={() => refetchCustomers()}
-                      >
-                        {isFetchingCustomers ? (
-                          <Spinner />
-                        ) : (
-                          <HugeiconsIcon
-                            icon={Refresh03Icon}
-                            strokeWidth={2}
-                            data-icon="inline-start"
-                          />
-                        )}
-                        Reintentar
-                      </Button>
-                    </div>
-                  )}
                 </Field>
               )}
             />
@@ -442,7 +372,7 @@ export function ScheduleAppointmentDialog({
           <Button
             type="submit"
             form="schedule-appointment-form"
-            disabled={isCreatingAppointment || !customersLoaded}
+            disabled={isCreatingAppointment}
           >
             {isCreatingAppointment && <Spinner />}
             Agendar
@@ -604,21 +534,6 @@ function SearchableCombobox<T extends { id: string }>({
   )
 }
 
-function matchesCustomer(customer: Customer, query: string): boolean {
-  const text = normalizeText(query)
-  if (text === "") {
-    return true
-  }
-  if (
-    normalizeText(customer.displayName).includes(text) ||
-    (customer.name !== null && normalizeText(customer.name).includes(text))
-  ) {
-    return true
-  }
-  const digits = digitsOf(query)
-  return digits !== "" && digitsOf(customer.phoneNumber).includes(digits)
-}
-
 function matchesName(item: { name: string }, query: string): boolean {
   return normalizeText(item.name).includes(normalizeText(query))
 }
@@ -630,11 +545,6 @@ function normalizeText(value: string): string {
     .replaceAll(/[̀-ͯ]/gu, "")
     .toLowerCase()
     .trim()
-}
-
-/** Keeps only digits so "+57 300-123" matches "573001230000". */
-function digitsOf(value: string): string {
-  return value.replaceAll(/\D/gu, "")
 }
 
 function defaultValuesFor(date: Date): ScheduleAppointmentFormValues {

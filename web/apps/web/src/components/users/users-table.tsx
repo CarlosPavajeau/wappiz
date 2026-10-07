@@ -15,6 +15,7 @@ import {
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
 
+import { PaginationBar } from "@/components/pagination-bar"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,15 +34,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination"
 import { Spinner } from "@/components/ui/spinner"
 import {
   Table,
@@ -152,27 +144,6 @@ function UserRowActions({ user }: { user: AdminUser }) {
       </AlertDialog>
     </>
   )
-}
-
-function getPageRange(current: number, total: number): (number | "ellipsis")[] {
-  if (total <= 7) {
-    return Array.from({ length: total }, (_, i) => i + 1)
-  }
-  const delta = 1
-  const left = Math.max(2, current - delta)
-  const right = Math.min(total - 1, current + delta)
-  const pages: (number | "ellipsis")[] = [1]
-  if (left > 2) {
-    pages.push("ellipsis")
-  }
-  for (let i = left; i <= right; i++) {
-    pages.push(i)
-  }
-  if (right < total - 1) {
-    pages.push("ellipsis")
-  }
-  pages.push(total)
-  return pages
 }
 
 const shortDateFormatter = new Intl.DateTimeFormat("es", {
@@ -295,17 +266,11 @@ export function UsersTable({
 }: UsersTableProps) {
   const navigate = useNavigate({ from: routeFullPath })
 
-  const pageCount = Math.ceil(total / limit)
-
   const table = useTable({ columns, data: users, features })
 
   const goToPage = (p: number) => {
     void navigate({ search: (prev) => ({ ...prev, page: p }) })
   }
-
-  const firstItem = (page - 1) * limit + 1
-  const lastItem = Math.min(page * limit, total)
-  const pages = getPageRange(page, pageCount)
 
   return (
     <div className="space-y-4">
@@ -339,75 +304,14 @@ export function UsersTable({
         </TableBody>
       </Table>
 
-      {pageCount > 1 && (
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            Mostrando {firstItem}–{lastItem} de {total}{" "}
-            {total === 1 ? "usuario" : "usuarios"}
-          </p>
-
-          <Pagination className="mx-0 w-auto">
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href={`?page=${Math.max(1, page - 1)}`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (page > 1) {
-                      goToPage(page - 1)
-                    }
-                  }}
-                  aria-disabled={page <= 1}
-                  className={
-                    page <= 1 ? "pointer-events-none opacity-50" : undefined
-                  }
-                  text="Anterior"
-                />
-              </PaginationItem>
-
-              {pages.map((p, i) =>
-                p === "ellipsis" ? (
-                  <PaginationItem key={`ellipsis-${i}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={p}>
-                    <PaginationLink
-                      href={`?page=${p}`}
-                      isActive={p === page}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        goToPage(p)
-                      }}
-                    >
-                      {p}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
-
-              <PaginationItem>
-                <PaginationNext
-                  href={`?page=${Math.min(pageCount, page + 1)}`}
-                  onClick={(e) => {
-                    e.preventDefault()
-                    if (page < pageCount) {
-                      goToPage(page + 1)
-                    }
-                  }}
-                  aria-disabled={page >= pageCount}
-                  className={
-                    page >= pageCount
-                      ? "pointer-events-none opacity-50"
-                      : undefined
-                  }
-                  text="Siguiente"
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      )}
+      <PaginationBar
+        page={page}
+        limit={limit}
+        total={total}
+        noun={{ one: "usuario", other: "usuarios" }}
+        hrefFor={(p) => `?page=${p}`}
+        onPageChange={goToPage}
+      />
     </div>
   )
 }
