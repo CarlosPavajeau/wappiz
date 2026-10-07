@@ -31,8 +31,8 @@ import { api } from "@/lib/client-api"
 import { listResourcesQuery } from "@/queries/resources"
 
 const createResourceSchema = type({
-  name: type("string >= 1").configure({
-    message: "El nombre es requerido",
+  name: type("string >= 2").configure({
+    message: "El nombre debe tener al menos 2 caracteres",
   }),
   type: type("string >= 1").configure({
     message: "El tipo es requerido",

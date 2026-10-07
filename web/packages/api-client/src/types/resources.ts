@@ -20,7 +20,7 @@ export type Resource = {
 export type CreateResourceRequest = {
   name: string
   type: string
-  avatarURL?: string
+  avatarUrl?: string
 }
 
 export type AssignServicesRequest = {
@@ -83,5 +83,6 @@ export type DeleteScheduleOverrideRequest = {
 export type UpdateResourceRequest = {
   name: string
   type: string
-  avatarURL?: string
+  avatarUrl?: string
+  isActive: boolean
 }

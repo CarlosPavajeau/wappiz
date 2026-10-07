@@ -137,7 +137,7 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &resources_list.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_get.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_create.Handler{DB: svc.Database, Plans: svc.Plans})
-	RegisterRoute(auth, &resources_update.Handler{DB: svc.Database})
+	RegisterRoute(auth, &resources_update.Handler{DB: svc.Database, Plans: svc.Plans})
 	RegisterRoute(auth, &resources_delete.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_update_sort_order.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_upsert_working_hours.Handler{DB: svc.Database})

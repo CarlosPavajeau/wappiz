@@ -31,9 +31,11 @@ import { api } from "@/lib/client-api"
 import { listResourcesQuery } from "@/queries/resources"
 
 const updateResourceSchema = type({
-  avatarURL: type("string").optional(),
-  name: type("string >= 1").configure({
-    message: "El nombre es requerido",
+  avatarUrl: type("'' | string.url").configure({
+    message: "Ingresa una URL válida",
+  }),
+  name: type("string >= 2").configure({
+    message: "El nombre debe tener al menos 2 caracteres",
   }),
   type: type("string >= 1").configure({
     message: "El tipo es requerido",
@@ -147,7 +149,7 @@ export function UpdateResourceDialog({ resourceId, defaultValues }: Props) {
 
             <Controller
               control={control}
-              name="avatarURL"
+              name="avatarUrl"
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={field.name}>URL de avatar</FieldLabel>

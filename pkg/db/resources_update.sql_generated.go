@@ -17,7 +17,7 @@ UPDATE resources
 SET name       = $1,
     type       = $2,
     avatar_url = $3,
-    sort_order = $4
+    is_active  = $4
 WHERE id = $5
   AND tenant_id = $6
 `
@@ -26,18 +26,19 @@ type UpdateResourceParams struct {
 	Name      string         `db:"name"`
 	Type      string         `db:"type"`
 	AvatarUrl sql.NullString `db:"avatar_url"`
-	SortOrder int32          `db:"sort_order"`
+	IsActive  bool           `db:"is_active"`
 	ID        uuid.UUID      `db:"id"`
 	TenantID  uuid.UUID      `db:"tenant_id"`
 }
 
-// UpdateResource
+// sort_order is owned by the resources_update_sort_order route; writing it
+// here would reset the order whenever a client edits the resource details.
 //
 //	UPDATE resources
 //	SET name       = $1,
 //	    type       = $2,
 //	    avatar_url = $3,
-//	    sort_order = $4
+//	    is_active  = $4
 //	WHERE id = $5
 //	  AND tenant_id = $6
 func (q *Queries) UpdateResource(ctx context.Context, db DBTX, arg UpdateResourceParams) error {
@@ -45,7 +46,7 @@ func (q *Queries) UpdateResource(ctx context.Context, db DBTX, arg UpdateResourc
 		arg.Name,
 		arg.Type,
 		arg.AvatarUrl,
-		arg.SortOrder,
+		arg.IsActive,
 		arg.ID,
 		arg.TenantID,
 	)
