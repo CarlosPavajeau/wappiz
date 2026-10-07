@@ -1,7 +1,5 @@
-import { useQueryClient } from "@tanstack/react-query"
 import type { Service } from "@wappiz/api-client/types/services"
 
-import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -11,15 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { api } from "@/lib/client-api"
 import { priceFormatter } from "@/lib/intl"
-import { listServicesQuery } from "@/queries/services"
 
+import { DeleteServiceDialog } from "./delete-service-dialog"
 import { UpdateServiceDialog } from "./update-service-dialog"
 
 export function ServiceCard({ service }: { service: Service }) {
-  const queryClient = useQueryClient()
-
   return (
     <Card className="ring-1 ring-border transition-shadow duration-200 hover:ring-foreground/30">
       <CardHeader>
@@ -36,12 +31,7 @@ export function ServiceCard({ service }: { service: Service }) {
             {priceFormatter.format(service.price)}
           </Badge>
           <UpdateServiceDialog service={service} />
-          <ConfirmDeleteDialog
-            entity="servicio"
-            name={service.name}
-            onDelete={() => api.services.delete(service.id)}
-            onDeleted={() => queryClient.invalidateQueries(listServicesQuery)}
-          />
+          <DeleteServiceDialog service={service} />
         </CardAction>
       </CardHeader>
 

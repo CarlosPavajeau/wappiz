@@ -146,10 +146,18 @@ function RouteComponent() {
             name={resource.name}
             onDelete={() => api.resources.delete(resource.id)}
             onDeleted={async () => {
-              await queryClient.invalidateQueries(listResourcesQuery)
+              // The list loader reads with staleTime "static", so invalidating
+              // would still serve the cached list; removing it makes the
+              // loader fetch a list without this resource. exact keeps the
+              // ["resources"] prefix from matching this page's queries.
+              queryClient.removeQueries({
+                queryKey: listResourcesQuery.queryKey,
+                exact: true,
+              })
               await navigate({ to: "/dashboard/resources" })
               // Dropped only after leaving, so the page never refetches a
-              // resource that no longer exists.
+              // resource that no longer exists. Without exact this also
+              // drops its services and overrides.
               queryClient.removeQueries({
                 queryKey: getResourceQuery(resource.id).queryKey,
               })
