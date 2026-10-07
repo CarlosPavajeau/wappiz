@@ -37,3 +37,8 @@ test --strategy=GoCompilePkg=local
 test --test_output=errors
 test --test_summary=terse
 test --local_test_jobs=auto
+
+# Integration tests start Postgres with testcontainers, which finds the Docker
+# socket through the Docker context under $HOME (e.g. Docker Desktop on macOS
+# uses ~/.docker/run/docker.sock). Bazel strips HOME from the test env.
+test --test_env=HOME
