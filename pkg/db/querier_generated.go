@@ -100,6 +100,15 @@ type Querier interface {
 	//      updated_at   = NOW()
 	//  WHERE tenant_id = $1
 	CompleteOnboardingProgress(ctx context.Context, db DBTX, tenantID uuid.UUID) error
+	// Deleted resources are soft-deleted (is_active = false) and must not use
+	// up plan quota. Aggregates without GROUP BY so a tenant with no resources
+	// yields 0 instead of no rows.
+	//
+	//  SELECT count(*)
+	//  FROM resources
+	//  WHERE tenant_id = $1
+	//    AND is_active = true
+	CountActiveResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (int64, error)
 	//CountCustomerLateCancels
 	//
 	//  SELECT late_cancel_count AS late_cancels
@@ -114,14 +123,6 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	CountCustomerNoShows(ctx context.Context, db DBTX, arg CountCustomerNoShowsParams) (int32, error)
-	//CountResourcesByTenant
-	//
-	//  SELECT tenant_id,
-	//         COUNT(*) AS count
-	//  FROM resources
-	//  WHERE tenant_id = $1
-	//  GROUP BY tenant_id
-	CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (CountResourcesByTenantRow, error)
 	// Must apply exactly the same filters as SearchCustomers.
 	//
 	//  SELECT count(*)
@@ -1269,6 +1270,15 @@ type Querier interface {
 	//  WHERE is_active = true
 	//    AND environment = $1
 	ListActivePlans(ctx context.Context, db DBTX, environment string) ([]ListActivePlansRow, error)
+	// Serialises quota checks for a tenant until the caller's transaction ends.
+	// NO KEY UPDATE conflicts with itself but not with the KEY SHARE locks that
+	// foreign-key inserts take, so unrelated writes for the tenant still proceed.
+	//
+	//  SELECT id
+	//  FROM tenants
+	//  WHERE id = $1
+	//  FOR NO KEY UPDATE
+	LockTenantForQuota(ctx context.Context, db DBTX, id uuid.UUID) (uuid.UUID, error)
 	//Mark24hAppointmentReminderSent
 	//
 	//  UPDATE appointments

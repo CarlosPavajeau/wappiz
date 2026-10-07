@@ -11,6 +11,8 @@ import (
 	"time"
 	"wappiz/internal/events"
 	"wappiz/internal/services/booking"
+	"wappiz/internal/services/featureflags"
+	"wappiz/internal/services/plans"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/db"
 	"wappiz/pkg/server"
@@ -29,6 +31,7 @@ func (f fakeTurnstile) Verify(context.Context, string, string) (bool, error) { r
 type fixture struct {
 	database   db.Database
 	router     *gin.Engine
+	tenantID   uuid.UUID
 	slug       string
 	serviceID  uuid.UUID
 	resourceID uuid.UUID
@@ -39,6 +42,8 @@ type fixtureOptions struct {
 	publicBookingEnabled bool
 	whatsappReady        bool
 	captchaOK            bool
+	// billing turns on the billing feature flag, which enforces plan limits.
+	billing bool
 }
 
 // ready is a tenant that accepts public bookings from a human caller.
@@ -85,13 +90,18 @@ func newFixture(t *testing.T, opts fixtureOptions) fixture {
 	tomorrow := time.Now().In(loc).AddDate(0, 0, 1)
 	startsAt := time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 10, 0, 0, 0, loc)
 
+	flags := featureflags.Static()
+	if opts.billing {
+		flags = featureflags.Static(featureflags.Billing)
+	}
+
 	h := &Handler{
 		DB: database,
 		Booking: booking.New(booking.Config{
-			DB:          database,
-			SlotFinder:  slotfinder.New(database),
-			Publisher:   events.NewPublisher(),
-			Environment: "sandbox",
+			DB:         database,
+			SlotFinder: slotfinder.New(database),
+			Publisher:  events.NewPublisher(),
+			Plans:      plans.New(plans.Config{DB: database, Flags: flags, Environment: "sandbox"}),
 		}),
 		Turnstile: fakeTurnstile{ok: opts.captchaOK},
 	}
@@ -102,6 +112,7 @@ func newFixture(t *testing.T, opts fixtureOptions) fixture {
 	return fixture{
 		database:   database,
 		router:     r,
+		tenantID:   tenantID,
 		slug:       slug,
 		serviceID:  serviceID,
 		resourceID: resourceID,
@@ -127,6 +138,113 @@ func (f fixture) book(t *testing.T, phone string) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	f.router.ServeHTTP(w, req)
 	return w
+}
+
+// subscribe gives the tenant an active plan with the given features JSON.
+func (f fixture) subscribe(t *testing.T, features string) {
+	t.Helper()
+	ctx := context.Background()
+
+	planID := uuid.New()
+	_, err := f.database.Primary().ExecContext(ctx,
+		`INSERT INTO plans (id, external_id, name, features, environment) VALUES ($1, $2, 'Pro', $3, 'sandbox')`,
+		planID, "prod-"+planID.String(), features)
+	require.NoError(t, err)
+
+	_, err = f.database.Primary().ExecContext(ctx,
+		`INSERT INTO subscriptions (tenant_id, plan_id, external_id, external_customer_id, status, environment)
+		 VALUES ($1, $2, $3, 'cus-1', 'active', 'sandbox')`,
+		f.tenantID, planID, "sub-"+planID.String())
+	require.NoError(t, err)
+}
+
+func (f fixture) setAppointmentsThisMonth(t *testing.T, count int) {
+	t.Helper()
+
+	_, err := f.database.Primary().ExecContext(context.Background(),
+		`UPDATE tenants SET appointments_this_month = $2 WHERE id = $1`, f.tenantID, count)
+	require.NoError(t, err)
+}
+
+func (f fixture) appointmentsThisMonth(t *testing.T) int {
+	t.Helper()
+
+	var count int
+	require.NoError(t, f.database.Primary().QueryRowContext(context.Background(),
+		`SELECT appointments_this_month FROM tenants WHERE id = $1`, f.tenantID).Scan(&count))
+	return count
+}
+
+func (f fixture) appointments(t *testing.T) int {
+	t.Helper()
+
+	var count int
+	require.NoError(t, f.database.Primary().QueryRowContext(context.Background(),
+		`SELECT count(*) FROM appointments WHERE tenant_id = $1`, f.tenantID).Scan(&count))
+	return count
+}
+
+func TestHandle_PublicBookingPlanLimits(t *testing.T) {
+	billing := ready
+	billing.billing = true
+
+	t.Run("billing flag off ignores the monthly cap but keeps counting", func(t *testing.T) {
+		f := newFixture(t, ready)
+		f.setAppointmentsThisMonth(t, 30)
+
+		w := f.book(t, "573001234567")
+		require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+		require.Equal(t, 31, f.appointmentsThisMonth(t))
+	})
+
+	t.Run("free plan books up to its monthly cap", func(t *testing.T) {
+		f := newFixture(t, billing)
+		f.setAppointmentsThisMonth(t, 29)
+
+		w := f.book(t, "573001234567")
+		require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+		require.Equal(t, 30, f.appointmentsThisMonth(t))
+	})
+
+	t.Run("free plan rejects a booking at its monthly cap", func(t *testing.T) {
+		f := newFixture(t, billing)
+		f.setAppointmentsThisMonth(t, 30)
+
+		w := f.book(t, "573001234567")
+		require.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+		require.Equal(t, 30, f.appointmentsThisMonth(t))
+		require.Zero(t, f.appointments(t))
+	})
+
+	t.Run("paid plan cap replaces the free one", func(t *testing.T) {
+		f := newFixture(t, billing)
+		f.subscribe(t, `{"maxAppointmentsPerMonth": 50}`)
+		f.setAppointmentsThisMonth(t, 30)
+
+		w := f.book(t, "573001234567")
+		require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+		require.Equal(t, 31, f.appointmentsThisMonth(t))
+	})
+
+	t.Run("paid plan rejects a booking at its monthly cap", func(t *testing.T) {
+		f := newFixture(t, billing)
+		f.subscribe(t, `{"maxAppointmentsPerMonth": 50}`)
+		f.setAppointmentsThisMonth(t, 50)
+
+		w := f.book(t, "573001234567")
+		require.Equal(t, http.StatusForbidden, w.Code, w.Body.String())
+		require.Zero(t, f.appointments(t))
+	})
+
+	t.Run("unlimited plan has no monthly cap", func(t *testing.T) {
+		f := newFixture(t, billing)
+		f.subscribe(t, `{}`)
+		f.setAppointmentsThisMonth(t, 1000)
+
+		w := f.book(t, "573001234567")
+		require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+		require.Equal(t, 1001, f.appointmentsThisMonth(t))
+	})
 }
 
 func TestHandle_PublicBooking(t *testing.T) {

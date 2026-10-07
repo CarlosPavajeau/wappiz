@@ -10,6 +10,7 @@ require (
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.12.3
+	github.com/posthog/posthog-go v1.33.0
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.5
 	github.com/resend/resend-go/v3 v3.5.0
@@ -32,6 +33,8 @@ require (
 )
 
 require (
+	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/hashicorp/golang-lru/v2 v2.0.7 // indirect
 	github.com/mdelapenya/tlscert v0.2.0 // indirect
 	github.com/testcontainers/testcontainers-go v0.42.0 // indirect
 )

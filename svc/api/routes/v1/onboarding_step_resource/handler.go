@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"net/http"
 	"time"
+	"wappiz/internal/services/plans"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
@@ -29,7 +30,8 @@ type Request struct {
 }
 
 type Handler struct {
-	DB db.Database
+	DB    db.Database
+	Plans plans.Service
 }
 
 func (h *Handler) Method() string { return http.MethodPost }
@@ -84,6 +86,12 @@ func (h *Handler) Handle(c *gin.Context) error {
 	}
 
 	err = db.Tx(c.Request.Context(), h.DB.Primary(), func(ctx context.Context, txx db.DBTX) error {
+		// The step can be resubmitted after it is passed, so it must respect
+		// the plan's resource quota like any other resource creation.
+		if err := h.Plans.EnsureCanCreateResource(ctx, txx, tenantID); err != nil {
+			return err
+		}
+
 		resourceID := uuid.New()
 		if err := db.Query.InsertResource(c.Request.Context(), txx, db.InsertResourceParams{
 			ID:        resourceID,

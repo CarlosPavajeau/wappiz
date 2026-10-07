@@ -3,6 +3,7 @@ package routes
 import (
 	"wappiz/internal/events"
 	"wappiz/internal/services/booking"
+	"wappiz/internal/services/plans"
 	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/services/statemachine"
@@ -49,6 +50,9 @@ type Services struct {
 
 	// Booking validates and persists appointments created outside the bot.
 	Booking *booking.Service
+
+	// Plans enforces subscription plan limits, gated by the billing feature flag.
+	Plans plans.Service
 
 	// Turnstile verifies captcha tokens on public, unauthenticated routes.
 	Turnstile turnstile.Verifier

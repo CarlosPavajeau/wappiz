@@ -118,7 +118,7 @@ func Register(g *gin.Engine, svc *Services) {
 	// v1/onboarding
 	RegisterRoute(auth, &onboarding_get_progress.Handler{DB: svc.Database})
 	RegisterRoute(auth, &onboarding_get_templates.Handler{DB: svc.Database})
-	RegisterRoute(auth, &onboarding_step_resource.Handler{DB: svc.Database})
+	RegisterRoute(auth, &onboarding_step_resource.Handler{DB: svc.Database, Plans: svc.Plans})
 	RegisterRoute(auth, &onboarding_step_services.Handler{DB: svc.Database})
 	RegisterRoute(auth, &onboarding_step_whatsapp.Handler{DB: svc.Database, Mailer: svc.Mailer, AdminEmail: svc.AdminEmail})
 
@@ -132,7 +132,7 @@ func Register(g *gin.Engine, svc *Services) {
 	// v1/resources
 	RegisterRoute(auth, &resources_list.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_get.Handler{DB: svc.Database})
-	RegisterRoute(auth, &resources_create.Handler{DB: svc.Database})
+	RegisterRoute(auth, &resources_create.Handler{DB: svc.Database, Plans: svc.Plans})
 	RegisterRoute(auth, &resources_update.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_delete.Handler{DB: svc.Database})
 	RegisterRoute(auth, &resources_update_sort_order.Handler{DB: svc.Database})

@@ -29,6 +29,8 @@ go_test(
     deps = [
         "//internal/events",
         "//internal/services/booking",
+        "//internal/services/featureflags",
+        "//internal/services/plans",
         "//internal/services/slotfinder",
         "//pkg/db",
         "//pkg/server",

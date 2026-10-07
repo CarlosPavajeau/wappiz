@@ -8,9 +8,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"math"
 	"time"
 	"wappiz/internal/events"
+	"wappiz/internal/services/plans"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
@@ -20,33 +20,31 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-const freePlanAppointmentLimit = 30
-
 const (
 	customerOverlapConstraint = "no_customer_overlap"
 	resourceOverlapConstraint = "no_overlap"
 )
 
 type Config struct {
-	DB          db.Database
-	SlotFinder  slotfinder.SlotFinderService
-	Publisher   *events.Publisher
-	Environment string
+	DB         db.Database
+	SlotFinder slotfinder.SlotFinderService
+	Publisher  *events.Publisher
+	Plans      plans.Service
 }
 
 type Service struct {
-	db          db.Database
-	slotFinder  slotfinder.SlotFinderService
-	publisher   *events.Publisher
-	environment string
+	db         db.Database
+	slotFinder slotfinder.SlotFinderService
+	publisher  *events.Publisher
+	plans      plans.Service
 }
 
 func New(cfg Config) *Service {
 	return &Service{
-		db:          cfg.DB,
-		slotFinder:  cfg.SlotFinder,
-		publisher:   cfg.Publisher,
-		environment: cfg.Environment,
+		db:         cfg.DB,
+		slotFinder: cfg.SlotFinder,
+		publisher:  cfg.Publisher,
+		plans:      cfg.Plans,
 	}
 }
 
@@ -169,7 +167,7 @@ func (s *Service) Create(ctx context.Context, p CreateParams) (Appointment, erro
 		)
 	}
 
-	appointmentLimit, err := s.findAppointmentLimit(ctx, p.TenantID)
+	appointmentLimit, err := s.plans.AppointmentLimit(ctx, p.TenantID)
 	if err != nil {
 		return Appointment{}, fault.Wrap(err, fault.Internal("find appointment limit"))
 	}
@@ -289,42 +287,6 @@ func (s *Service) resourceSupportsService(
 	}
 
 	return false, nil
-}
-
-// findAppointmentLimit returns the tenant's monthly appointment cap. A null
-// value means the active plan is unlimited; tenants without a plan fall back
-// to the free plan limit.
-func (s *Service) findAppointmentLimit(ctx context.Context, tenantID uuid.UUID) (sql.NullInt32, error) {
-	plan, err := db.Query.FindActivePlanByTenant(ctx, s.db.Primary(), db.FindActivePlanByTenantParams{
-		TenantID:    tenantID,
-		Environment: s.environment,
-	})
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			return sql.NullInt32{}, err
-		}
-		return appointmentLimitFromInt(freePlanAppointmentLimit)
-	}
-
-	features, err := db.UnmarshalNullableJSONTo[db.PlanFeatures](plan.Features)
-	if err != nil {
-		return sql.NullInt32{}, err
-	}
-	if features.MaxAppointmentsPerMonth == nil {
-		return sql.NullInt32{}, nil
-	}
-
-	return appointmentLimitFromInt(*features.MaxAppointmentsPerMonth)
-}
-
-func appointmentLimitFromInt(limit int) (sql.NullInt32, error) {
-	if limit < 0 || limit > math.MaxInt32 {
-		return sql.NullInt32{}, fault.New("invalid appointment limit",
-			fault.Internal("appointment limit outside int32 range"),
-		)
-	}
-
-	return sql.NullInt32{Int32: int32(limit), Valid: true}, nil
 }
 
 func overlapError() error {

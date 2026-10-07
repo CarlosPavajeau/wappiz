@@ -1,4 +1,3 @@
-import { PostHogProvider } from "@posthog/react"
 import type { QueryClient } from "@tanstack/react-query"
 import {
   createRootRouteWithContext,
@@ -11,6 +10,7 @@ import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router"
 
+import { AnalyticsProvider } from "@/components/analytics-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ThemeProvider } from "@/hooks/use-theme"
@@ -105,13 +105,7 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <PostHogProvider
-          apiKey={import.meta.env["VITE_PUBLIC_POSTHOG_KEY"]}
-          options={{
-            api_host: import.meta.env["VITE_PUBLIC_POSTHOG_HOST"],
-            defaults: "2025-11-30",
-          }}
-        >
+        <AnalyticsProvider>
           <ThemeProvider>
             <TooltipProvider>
               <NuqsAdapter>
@@ -123,7 +117,7 @@ function RootDocument() {
               </NuqsAdapter>
             </TooltipProvider>
           </ThemeProvider>
-        </PostHogProvider>
+        </AnalyticsProvider>
         <Analytics />
         <SpeedInsights />
         <Scripts />

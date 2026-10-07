@@ -2,10 +2,7 @@ package statemachine
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
-	"errors"
-	"math"
 	"time"
 	"wappiz/internal/events"
 	"wappiz/internal/services/slotfinder"
@@ -35,7 +32,7 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 			return fault.Wrap(err, fault.Internal("find tenant by id"))
 		}
 
-		appointmentLimit, err := s.findAppointmentLimit(ctx, tenant.ID)
+		appointmentLimit, err := s.plans.AppointmentLimit(ctx, tenant.ID)
 		if err != nil {
 			return fault.Wrap(err, fault.Internal("find appointment limit"))
 		}
@@ -230,41 +227,6 @@ func (s *service) handleConfirm(ctx context.Context, msg IncomingMessage, sessio
 	return s.sendConfirmation(ctx, msg, session)
 }
 
-func (s *service) findAppointmentLimit(ctx context.Context, tenantID uuid.UUID) (sql.NullInt32, error) {
-	plan, err := db.Query.FindActivePlanByTenant(ctx, s.db.Primary(), db.FindActivePlanByTenantParams{
-		TenantID:    tenantID,
-		Environment: s.environment,
-	})
-
-	limit, limitErr := appointmentLimitFromInt(freePlanLimit)
-	if limitErr != nil {
-		return sql.NullInt32{}, limitErr
-	}
-
-	if err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			return sql.NullInt32{}, fault.Wrap(err, fault.Internal("find active plan by tenant"))
-		}
-		// No active plan — apply free plan limit.
-	} else {
-		features, err := db.UnmarshalNullableJSONTo[db.PlanFeatures]([]byte(plan.Features))
-		if err != nil {
-			return sql.NullInt32{}, fault.Wrap(err, fault.Internal("unmarshal plan features"))
-		}
-
-		if features.MaxAppointmentsPerMonth == nil {
-			return sql.NullInt32{}, nil
-		}
-
-		limit, limitErr = appointmentLimitFromInt(*features.MaxAppointmentsPerMonth)
-		if limitErr != nil {
-			return sql.NullInt32{}, limitErr
-		}
-	}
-
-	return limit, nil
-}
-
 func (s *service) findRescheduledAppointment(
 	ctx context.Context,
 	session db.ConversationSession,
@@ -297,14 +259,4 @@ func (s *service) findRescheduledAppointment(
 	}
 
 	return appointment, nil
-}
-
-func appointmentLimitFromInt(limit int) (sql.NullInt32, error) {
-	if limit < 0 || limit > math.MaxInt32 {
-		return sql.NullInt32{}, fault.New("invalid appointment limit",
-			fault.Internal("appointment limit outside int32 range"),
-		)
-	}
-
-	return sql.NullInt32{Int32: int32(limit), Valid: true}, nil
 }

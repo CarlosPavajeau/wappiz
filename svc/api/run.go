@@ -12,6 +12,8 @@ import (
 	"wappiz/internal/events/handlers"
 	"wappiz/internal/jobs"
 	"wappiz/internal/services/booking"
+	"wappiz/internal/services/featureflags"
+	"wappiz/internal/services/plans"
 	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/services/statemachine"
@@ -153,20 +155,36 @@ func Run(ctx context.Context, cfg Config) error {
 	})
 	pub := events.NewPublisher()
 
-	slotFinder := slotfinder.New(database)
-	stateMachineSvc := statemachine.New(statemachine.Config{
+	flags, err := featureflags.New(featureflags.Config{
+		APIKey:    cfg.PostHog.APIKey,
+		Host:      cfg.PostHog.Host,
+		SecretKey: cfg.PostHog.SecretKey,
+	})
+	if err != nil {
+		return fmt.Errorf("unable to create feature flags service: %w", err)
+	}
+	r.Defer(flags.Close)
+
+	plansSvc := plans.New(plans.Config{
 		DB:          database,
-		Whatsapp:    waSvc,
-		SlotFinder:  slotFinder,
-		Publisher:   pub,
+		Flags:       flags,
 		Environment: cfg.Environment,
 	})
 
+	slotFinder := slotfinder.New(database)
+	stateMachineSvc := statemachine.New(statemachine.Config{
+		DB:         database,
+		Whatsapp:   waSvc,
+		SlotFinder: slotFinder,
+		Publisher:  pub,
+		Plans:      plansSvc,
+	})
+
 	bookingSvc := booking.New(booking.Config{
-		DB:          database,
-		SlotFinder:  slotFinder,
-		Publisher:   pub,
-		Environment: cfg.Environment,
+		DB:         database,
+		SlotFinder: slotFinder,
+		Publisher:  pub,
+		Plans:      plansSvc,
 	})
 
 	turnstileSvc := turnstile.New(turnstile.Config{SecretKey: cfg.TurnstileSecretKey})
@@ -225,6 +243,7 @@ func Run(ctx context.Context, cfg Config) error {
 		StateMachine:     stateMachineSvc,
 		SlotFinder:       slotFinder,
 		Booking:          bookingSvc,
+		Plans:            plansSvc,
 		Turnstile:        turnstileSvc,
 		Publisher:        pub,
 		WebhookProcessor: webhookProcessorSvc,

@@ -4,11 +4,12 @@ import {
   CheckmarkCircle01Icon,
 } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { usePostHog } from "@posthog/react"
+import { useFeatureFlagEnabled, usePostHog } from "@posthog/react"
 import { Link } from "@tanstack/react-router"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { FeatureFlag } from "@/lib/feature-flags"
 
 import { Section, SectionContent } from "../layout/section"
 
@@ -78,6 +79,13 @@ const plans = [
 
 export function PricingSection() {
   const posthog = usePostHog()
+  // Paid plans are dormant until the billing flag is released; undefined
+  // while flags load, so the section stays hidden instead of flashing.
+  const billingEnabled = useFeatureFlagEnabled(FeatureFlag.Billing)
+
+  if (billingEnabled !== true) {
+    return null
+  }
 
   return (
     <Section>
