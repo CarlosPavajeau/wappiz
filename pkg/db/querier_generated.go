@@ -122,6 +122,18 @@ type Querier interface {
 	//  WHERE tenant_id = $1
 	//  GROUP BY tenant_id
 	CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (CountResourcesByTenantRow, error)
+	// Must apply exactly the same filters as SearchCustomers.
+	//
+	//  SELECT count(*)
+	//  FROM customers
+	//  WHERE tenant_id = $1
+	//    AND ($2::text IS NULL
+	//      OR strpos(regexp_replace(normalize(lower(name), NFD), '[\u0300-\u036f]', '', 'g'),
+	//                regexp_replace(normalize(lower($2::text), NFD), '[\u0300-\u036f]', '', 'g')) > 0)
+	//    AND ($3::text IS NULL
+	//      OR strpos(regexp_replace(phone_number, '\D', '', 'g'), $3::text) > 0)
+	//    AND ($4::boolean IS NULL OR is_blocked = $4::boolean)
+	CountSearchCustomers(ctx context.Context, db DBTX, arg CountSearchCustomersParams) (int64, error)
 	//CreateTenantPredefinedFlowFields
 	//
 	//  WITH fields AS (
@@ -372,20 +384,6 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	FindCustomerPenaltyCounts(ctx context.Context, db DBTX, arg FindCustomerPenaltyCountsParams) (FindCustomerPenaltyCountsRow, error)
-	//FindCustomersByTenant
-	//
-	//  SELECT id,
-	//         tenant_id,
-	//         phone_number,
-	//         name,
-	//         is_blocked,
-	//         created_at,
-	//         no_show_count,
-	//         late_cancel_count
-	//  FROM customers
-	//  WHERE tenant_id = $1
-	//  ORDER BY created_at DESC
-	FindCustomersByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]FindCustomersByTenantRow, error)
 	//FindJWKByID
 	//
 	//  SELECT id, public_key
@@ -1398,6 +1396,28 @@ type Querier interface {
 	//    AND a.status = ANY ($6)
 	//  ORDER BY a.starts_at
 	SearchAppointments(ctx context.Context, db DBTX, arg SearchAppointmentsParams) ([]SearchAppointmentsRow, error)
+	// Filters are optional: a NULL argument disables its condition. Name matching
+	// folds case and strips every diacritic (NFD, then drop combining marks), so
+	// "jose" finds "José" and "munoz" finds "Muñoz". Phone matching runs on bare
+	// digits so callers can search by any fragment of the number.
+	//
+	//  SELECT id,
+	//         phone_number,
+	//         name,
+	//         is_blocked,
+	//         no_show_count,
+	//         late_cancel_count
+	//  FROM customers
+	//  WHERE tenant_id = $1
+	//    AND ($2::text IS NULL
+	//      OR strpos(regexp_replace(normalize(lower(name), NFD), '[\u0300-\u036f]', '', 'g'),
+	//                regexp_replace(normalize(lower($2::text), NFD), '[\u0300-\u036f]', '', 'g')) > 0)
+	//    AND ($3::text IS NULL
+	//      OR strpos(regexp_replace(phone_number, '\D', '', 'g'), $3::text) > 0)
+	//    AND ($4::boolean IS NULL OR is_blocked = $4::boolean)
+	//  ORDER BY created_at DESC, id DESC
+	//  LIMIT $6 OFFSET $5
+	SearchCustomers(ctx context.Context, db DBTX, arg SearchCustomersParams) ([]SearchCustomersRow, error)
 	//ToggleFlowField
 	//
 	//  UPDATE tenant_flow_fields
