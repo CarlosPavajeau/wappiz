@@ -56,7 +56,8 @@ func WithErrorHandling() gin.HandlerFunc {
 			})
 
 		case codes.ErrorsConflict,
-			codes.AppErrorsAppointmentOverlap:
+			codes.AppErrorsAppointmentOverlap,
+			codes.AppErrorsHasUpcomingAppointments:
 			c.AbortWithStatusJSON(http.StatusConflict, openapi.ConflictErrorResponse{
 				Meta:  meta,
 				Error: openapi.BaseError{Title: "Conflict", Type: t, Detail: detail, Status: http.StatusConflict},

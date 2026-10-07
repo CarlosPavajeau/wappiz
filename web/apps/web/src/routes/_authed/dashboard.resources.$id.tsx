@@ -1,9 +1,10 @@
 import { ArrowLeft01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query"
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router"
 import { type } from "arktype"
 
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog"
 import { LinkServicesDialog } from "@/components/resources/link-services-dialog"
 import { ResourceServicesList } from "@/components/resources/resource-services-list"
 import { ScheduleOverridesCard } from "@/components/resources/schedule-overrides-card"
@@ -12,10 +13,12 @@ import { WorkingHoursCard } from "@/components/resources/working-hours-card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { api } from "@/lib/client-api"
 import { cn } from "@/lib/utils"
 import {
   getResourceQuery,
   listResourceOverridesQuery,
+  listResourcesQuery,
   listResourceServicesQuery,
 } from "@/queries/resources"
 import { listServicesQuery } from "@/queries/services"
@@ -63,6 +66,8 @@ export const Route = createFileRoute("/_authed/dashboard/resources/$id")({
 function RouteComponent() {
   const { setup } = Route.useSearch()
   const { id } = Route.useParams()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const { data: resource } = useSuspenseQuery(getResourceQuery(id))
   const { data: services } = useSuspenseQuery(listResourceServicesQuery(id))
@@ -131,10 +136,24 @@ function RouteComponent() {
             </Badge>
           </div>
         </div>
-        <div className="shrink-0">
+        <div className="flex shrink-0 items-center gap-2">
           <UpdateResourceDialog
             resourceId={resource.id}
             defaultValues={resource}
+          />
+          <ConfirmDeleteDialog
+            entity="recurso"
+            name={resource.name}
+            onDelete={() => api.resources.delete(resource.id)}
+            onDeleted={async () => {
+              await queryClient.invalidateQueries(listResourcesQuery)
+              await navigate({ to: "/dashboard/resources" })
+              // Dropped only after leaving, so the page never refetches a
+              // resource that no longer exists.
+              queryClient.removeQueries({
+                queryKey: getResourceQuery(resource.id).queryKey,
+              })
+            }}
           />
         </div>
       </header>

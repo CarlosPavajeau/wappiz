@@ -136,6 +136,24 @@ type Querier interface {
 	//      OR strpos(regexp_replace(phone_number, '\D', '', 'g'), $3::text) > 0)
 	//    AND ($4::boolean IS NULL OR is_blocked = $4::boolean)
 	CountSearchCustomers(ctx context.Context, db DBTX, arg CountSearchCustomersParams) (int64, error)
+	// Appointments that still need the resource: every status that can still
+	// happen, limited to those not yet over so stale rows nobody closed do not
+	// block deletion forever.
+	//
+	//  SELECT count(*)
+	//  FROM appointments
+	//  WHERE resource_id = $1
+	//    AND status IN ('pending', 'confirmed', 'check_in', 'in_progress')
+	//    AND ends_at > now()
+	CountUpcomingAppointmentsByResource(ctx context.Context, db DBTX, resourceID uuid.UUID) (int64, error)
+	// Same rule as CountUpcomingAppointmentsByResource, keyed by service.
+	//
+	//  SELECT count(*)
+	//  FROM appointments
+	//  WHERE service_id = $1
+	//    AND status IN ('pending', 'confirmed', 'check_in', 'in_progress')
+	//    AND ends_at > now()
+	CountUpcomingAppointmentsByService(ctx context.Context, db DBTX, serviceID uuid.UUID) (int64, error)
 	//CreateTenantPredefinedFlowFields
 	//
 	//  WITH fields AS (
@@ -179,14 +197,15 @@ type Querier interface {
 	//  FROM conversation_sessions
 	//  WHERE expires_at < NOW()
 	DeleteExpiredConversationSessions(ctx context.Context, db DBTX) error
-	//DeleteResource
+	// Zero affected rows means the resource does not exist, belongs to another
+	// tenant or is already deleted.
 	//
 	//  UPDATE resources
 	//  SET deleted_at = now()
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	//    AND deleted_at IS NULL
-	DeleteResource(ctx context.Context, db DBTX, arg DeleteResourceParams) error
+	DeleteResource(ctx context.Context, db DBTX, arg DeleteResourceParams) (int64, error)
 	//DeleteResourceService
 	//
 	//  DELETE
@@ -1301,6 +1320,27 @@ type Querier interface {
 	//  WHERE is_active = true
 	//    AND environment = $1
 	ListActivePlans(ctx context.Context, db DBTX, environment string) ([]ListActivePlansRow, error)
+	// Takes a share lock on a live resource for the rest of the transaction.
+	// Deletion updates the row, so it waits for transactions holding this lock
+	// and then sees their appointments; a transaction that locks after a
+	// committed deletion gets no row.
+	//
+	//  SELECT id
+	//  FROM resources
+	//  WHERE id = $1
+	//    AND tenant_id = $2
+	//    AND deleted_at IS NULL
+	//  FOR SHARE
+	LockLiveResource(ctx context.Context, db DBTX, arg LockLiveResourceParams) (uuid.UUID, error)
+	// Service counterpart of LockLiveResource.
+	//
+	//  SELECT id
+	//  FROM services
+	//  WHERE id = $1
+	//    AND tenant_id = $2
+	//    AND deleted_at IS NULL
+	//  FOR SHARE
+	LockLiveService(ctx context.Context, db DBTX, arg LockLiveServiceParams) (uuid.UUID, error)
 	// Serialises quota checks for a tenant until the caller's transaction ends.
 	// NO KEY UPDATE conflicts with itself but not with the KEY SHARE locks that
 	// foreign-key inserts take, so unrelated writes for the tenant still proceed.

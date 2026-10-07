@@ -7,6 +7,7 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//internal/events",
+        "//internal/services/booking",
         "//internal/services/slotfinder",
         "//pkg/codes",
         "//pkg/db",

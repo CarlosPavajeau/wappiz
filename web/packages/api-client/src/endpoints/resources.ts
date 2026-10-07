@@ -31,6 +31,10 @@ const definitions = {
     CreateScheduleOverrideRequest,
     string
   >,
+  delete: {
+    method: "DELETE",
+    path: (id: string) => `/resources/${id}`,
+  } as EndpointDefinition<void, void, string>,
   deleteOverride: {
     method: "DELETE",
     path: ({ resourceId, overrideId }: DeleteScheduleOverrideRequest) =>

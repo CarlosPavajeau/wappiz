@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 	"wappiz/internal/events"
+	"wappiz/internal/services/booking"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
@@ -111,7 +112,9 @@ func (h *Handler) Handle(c *gin.Context) error {
 		)
 	}
 
-	svc, err := db.Query.FindServiceByID(ctx, h.DB.Primary(), appointment.ServiceID)
+	// FindServiceByID hides paused and deleted services, which would report
+	// the appointment's own service as missing; load it and say why instead.
+	svc, err := db.Query.FindServiceByIDIncludingInactive(ctx, h.DB.Primary(), appointment.ServiceID)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
 			return fault.Wrap(err, fault.Internal("find service by id"))
@@ -127,6 +130,20 @@ func (h *Handler) Handle(c *gin.Context) error {
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("service belongs to another tenant"),
 			fault.Public("El servicio no existe"),
+		)
+	}
+	if svc.DeletedAt.Valid {
+		return fault.New("service is deleted",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("service is deleted"),
+			fault.Public("El servicio fue eliminado"),
+		)
+	}
+	if !svc.IsActive {
+		return fault.New("service is inactive",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("service is inactive"),
+			fault.Public("El servicio no está disponible"),
 		)
 	}
 
@@ -153,6 +170,13 @@ func (h *Handler) Handle(c *gin.Context) error {
 			fault.Code(codes.ErrorsNotFound),
 			fault.Internal("resource is inactive"),
 			fault.Public("El recurso no está disponible"),
+		)
+	}
+	if resource.DeletedAt.Valid {
+		return fault.New("resource is deleted",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("resource is deleted"),
+			fault.Public("El recurso fue eliminado"),
 		)
 	}
 
@@ -211,6 +235,10 @@ func (h *Handler) Handle(c *gin.Context) error {
 	}
 
 	err = db.Tx(ctx, h.DB.Primary(), func(ctx context.Context, txx db.DBTX) error {
+		if err := booking.LockTargets(ctx, txx, tenantID, appointment.ResourceID, appointment.ServiceID); err != nil {
+			return err
+		}
+
 		updated, err := db.Query.RescheduleAppointment(ctx, txx, db.RescheduleAppointmentParams{
 			StartsAt:   startsAt,
 			EndsAt:     endsAt,
