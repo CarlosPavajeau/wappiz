@@ -12,28 +12,20 @@ import (
 )
 
 const countResourcesByTenant = `-- name: CountResourcesByTenant :one
-SELECT tenant_id,
-       COUNT(*) AS count
+SELECT count(*)
 FROM resources
 WHERE tenant_id = $1
-GROUP BY tenant_id
 `
 
-type CountResourcesByTenantRow struct {
-	TenantID uuid.UUID `db:"tenant_id"`
-	Count    int64     `db:"count"`
-}
-
-// CountResourcesByTenant
+// Aggregates without GROUP BY so a tenant with no resources yields 0
+// instead of no rows.
 //
-//	SELECT tenant_id,
-//	       COUNT(*) AS count
+//	SELECT count(*)
 //	FROM resources
 //	WHERE tenant_id = $1
-//	GROUP BY tenant_id
-func (q *Queries) CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (CountResourcesByTenantRow, error) {
+func (q *Queries) CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (int64, error) {
 	row := db.QueryRowContext(ctx, countResourcesByTenant, tenantID)
-	var i CountResourcesByTenantRow
-	err := row.Scan(&i.TenantID, &i.Count)
-	return i, err
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }

@@ -10,6 +10,7 @@ go_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//internal/events",
+        "//internal/services/plans",
         "//internal/services/slotfinder",
         "//pkg/codes",
         "//pkg/db",

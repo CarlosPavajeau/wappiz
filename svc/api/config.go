@@ -44,6 +44,18 @@ type Observability struct {
 	Metrics *MetricsConfig `env:", noinit"`
 }
 
+// PostHogConfig configures feature flag evaluation. Every field is optional:
+// without an API key all flags are reported as disabled.
+type PostHogConfig struct {
+	// APIKey is the PostHog project API key (POSTHOG_API_KEY).
+	APIKey string `env:"POSTHOG_API_KEY"`
+	// Host is the PostHog API host (POSTHOG_HOST).
+	Host string `env:"POSTHOG_HOST, default=https://us.i.posthog.com"`
+	// SecretKey enables local flag evaluation, avoiding a network round trip
+	// per check (POSTHOG_SECRET_KEY). Accepts a personal or project secret key.
+	SecretKey string `env:"POSTHOG_SECRET_KEY"`
+}
+
 type WebhookConfig struct {
 	Workers   int `env:"WEBHOOK_WORKERS, default=4"`
 	BufferCap int `env:"BUFFER_CAP, default=2000"`
@@ -101,6 +113,7 @@ type Config struct {
 	TrustedPlatform string `env:"TRUSTED_PLATFORM"`
 	Observability   Observability
 	Webhook         WebhookConfig
+	PostHog         PostHogConfig
 	// Environment can be sandbox or production, used to filter active plans in the database
 	Environment string `env:"ENVIRONMENT, default=production"`
 }

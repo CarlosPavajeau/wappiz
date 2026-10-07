@@ -114,14 +114,13 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	CountCustomerNoShows(ctx context.Context, db DBTX, arg CountCustomerNoShowsParams) (int32, error)
-	//CountResourcesByTenant
+	// Aggregates without GROUP BY so a tenant with no resources yields 0
+	// instead of no rows.
 	//
-	//  SELECT tenant_id,
-	//         COUNT(*) AS count
+	//  SELECT count(*)
 	//  FROM resources
 	//  WHERE tenant_id = $1
-	//  GROUP BY tenant_id
-	CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (CountResourcesByTenantRow, error)
+	CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (int64, error)
 	// Must apply exactly the same filters as SearchCustomers.
 	//
 	//  SELECT count(*)

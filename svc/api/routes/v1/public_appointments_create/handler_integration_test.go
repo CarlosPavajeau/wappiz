@@ -11,6 +11,8 @@ import (
 	"time"
 	"wappiz/internal/events"
 	"wappiz/internal/services/booking"
+	"wappiz/internal/services/featureflags"
+	"wappiz/internal/services/plans"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/db"
 	"wappiz/pkg/server"
@@ -85,13 +87,16 @@ func newFixture(t *testing.T, opts fixtureOptions) fixture {
 	tomorrow := time.Now().In(loc).AddDate(0, 0, 1)
 	startsAt := time.Date(tomorrow.Year(), tomorrow.Month(), tomorrow.Day(), 10, 0, 0, 0, loc)
 
+	flags, err := featureflags.New(featureflags.Config{})
+	require.NoError(t, err)
+
 	h := &Handler{
 		DB: database,
 		Booking: booking.New(booking.Config{
-			DB:          database,
-			SlotFinder:  slotfinder.New(database),
-			Publisher:   events.NewPublisher(),
-			Environment: "sandbox",
+			DB:         database,
+			SlotFinder: slotfinder.New(database),
+			Publisher:  events.NewPublisher(),
+			Plans:      plans.New(plans.Config{DB: database, Flags: flags, Environment: "sandbox"}),
 		}),
 		Turnstile: fakeTurnstile{ok: opts.captchaOK},
 	}

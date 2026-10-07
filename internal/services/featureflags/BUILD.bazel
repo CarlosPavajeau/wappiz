@@ -1,0 +1,23 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "featureflags",
+    srcs = ["featureflags.go"],
+    importpath = "wappiz/internal/services/featureflags",
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//pkg/logger",
+        "@com_github_google_uuid//:uuid",
+        "@com_github_posthog_posthog_go//:posthog-go",
+    ],
+)
+
+go_test(
+    name = "featureflags_test",
+    srcs = ["featureflags_test.go"],
+    embed = [":featureflags"],
+    deps = [
+        "@com_github_google_uuid//:uuid",
+        "@com_github_stretchr_testify//require",
+    ],
+)

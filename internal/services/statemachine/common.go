@@ -12,7 +12,6 @@ import (
 const (
 	maxDateAttempts = 3
 	sessionTTL      = 30 * time.Minute
-	freePlanLimit   = 30
 )
 
 func appointmentStatusLabel(status string) string {

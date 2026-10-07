@@ -1,6 +1,6 @@
 -- name: CountResourcesByTenant :one
-SELECT tenant_id,
-       COUNT(*) AS count
+-- Aggregates without GROUP BY so a tenant with no resources yields 0
+-- instead of no rows.
+SELECT count(*)
 FROM resources
-WHERE tenant_id = $1
-GROUP BY tenant_id;
+WHERE tenant_id = $1;

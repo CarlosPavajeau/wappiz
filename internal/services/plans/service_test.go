@@ -1,0 +1,45 @@
+package plans
+
+import (
+	"context"
+	"testing"
+	"wappiz/internal/services/featureflags"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+)
+
+type flagsOff struct{}
+
+func (flagsOff) IsEnabled(context.Context, featureflags.Flag, uuid.UUID) bool { return false }
+func (flagsOff) Close() error                                                 { return nil }
+
+func TestService_BillingFlagOff(t *testing.T) {
+	// A nil database proves the flag short-circuits before any plan lookup.
+	svc := New(Config{Flags: flagsOff{}})
+	ctx := context.Background()
+
+	t.Run("resources are unlimited", func(t *testing.T) {
+		require.NoError(t, svc.EnsureCanCreateResource(ctx, uuid.New()))
+	})
+
+	t.Run("appointments are unlimited", func(t *testing.T) {
+		limit, err := svc.AppointmentLimit(ctx, uuid.New())
+		require.NoError(t, err)
+		require.False(t, limit.Valid)
+	})
+}
+
+func TestAppointmentLimitFromInt(t *testing.T) {
+	t.Run("in range", func(t *testing.T) {
+		limit, err := appointmentLimitFromInt(30)
+		require.NoError(t, err)
+		require.True(t, limit.Valid)
+		require.Equal(t, int32(30), limit.Int32)
+	})
+
+	t.Run("negative", func(t *testing.T) {
+		_, err := appointmentLimitFromInt(-1)
+		require.Error(t, err)
+	})
+}

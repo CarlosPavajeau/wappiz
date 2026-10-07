@@ -11,6 +11,7 @@ go_library(
     deps = [
         "//internal/events",
         "//internal/services/booking",
+        "//internal/services/plans",
         "//internal/services/ratelimit",
         "//internal/services/slotfinder",
         "//internal/services/statemachine",
