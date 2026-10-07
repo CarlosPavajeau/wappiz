@@ -39,6 +39,18 @@ export function PaginationBar({
   const hasNext = page < pageCount
 
   const goTo = (target: number) => (event: React.MouseEvent) => {
+    // Modified clicks (new tab/window, download) belong to the browser, and a
+    // click another handler already claimed is not ours to act on.
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
     event.preventDefault()
     onPageChange(target)
   }
