@@ -27,6 +27,7 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { verifyTurnstileToken } from "@/functions/verify-turnstile-token"
 import { authClient } from "@/lib/auth-client"
+import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated"
 
 const searchSchema = type({
   "redirect?": type("string").configure({
@@ -35,6 +36,7 @@ const searchSchema = type({
 })
 
 export const Route = createFileRoute("/_auth/sign-in")({
+  beforeLoad: redirectIfAuthenticated,
   component: RouteComponent,
   validateSearch: searchSchema,
 })

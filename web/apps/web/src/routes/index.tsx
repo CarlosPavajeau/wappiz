@@ -7,9 +7,15 @@ import { FooterSection } from "@/components/landing/sections/footer-section"
 import { HeroSection } from "@/components/landing/sections/hero-section"
 import { PricingSection } from "@/components/landing/sections/pricing-section"
 import { getCurrentYear } from "@/functions/get-current-year"
+import { getUser } from "@/functions/get-user"
 
 export const Route = createFileRoute("/")({
-  loader: () => ({ currentYear: getCurrentYear() }),
+  // Resolved on the server so the navbar renders the right call to action on
+  // first paint. This is why `/` is excluded from prerendering.
+  loader: async () => ({
+    currentYear: getCurrentYear(),
+    isAuthenticated: (await getUser()) !== null,
+  }),
   component: HomeComponent,
   head: () => ({
     links: [
@@ -71,11 +77,11 @@ export const Route = createFileRoute("/")({
 })
 
 function HomeComponent() {
-  const { currentYear } = Route.useLoaderData()
+  const { currentYear, isAuthenticated } = Route.useLoaderData()
 
   return (
     <main className="relative overflow-x-hidden bg-background text-foreground">
-      <NavigationBar />
+      <NavigationBar isAuthenticated={isAuthenticated} />
 
       <HeroSection />
 

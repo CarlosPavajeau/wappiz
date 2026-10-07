@@ -27,8 +27,10 @@ import {
 import { Spinner } from "@/components/ui/spinner"
 import { verifyTurnstileToken } from "@/functions/verify-turnstile-token"
 import { authClient } from "@/lib/auth-client"
+import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated"
 
 export const Route = createFileRoute("/_auth/sign-up")({
+  beforeLoad: redirectIfAuthenticated,
   component: RouteComponent,
 })
 
