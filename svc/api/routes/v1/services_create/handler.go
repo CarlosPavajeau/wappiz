@@ -41,7 +41,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		ID:              uuid.New(),
 		TenantID:        tenantID,
 		Name:            req.Name,
-		Description:     sql.NullString{String: req.Description},
+		Description:     sql.NullString{String: req.Description, Valid: req.Description != ""},
 		DurationMinutes: req.DurationMinutes,
 		BufferMinutes:   req.BufferMinutes,
 		Price:           fmt.Sprint(req.Price),

@@ -388,6 +388,7 @@ type Service struct {
 	IsActive        bool           `db:"is_active"`
 	SortOrder       int32          `db:"sort_order"`
 	CreatedAt       time.Time      `db:"created_at"`
+	DeletedAt       sql.NullTime   `db:"deleted_at"`
 }
 
 type Session struct {

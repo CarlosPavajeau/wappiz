@@ -21,9 +21,11 @@ SELECT id,
        price,
        is_active,
        sort_order,
-       created_at
+       created_at,
+       deleted_at
 FROM services
 WHERE tenant_id = $1
+  AND deleted_at IS NULL
 ORDER BY created_at
 `
 
@@ -38,9 +40,11 @@ ORDER BY created_at
 //	       price,
 //	       is_active,
 //	       sort_order,
-//	       created_at
+//	       created_at,
+//	       deleted_at
 //	FROM services
 //	WHERE tenant_id = $1
+//	  AND deleted_at IS NULL
 //	ORDER BY created_at
 func (q *Queries) FindServicesByTenantID(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]Service, error) {
 	rows, err := db.QueryContext(ctx, findServicesByTenantID, tenantID)
@@ -62,6 +66,7 @@ func (q *Queries) FindServicesByTenantID(ctx context.Context, db DBTX, tenantID 
 			&i.IsActive,
 			&i.SortOrder,
 			&i.CreatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}

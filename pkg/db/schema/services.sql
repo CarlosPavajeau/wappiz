@@ -8,7 +8,8 @@ CREATE TABLE "services" (
 	"price" numeric(10,2) NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
 	"sort_order" integer DEFAULT 0 NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone
 );
 
 CREATE INDEX "idx_services_tenant_id" ON "services" ("tenant_id");

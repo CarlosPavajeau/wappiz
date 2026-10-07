@@ -11,11 +11,12 @@ import (
 	"github.com/google/uuid"
 )
 
-const deleteService = `-- name: DeleteService :exec
+const deleteService = `-- name: DeleteService :execrows
 UPDATE services
-SET is_active = false
+SET deleted_at = now()
 WHERE id = $1
   AND tenant_id = $2
+  AND deleted_at IS NULL
 `
 
 type DeleteServiceParams struct {
@@ -23,13 +24,19 @@ type DeleteServiceParams struct {
 	TenantID uuid.UUID `db:"tenant_id"`
 }
 
-// DeleteService
+// is_active is the owner's pause switch, so deletion is tracked separately.
+// Already deleted rows are skipped so the original deletion time is kept;
+// zero affected rows means the service is gone.
 //
 //	UPDATE services
-//	SET is_active = false
+//	SET deleted_at = now()
 //	WHERE id = $1
 //	  AND tenant_id = $2
-func (q *Queries) DeleteService(ctx context.Context, db DBTX, arg DeleteServiceParams) error {
-	_, err := db.ExecContext(ctx, deleteService, arg.ID, arg.TenantID)
-	return err
+//	  AND deleted_at IS NULL
+func (q *Queries) DeleteService(ctx context.Context, db DBTX, arg DeleteServiceParams) (int64, error) {
+	result, err := db.ExecContext(ctx, deleteService, arg.ID, arg.TenantID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

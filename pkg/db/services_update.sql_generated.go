@@ -12,17 +12,17 @@ import (
 	"github.com/google/uuid"
 )
 
-const updateService = `-- name: UpdateService :exec
+const updateService = `-- name: UpdateService :execrows
 UPDATE services
 SET name             = $1,
     description      = $2,
     duration_minutes = $3,
     buffer_minutes   = $4,
     price            = $5,
-    sort_order       = $6,
-    is_active        = $7
-WHERE id = $8
-  AND tenant_id = $9
+    is_active        = $6
+WHERE id = $7
+  AND tenant_id = $8
+  AND deleted_at IS NULL
 `
 
 type UpdateServiceParams struct {
@@ -31,13 +31,15 @@ type UpdateServiceParams struct {
 	DurationMinutes int32          `db:"duration_minutes"`
 	BufferMinutes   int32          `db:"buffer_minutes"`
 	Price           string         `db:"price"`
-	SortOrder       int32          `db:"sort_order"`
 	IsActive        bool           `db:"is_active"`
 	ID              uuid.UUID      `db:"id"`
 	TenantID        uuid.UUID      `db:"tenant_id"`
 }
 
-// UpdateService
+// sort_order is not written here: no route owns service ordering yet, and
+// writing a fixed value would reset it on every edit.
+// Deleted services are excluded so an edit racing a delete cannot modify the
+// row; zero affected rows means the service is gone.
 //
 //	UPDATE services
 //	SET name             = $1,
@@ -45,21 +47,23 @@ type UpdateServiceParams struct {
 //	    duration_minutes = $3,
 //	    buffer_minutes   = $4,
 //	    price            = $5,
-//	    sort_order       = $6,
-//	    is_active        = $7
-//	WHERE id = $8
-//	  AND tenant_id = $9
-func (q *Queries) UpdateService(ctx context.Context, db DBTX, arg UpdateServiceParams) error {
-	_, err := db.ExecContext(ctx, updateService,
+//	    is_active        = $6
+//	WHERE id = $7
+//	  AND tenant_id = $8
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateService(ctx context.Context, db DBTX, arg UpdateServiceParams) (int64, error) {
+	result, err := db.ExecContext(ctx, updateService,
 		arg.Name,
 		arg.Description,
 		arg.DurationMinutes,
 		arg.BufferMinutes,
 		arg.Price,
-		arg.SortOrder,
 		arg.IsActive,
 		arg.ID,
 		arg.TenantID,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

@@ -21,12 +21,14 @@ SELECT s.id,
        s.price,
        s.is_active,
        s.sort_order,
-       s.created_at
+       s.created_at,
+       s.deleted_at
 FROM services s
          JOIN resource_services rs ON rs.service_id = s.id
 WHERE s.tenant_id = $1
   AND rs.resource_id = $2
   AND s.is_active = true
+  AND s.deleted_at IS NULL
 ORDER BY s.created_at
 `
 
@@ -46,12 +48,14 @@ type FindServicesByResourceIDParams struct {
 //	       s.price,
 //	       s.is_active,
 //	       s.sort_order,
-//	       s.created_at
+//	       s.created_at,
+//	       s.deleted_at
 //	FROM services s
 //	         JOIN resource_services rs ON rs.service_id = s.id
 //	WHERE s.tenant_id = $1
 //	  AND rs.resource_id = $2
 //	  AND s.is_active = true
+//	  AND s.deleted_at IS NULL
 //	ORDER BY s.created_at
 func (q *Queries) FindServicesByResourceID(ctx context.Context, db DBTX, arg FindServicesByResourceIDParams) ([]Service, error) {
 	rows, err := db.QueryContext(ctx, findServicesByResourceID, arg.TenantID, arg.ResourceID)
@@ -73,6 +77,7 @@ func (q *Queries) FindServicesByResourceID(ctx context.Context, db DBTX, arg Fin
 			&i.IsActive,
 			&i.SortOrder,
 			&i.CreatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}

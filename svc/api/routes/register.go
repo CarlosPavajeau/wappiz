@@ -44,6 +44,7 @@ import (
 	"wappiz/svc/api/routes/v1/resources_update_sort_order"
 	"wappiz/svc/api/routes/v1/resources_upsert_working_hours"
 	"wappiz/svc/api/routes/v1/services_create"
+	"wappiz/svc/api/routes/v1/services_delete"
 	"wappiz/svc/api/routes/v1/services_list"
 	"wappiz/svc/api/routes/v1/services_update"
 	"wappiz/svc/api/routes/v1/tenant_flow_fields_create"
@@ -111,6 +112,7 @@ func Register(g *gin.Engine, svc *Services) {
 	RegisterRoute(auth, &services_create.Handler{DB: svc.Database})
 	RegisterRoute(auth, &services_list.Handler{DB: svc.Database})
 	RegisterRoute(auth, &services_update.Handler{DB: svc.Database})
+	RegisterRoute(auth, &services_delete.Handler{DB: svc.Database})
 
 	// v1/appointments
 	RegisterRoute(auth, &appointments_create.Handler{Booking: svc.Booking})

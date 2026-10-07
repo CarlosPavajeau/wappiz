@@ -200,13 +200,16 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND resource_id = $2
 	DeleteScheduleOverride(ctx context.Context, db DBTX, arg DeleteScheduleOverrideParams) error
-	//DeleteService
+	// is_active is the owner's pause switch, so deletion is tracked separately.
+	// Already deleted rows are skipped so the original deletion time is kept;
+	// zero affected rows means the service is gone.
 	//
 	//  UPDATE services
-	//  SET is_active = false
+	//  SET deleted_at = now()
 	//  WHERE id = $1
 	//    AND tenant_id = $2
-	DeleteService(ctx context.Context, db DBTX, arg DeleteServiceParams) error
+	//    AND deleted_at IS NULL
+	DeleteService(ctx context.Context, db DBTX, arg DeleteServiceParams) (int64, error)
 	//DeleteWorkingHour
 	//
 	//  DELETE
@@ -308,7 +311,7 @@ type Querier interface {
 	//         rs.service_id
 	//  FROM resources r
 	//           JOIN resource_services rs ON rs.resource_id = r.id
-	//           JOIN services s ON s.id = rs.service_id AND s.is_active = true
+	//           JOIN services s ON s.id = rs.service_id AND s.is_active = true AND s.deleted_at IS NULL
 	//  WHERE r.tenant_id = $1
 	//    AND r.is_active = true
 	//    AND r.deleted_at IS NULL
@@ -576,13 +579,15 @@ type Querier interface {
 	//         price,
 	//         is_active,
 	//         sort_order,
-	//         created_at
+	//         created_at,
+	//         deleted_at
 	//  FROM services
 	//  WHERE id = $1
 	//    AND is_active = true
+	//    AND deleted_at IS NULL
 	FindServiceByID(ctx context.Context, db DBTX, id uuid.UUID) (Service, error)
-	// Services are soft-deleted, so an existing appointment can point at one the
-	// owner has since deactivated. Use this when describing what was already
+	// An existing appointment can point at a service the owner has since paused
+	// or deleted, so this returns both. Use this when describing what was already
 	// booked; use FindServiceByID when the service must still be bookable.
 	//
 	//  SELECT id,
@@ -594,7 +599,8 @@ type Querier interface {
 	//         price,
 	//         is_active,
 	//         sort_order,
-	//         created_at
+	//         created_at,
+	//         deleted_at
 	//  FROM services
 	//  WHERE id = $1
 	FindServiceByIDIncludingInactive(ctx context.Context, db DBTX, id uuid.UUID) (Service, error)
@@ -609,12 +615,14 @@ type Querier interface {
 	//         s.price,
 	//         s.is_active,
 	//         s.sort_order,
-	//         s.created_at
+	//         s.created_at,
+	//         s.deleted_at
 	//  FROM services s
 	//           JOIN resource_services rs ON rs.service_id = s.id
 	//  WHERE s.tenant_id = $1
 	//    AND rs.resource_id = $2
 	//    AND s.is_active = true
+	//    AND s.deleted_at IS NULL
 	//  ORDER BY s.created_at
 	FindServicesByResourceID(ctx context.Context, db DBTX, arg FindServicesByResourceIDParams) ([]Service, error)
 	//FindServicesByTenantID
@@ -628,9 +636,11 @@ type Querier interface {
 	//         price,
 	//         is_active,
 	//         sort_order,
-	//         created_at
+	//         created_at,
+	//         deleted_at
 	//  FROM services
 	//  WHERE tenant_id = $1
+	//    AND deleted_at IS NULL
 	//  ORDER BY created_at
 	FindServicesByTenantID(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]Service, error)
 	//FindServicesWithAssignedResourceByTenantID
@@ -644,12 +654,14 @@ type Querier interface {
 	//                  s.price,
 	//                  s.is_active,
 	//                  s.sort_order,
-	//                  s.created_at
+	//                  s.created_at,
+	//                  s.deleted_at
 	//  FROM services s
 	//           JOIN resource_services rs ON rs.service_id = s.id
 	//           JOIN resources r ON r.id = rs.resource_id AND r.is_active = true AND r.deleted_at IS NULL
 	//  WHERE s.tenant_id = $1
 	//    AND s.is_active = true
+	//    AND s.deleted_at IS NULL
 	//  ORDER BY s.created_at
 	FindServicesWithAssignedResourceByTenantID(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]Service, error)
 	//FindTenantByID
@@ -1125,6 +1137,19 @@ type Querier interface {
 	//  VALUES ($1, $2)
 	//  ON CONFLICT DO NOTHING
 	InsertResourceService(ctx context.Context, db DBTX, arg InsertResourceServiceParams) error
+	// Links only services owned by the tenant that are not deleted, so a client
+	// cannot attach another tenant's service to its resource. Each matching
+	// service yields one row, so the affected count equals the number of distinct
+	// valid ids; a smaller count means some ids were rejected.
+	//
+	//  INSERT INTO resource_services (resource_id, service_id)
+	//  SELECT $1::uuid, s.id
+	//  FROM services s
+	//  WHERE s.id = ANY ($2::uuid[])
+	//    AND s.tenant_id = $3
+	//    AND s.deleted_at IS NULL
+	//  ON CONFLICT DO NOTHING
+	InsertResourceServicesForTenant(ctx context.Context, db DBTX, arg InsertResourceServicesForTenantParams) (int64, error)
 	//InsertScheduleOverride
 	//
 	//  INSERT INTO schedule_overrides(
@@ -1502,7 +1527,10 @@ type Querier interface {
 	//    AND tenant_id = $6
 	//    AND deleted_at IS NULL
 	UpdateResource(ctx context.Context, db DBTX, arg UpdateResourceParams) (int64, error)
-	//UpdateService
+	// sort_order is not written here: no route owns service ordering yet, and
+	// writing a fixed value would reset it on every edit.
+	// Deleted services are excluded so an edit racing a delete cannot modify the
+	// row; zero affected rows means the service is gone.
 	//
 	//  UPDATE services
 	//  SET name             = $1,
@@ -1510,11 +1538,11 @@ type Querier interface {
 	//      duration_minutes = $3,
 	//      buffer_minutes   = $4,
 	//      price            = $5,
-	//      sort_order       = $6,
-	//      is_active        = $7
-	//  WHERE id = $8
-	//    AND tenant_id = $9
-	UpdateService(ctx context.Context, db DBTX, arg UpdateServiceParams) error
+	//      is_active        = $6
+	//  WHERE id = $7
+	//    AND tenant_id = $8
+	//    AND deleted_at IS NULL
+	UpdateService(ctx context.Context, db DBTX, arg UpdateServiceParams) (int64, error)
 	//UpdateTenant
 	//
 	//  UPDATE tenants
