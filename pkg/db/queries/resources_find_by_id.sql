@@ -6,7 +6,8 @@ SELECT id,
        COALESCE(avatar_url, '') as avatar_url,
        is_active,
        sort_order,
-       created_at
+       created_at,
+       deleted_at
 FROM resources
 WHERE id = $1
 LIMIT 1;

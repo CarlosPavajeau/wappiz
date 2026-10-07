@@ -24,11 +24,14 @@ export const resources = pgTable("resources", {
   name: varchar({ length: 255 }).notNull(),
   type: varchar({ length: 50 }).default("barber").notNull(),
   avatarUrl: varchar("avatar_url", { length: 500 }),
+  // Whether the resource can take appointments. Deletion is tracked by
+  // deletedAt instead, so pausing a resource never frees plan quota.
   isActive: boolean("is_active").default(true).notNull(),
   sortOrder: integer("sort_order").default(0).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`now()`)
     .notNull(),
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
 })
 
 export const workingHours = pgTable(

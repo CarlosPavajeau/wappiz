@@ -9,4 +9,5 @@ SELECT id,
        created_at
 FROM resources
 WHERE tenant_id = $1
+  AND deleted_at IS NULL
 ORDER BY created_at;

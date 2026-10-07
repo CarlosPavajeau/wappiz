@@ -100,15 +100,6 @@ type Querier interface {
 	//      updated_at   = NOW()
 	//  WHERE tenant_id = $1
 	CompleteOnboardingProgress(ctx context.Context, db DBTX, tenantID uuid.UUID) error
-	// Deleted resources are soft-deleted (is_active = false) and must not use
-	// up plan quota. Aggregates without GROUP BY so a tenant with no resources
-	// yields 0 instead of no rows.
-	//
-	//  SELECT count(*)
-	//  FROM resources
-	//  WHERE tenant_id = $1
-	//    AND is_active = true
-	CountActiveResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (int64, error)
 	//CountCustomerLateCancels
 	//
 	//  SELECT late_cancel_count AS late_cancels
@@ -123,6 +114,16 @@ type Querier interface {
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	CountCustomerNoShows(ctx context.Context, db DBTX, arg CountCustomerNoShowsParams) (int32, error)
+	// Deleted resources must not use up plan quota. Inactive ones still do:
+	// is_active only pauses scheduling, and toggling it must not free a slot.
+	// Aggregates without GROUP BY so a tenant with no resources yields 0
+	// instead of no rows.
+	//
+	//  SELECT count(*)
+	//  FROM resources
+	//  WHERE tenant_id = $1
+	//    AND deleted_at IS NULL
+	CountResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) (int64, error)
 	// Must apply exactly the same filters as SearchCustomers.
 	//
 	//  SELECT count(*)
@@ -181,9 +182,10 @@ type Querier interface {
 	//DeleteResource
 	//
 	//  UPDATE resources
-	//  SET is_active = false
+	//  SET deleted_at = now()
 	//  WHERE id = $1
 	//    AND tenant_id = $2
+	//    AND deleted_at IS NULL
 	DeleteResource(ctx context.Context, db DBTX, arg DeleteResourceParams) error
 	//DeleteResourceService
 	//
@@ -309,6 +311,7 @@ type Querier interface {
 	//           JOIN services s ON s.id = rs.service_id AND s.is_active = true
 	//  WHERE r.tenant_id = $1
 	//    AND r.is_active = true
+	//    AND r.deleted_at IS NULL
 	//  ORDER BY r.sort_order, r.created_at, rs.service_id
 	FindBookableResourceServicesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]FindBookableResourceServicesByTenantRow, error)
 	//FindCompletedDomainEventHandlers
@@ -483,7 +486,8 @@ type Querier interface {
 	//         COALESCE(avatar_url, '') as avatar_url,
 	//         is_active,
 	//         sort_order,
-	//         created_at
+	//         created_at,
+	//         deleted_at
 	//  FROM resources
 	//  WHERE id = $1
 	//  LIMIT 1
@@ -543,6 +547,7 @@ type Querier interface {
 	//  WHERE r.tenant_id = $1
 	//    AND rs.service_id = $2
 	//    AND r.is_active = true
+	//    AND r.deleted_at IS NULL
 	//  ORDER BY r.created_at
 	FindResourcesByServiceID(ctx context.Context, db DBTX, arg FindResourcesByServiceIDParams) ([]FindResourcesByServiceIDRow, error)
 	//FindResourcesByTenant
@@ -557,6 +562,7 @@ type Querier interface {
 	//         created_at
 	//  FROM resources
 	//  WHERE tenant_id = $1
+	//    AND deleted_at IS NULL
 	//  ORDER BY created_at
 	FindResourcesByTenant(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]FindResourcesByTenantRow, error)
 	//FindServiceByID
@@ -641,7 +647,7 @@ type Querier interface {
 	//                  s.created_at
 	//  FROM services s
 	//           JOIN resource_services rs ON rs.service_id = s.id
-	//           JOIN resources r ON r.id = rs.resource_id AND r.is_active = true
+	//           JOIN resources r ON r.id = rs.resource_id AND r.is_active = true AND r.deleted_at IS NULL
 	//  WHERE s.tenant_id = $1
 	//    AND s.is_active = true
 	//  ORDER BY s.created_at
@@ -1484,6 +1490,8 @@ type Querier interface {
 	UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) (int64, error)
 	// sort_order is owned by the resources_update_sort_order route; writing it
 	// here would reset the order whenever a client edits the resource details.
+	// Deleted resources are excluded so an edit racing a delete cannot revive
+	// the row; zero affected rows means the resource is gone.
 	//
 	//  UPDATE resources
 	//  SET name       = $1,
@@ -1492,7 +1500,8 @@ type Querier interface {
 	//      is_active  = $4
 	//  WHERE id = $5
 	//    AND tenant_id = $6
-	UpdateResource(ctx context.Context, db DBTX, arg UpdateResourceParams) error
+	//    AND deleted_at IS NULL
+	UpdateResource(ctx context.Context, db DBTX, arg UpdateResourceParams) (int64, error)
 	//UpdateService
 	//
 	//  UPDATE services

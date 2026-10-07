@@ -1,10 +1,8 @@
 package resources_update
 
 import (
-	"context"
 	"database/sql"
 	"net/http"
-	"wappiz/internal/services/plans"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
@@ -20,13 +18,12 @@ type Request struct {
 	Type      string `json:"type"      binding:"required"`
 	AvatarURL string `json:"avatarUrl"`
 	// A pointer so an omitted field is rejected instead of silently
-	// soft-deleting the resource through the bool zero value.
+	// pausing the resource through the bool zero value.
 	IsActive *bool `json:"isActive"  binding:"required"`
 }
 
 type Handler struct {
-	DB    db.Database
-	Plans plans.Service
+	DB db.Database
 }
 
 func (h *Handler) Method() string { return http.MethodPut }
@@ -48,48 +45,27 @@ func (h *Handler) Handle(c *gin.Context) error {
 	}
 
 	tenantID := middleware.TenantIDFromContext(c)
-	ctx := c.Request.Context()
 
-	err = db.Tx(ctx, h.DB.Primary(), func(ctx context.Context, txx db.DBTX) error {
-		r, err := db.Query.FindResourceById(ctx, txx, id)
-		if err != nil {
-			return fault.Wrap(err,
-				fault.Code(codes.ErrorsNotFound),
-				fault.Internal("resource not found"),
-				fault.Public("El recurso no existe"),
-			)
-		}
-		if r.TenantID != tenantID {
-			return fault.New("resource not found",
-				fault.Code(codes.ErrorsNotFound),
-				fault.Internal("resource belongs to a different tenant"),
-				fault.Public("El recurso no existe"),
-			)
-		}
-
-		// Inactive resources do not count towards the plan quota, so
-		// reactivating one consumes a slot exactly like creating it would.
-		if !r.IsActive && *req.IsActive {
-			if err := h.Plans.EnsureCanCreateResource(ctx, txx, tenantID); err != nil {
-				return err
-			}
-		}
-
-		if err := db.Query.UpdateResource(ctx, txx, db.UpdateResourceParams{
-			Name:      req.Name,
-			Type:      req.Type,
-			AvatarUrl: sql.NullString{String: req.AvatarURL, Valid: req.AvatarURL != ""},
-			IsActive:  *req.IsActive,
-			ID:        id,
-			TenantID:  tenantID,
-		}); err != nil {
-			return fault.Wrap(err, fault.Internal("failed to update resource"))
-		}
-
-		return nil
+	// isActive does not affect plan quota, so no quota check is needed. The
+	// query matches on tenant and skips deleted rows in a single statement,
+	// leaving no window between reading the resource and writing it.
+	rows, err := db.Query.UpdateResource(c.Request.Context(), h.DB.Primary(), db.UpdateResourceParams{
+		Name:      req.Name,
+		Type:      req.Type,
+		AvatarUrl: sql.NullString{String: req.AvatarURL, Valid: req.AvatarURL != ""},
+		IsActive:  *req.IsActive,
+		ID:        id,
+		TenantID:  tenantID,
 	})
 	if err != nil {
-		return err
+		return fault.Wrap(err, fault.Internal("failed to update resource"))
+	}
+	if rows == 0 {
+		return fault.New("resource not found",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("resource does not exist, belongs to a different tenant or is deleted"),
+			fault.Public("El recurso no existe"),
+		)
 	}
 
 	c.Status(http.StatusNoContent)

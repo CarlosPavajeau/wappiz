@@ -6,8 +6,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"wappiz/internal/services/featureflags"
-	"wappiz/internal/services/plans"
 	"wappiz/pkg/db"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
@@ -24,7 +22,7 @@ type fixture struct {
 	tenantID uuid.UUID
 }
 
-func newFixture(t *testing.T, flags featureflags.Service) fixture {
+func newFixture(t *testing.T) fixture {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
@@ -35,14 +33,7 @@ func newFixture(t *testing.T, flags featureflags.Service) fixture {
 		tenantID, "barber-"+tenantID.String())
 	require.NoError(t, err)
 
-	h := &Handler{
-		DB: database,
-		Plans: plans.New(plans.Config{
-			DB:          database,
-			Flags:       flags,
-			Environment: "sandbox",
-		}),
-	}
+	h := &Handler{DB: database}
 
 	r := gin.New()
 	r.Use(middleware.WithErrorHandling())
@@ -92,7 +83,7 @@ func TestHandle(t *testing.T) {
 
 	t.Run("updates details and keeps sort order", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, featureflags.Static())
+		f := newFixture(t)
 		id := f.insertResource(t, true)
 
 		require.Equal(t, http.StatusNoContent, f.updateResource(t, id,
@@ -108,7 +99,7 @@ func TestHandle(t *testing.T) {
 
 	t.Run("deactivates a resource", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, featureflags.Static())
+		f := newFixture(t)
 		id := f.insertResource(t, true)
 
 		require.Equal(t, http.StatusNoContent, f.updateResource(t, id,
@@ -118,7 +109,7 @@ func TestHandle(t *testing.T) {
 
 	t.Run("rejects a request without isActive", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, featureflags.Static())
+		f := newFixture(t)
 		id := f.insertResource(t, true)
 
 		require.Equal(t, http.StatusBadRequest, f.updateResource(t, id,
@@ -126,9 +117,9 @@ func TestHandle(t *testing.T) {
 		require.True(t, f.findResource(t, id).IsActive)
 	})
 
-	t.Run("reactivation within quota succeeds", func(t *testing.T) {
+	t.Run("reactivates an inactive resource", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, featureflags.Static(featureflags.Billing))
+		f := newFixture(t)
 		id := f.insertResource(t, false)
 
 		require.Equal(t, http.StatusNoContent, f.updateResource(t, id,
@@ -136,23 +127,31 @@ func TestHandle(t *testing.T) {
 		require.True(t, f.findResource(t, id).IsActive)
 	})
 
-	t.Run("reactivation beyond quota is forbidden", func(t *testing.T) {
+	t.Run("does not revive a deleted resource", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, featureflags.Static(featureflags.Billing))
-		f.insertResource(t, true)
+		f := newFixture(t)
 		id := f.insertResource(t, false)
+		_, err := f.database.Primary().ExecContext(context.Background(),
+			`UPDATE resources SET deleted_at = now() WHERE id = $1`, id)
+		require.NoError(t, err)
 
-		require.Equal(t, http.StatusForbidden, f.updateResource(t, id,
-			`{"name":"Carlos","type":"barber","isActive":true}`))
-		require.False(t, f.findResource(t, id).IsActive)
+		require.Equal(t, http.StatusNotFound, f.updateResource(t, id,
+			`{"name":"Ana","type":"barber","isActive":true}`))
+
+		r := f.findResource(t, id)
+		require.Equal(t, "Carlos", r.Name)
+		require.False(t, r.IsActive)
+		require.True(t, r.DeletedAt.Valid)
 	})
 
-	t.Run("editing an active resource at quota succeeds", func(t *testing.T) {
+	t.Run("does not update another tenant's resource", func(t *testing.T) {
 		t.Parallel()
-		f := newFixture(t, featureflags.Static(featureflags.Billing))
-		id := f.insertResource(t, true)
+		owner := newFixture(t)
+		id := owner.insertResource(t, true)
+		other := newFixture(t)
 
-		require.Equal(t, http.StatusNoContent, f.updateResource(t, id,
+		require.Equal(t, http.StatusNotFound, other.updateResource(t, id,
 			`{"name":"Ana","type":"barber","isActive":true}`))
+		require.Equal(t, "Carlos", owner.findResource(t, id).Name)
 	})
 }

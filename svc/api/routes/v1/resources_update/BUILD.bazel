@@ -6,7 +6,6 @@ go_library(
     importpath = "wappiz/svc/api/routes/v1/resources_update",
     visibility = ["//visibility:public"],
     deps = [
-        "//internal/services/plans",
         "//pkg/codes",
         "//pkg/db",
         "//pkg/fault",
@@ -22,8 +21,6 @@ go_test(
     srcs = ["handler_integration_test.go"],
     embed = [":resources_update"],
     deps = [
-        "//internal/services/featureflags",
-        "//internal/services/plans",
         "//pkg/db",
         "//pkg/server",
         "//svc/api/internal/middleware",
