@@ -4,8 +4,8 @@ go_library(
     name = "testutil",
     srcs = ["db.go"],
     data = ["//pkg/db:schema"],
-    importpath = "wappiz/svc/api/internal/testutil",
-    visibility = ["//svc/api:__subpackages__"],
+    importpath = "wappiz/internal/testutil",
+    visibility = ["//:__subpackages__"],
     deps = [
         "//pkg/db",
         "@com_github_google_uuid//:uuid",
