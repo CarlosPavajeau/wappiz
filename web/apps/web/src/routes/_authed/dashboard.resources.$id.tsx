@@ -37,10 +37,16 @@ export const Route = createFileRoute("/_authed/dashboard/resources/$id")({
     const { setup, queryClient } = context
 
     const [resource, services, allServices, overrides] = await Promise.all([
-      queryClient.ensureQueryData(getResourceQuery(id)),
-      queryClient.ensureQueryData(listResourceServicesQuery(id)),
-      queryClient.ensureQueryData(listServicesQuery),
-      queryClient.ensureQueryData(listResourceOverridesQuery(id)),
+      queryClient.query({ ...getResourceQuery(id), staleTime: "static" }),
+      queryClient.query({
+        ...listResourceServicesQuery(id),
+        staleTime: "static",
+      }),
+      queryClient.query({ ...listServicesQuery, staleTime: "static" }),
+      queryClient.query({
+        ...listResourceOverridesQuery(id),
+        staleTime: "static",
+      }),
     ])
 
     return {
