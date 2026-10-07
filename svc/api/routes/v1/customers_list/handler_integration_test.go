@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"wappiz/pkg/server"
@@ -43,6 +44,7 @@ func newFixture(t *testing.T) fixture {
 		name     *string
 		blocked  bool
 	}{
+		{tenantID, "573005556677", new("Carlos Muñoz"), false},
 		{tenantID, "573001112233", new("José Pérez"), false},
 		{tenantID, "573004445566", new("Ana Gómez"), true},
 		{tenantID, "573007778899", nil, false},
@@ -93,14 +95,22 @@ func TestHandle_ListCustomers(t *testing.T) {
 	t.Run("lists the tenant's customers newest first", func(t *testing.T) {
 		code, page := f.list(t, "")
 		require.Equal(t, http.StatusOK, code)
-		require.Equal(t, int64(3), page.Total)
-		require.Equal(t, []string{"573007778899", "573004445566", "573001112233"}, phonesOf(page))
+		require.Equal(t, int64(4), page.Total)
+		require.Equal(t, []string{"573007778899", "573004445566", "573001112233", "573005556677"}, phonesOf(page))
 	})
 
 	t.Run("matches names ignoring case and accents", func(t *testing.T) {
 		_, page := f.list(t, "name=jose")
 		require.Equal(t, int64(1), page.Total)
 		require.Equal(t, []string{"573001112233"}, phonesOf(page))
+	})
+
+	t.Run("strips every diacritic, not only vowel accents", func(t *testing.T) {
+		for _, query := range []string{"munoz", "MUNOZ", "Muñoz", "mun"} {
+			_, page := f.list(t, "name="+url.QueryEscape(query))
+			require.Equal(t, []string{"573005556677"}, phonesOf(page), query)
+			require.Equal(t, int64(1), page.Total, query)
+		}
 	})
 
 	t.Run("matches any fragment of the phone digits", func(t *testing.T) {
@@ -113,23 +123,23 @@ func TestHandle_ListCustomers(t *testing.T) {
 		require.Equal(t, []string{"573004445566"}, phonesOf(blocked))
 
 		_, active := f.list(t, "status=active")
-		require.Equal(t, int64(2), active.Total)
+		require.Equal(t, int64(3), active.Total)
 	})
 
 	t.Run("paginates while reporting the full total", func(t *testing.T) {
-		_, first := f.list(t, "limit=2&page=1")
-		require.Equal(t, int64(3), first.Total)
-		require.Equal(t, []string{"573007778899", "573004445566"}, phonesOf(first))
+		_, first := f.list(t, "limit=3&page=1")
+		require.Equal(t, int64(4), first.Total)
+		require.Equal(t, []string{"573007778899", "573004445566", "573001112233"}, phonesOf(first))
 
-		_, second := f.list(t, "limit=2&page=2")
-		require.Equal(t, int64(3), second.Total)
-		require.Equal(t, []string{"573001112233"}, phonesOf(second))
+		_, second := f.list(t, "limit=3&page=2")
+		require.Equal(t, int64(4), second.Total)
+		require.Equal(t, []string{"573005556677"}, phonesOf(second))
 	})
 
 	t.Run("returns an empty list past the last page", func(t *testing.T) {
 		code, page := f.list(t, "page=9")
 		require.Equal(t, http.StatusOK, code)
-		require.Equal(t, int64(3), page.Total)
+		require.Equal(t, int64(4), page.Total)
 		require.NotNil(t, page.Customers)
 		require.Empty(t, page.Customers)
 	})

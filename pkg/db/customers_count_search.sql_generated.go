@@ -17,8 +17,8 @@ SELECT count(*)
 FROM customers
 WHERE tenant_id = $1
   AND ($2::text IS NULL
-    OR strpos(translate(lower(name), 'áéíóúüàèìòù', 'aeiouuaeiou'),
-              translate(lower($2::text), 'áéíóúüàèìòù', 'aeiouuaeiou')) > 0)
+    OR strpos(regexp_replace(normalize(lower(name), NFD), '[\u0300-\u036f]', '', 'g'),
+              regexp_replace(normalize(lower($2::text), NFD), '[\u0300-\u036f]', '', 'g')) > 0)
   AND ($3::text IS NULL
     OR strpos(regexp_replace(phone_number, '\D', '', 'g'), $3::text) > 0)
   AND ($4::boolean IS NULL OR is_blocked = $4::boolean)
@@ -37,8 +37,8 @@ type CountSearchCustomersParams struct {
 //	FROM customers
 //	WHERE tenant_id = $1
 //	  AND ($2::text IS NULL
-//	    OR strpos(translate(lower(name), 'áéíóúüàèìòù', 'aeiouuaeiou'),
-//	              translate(lower($2::text), 'áéíóúüàèìòù', 'aeiouuaeiou')) > 0)
+//	    OR strpos(regexp_replace(normalize(lower(name), NFD), '[\u0300-\u036f]', '', 'g'),
+//	              regexp_replace(normalize(lower($2::text), NFD), '[\u0300-\u036f]', '', 'g')) > 0)
 //	  AND ($3::text IS NULL
 //	    OR strpos(regexp_replace(phone_number, '\D', '', 'g'), $3::text) > 0)
 //	  AND ($4::boolean IS NULL OR is_blocked = $4::boolean)
