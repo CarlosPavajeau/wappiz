@@ -17,8 +17,10 @@ export const Route = createFileRoute("/_authed/dashboard/billing/")({
       throw redirect({ to: "/dashboard" })
     }
 
-    const tenant = await context.queryClient.ensureQueryData(tenantQuery)
-    const enabled = await context.queryClient.ensureQueryData(
+    // query() refetches stale cache entries before resolving, so a flag
+    // toggled in PostHog takes effect here once staleTime passes.
+    const tenant = await context.queryClient.query(tenantQuery)
+    const enabled = await context.queryClient.query(
       billingEnabledQuery(tenant.id)
     )
 
