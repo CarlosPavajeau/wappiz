@@ -10,7 +10,7 @@ const definitions = {
   create: {
     method: "POST",
     path: "/services",
-  } as EndpointDefinition<Service, CreateServiceRequest>,
+  } as EndpointDefinition<void, CreateServiceRequest>,
   list: {
     method: "GET",
     path: "/services",

@@ -20,6 +20,10 @@ type Request struct {
 	AvatarURL string `json:"avatarUrl"`
 }
 
+type Response struct {
+	ID uuid.UUID `json:"id"`
+}
+
 type Handler struct {
 	DB    db.Database
 	Plans plans.Service
@@ -36,6 +40,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	tenantID := middleware.TenantIDFromContext(c)
 	ctx := c.Request.Context()
+	resourceID := uuid.New()
 
 	err = db.Tx(ctx, h.DB.Primary(), func(ctx context.Context, txx db.DBTX) error {
 		if err := h.Plans.EnsureCanCreateResource(ctx, txx, tenantID); err != nil {
@@ -43,7 +48,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		}
 
 		if err := db.Query.InsertResource(ctx, txx, db.InsertResourceParams{
-			ID:        uuid.New(),
+			ID:        resourceID,
 			TenantID:  tenantID,
 			Name:      req.Name,
 			Type:      req.Type,
@@ -59,6 +64,6 @@ func (h *Handler) Handle(c *gin.Context) error {
 		return err
 	}
 
-	c.Status(http.StatusCreated)
+	c.JSON(http.StatusCreated, Response{ID: resourceID})
 	return nil
 }
