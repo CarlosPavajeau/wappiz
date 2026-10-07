@@ -72,9 +72,10 @@ const resourceSchema = type({
 }).narrow((data, ctx) => {
   const { startTime, endTime } = data
   if (endTime <= startTime) {
+    // `message` replaces the whole text; `expected` would be wrapped in
+    // arktype's English "must be … (was …)" template.
     return ctx.reject({
-      expected: "La hora de cierre debe ser después de la apertura",
-      actual: endTime,
+      message: "La hora de cierre debe ser después de la apertura",
       path: ["endTime"],
     })
   }
