@@ -15,6 +15,7 @@ import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import {
+  CUSTOMERS_PAGE_SIZE,
   CustomerFiltersBar,
   hasActiveFilters,
   nameFilter,
@@ -68,7 +69,6 @@ import { formatPhoneNumber } from "@/lib/intl"
 import { cn } from "@/lib/utils"
 import { customersQueryKey, listCustomersQuery } from "@/queries/customers"
 
-const PAGE_SIZE = 20
 const SEARCH_DEBOUNCE_MS = 300
 
 // Data is fetched with React Query in the component, not a route loader: a
@@ -364,7 +364,7 @@ function RouteComponent() {
   const { data, isError, isFetching, isPending, isPlaceholderData, refetch } =
     useQuery(
       listCustomersQuery({
-        limit: PAGE_SIZE,
+        limit: CUSTOMERS_PAGE_SIZE,
         name: search.name,
         page,
         phone: search.phone,
@@ -381,7 +381,7 @@ function RouteComponent() {
       data.customers.length === 0 &&
       data.total > 0
     ) {
-      const lastPage = Math.ceil(data.total / PAGE_SIZE)
+      const lastPage = Math.ceil(data.total / CUSTOMERS_PAGE_SIZE)
       void updateSearch({ page: lastPage > 1 ? lastPage : undefined })
     }
   }, [data, isPlaceholderData, updateSearch])
@@ -461,7 +461,7 @@ function RouteComponent() {
           <CustomersTable customers={data.customers} />
           <PaginationBar
             page={page}
-            limit={PAGE_SIZE}
+            limit={CUSTOMERS_PAGE_SIZE}
             total={data.total}
             noun={{ one: "cliente", other: "clientes" }}
             hrefFor={hrefFor}

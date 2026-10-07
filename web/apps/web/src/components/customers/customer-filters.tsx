@@ -24,6 +24,13 @@ import {
 const MAX_NAME_LENGTH = 255
 const MAX_PHONE_LENGTH = 20
 
+export const CUSTOMERS_PAGE_SIZE = 20
+
+// The API stores page and offset as 32-bit integers and rejects anything
+// larger; this is the last page whose offset still fits at our page size.
+const MAX_INT32 = 2_147_483_647
+const MAX_PAGE = Math.floor(MAX_INT32 / CUSTOMERS_PAGE_SIZE) + 1
+
 const STATUS_FILTERS = ["all", "active", "blocked"] as const
 type StatusFilter = (typeof STATUS_FILTERS)[number]
 
@@ -74,7 +81,10 @@ export function parseCustomerSearch(
   const page = Number(search["page"])
   return {
     name: nameFilter(search["name"]),
-    page: Number.isInteger(page) && page > 1 ? page : undefined,
+    // Clamped, not dropped: a page past the end then lands on the last page
+    // like any other overshoot, instead of a request the API rejects.
+    page:
+      Number.isInteger(page) && page > 1 ? Math.min(page, MAX_PAGE) : undefined,
     phone: phoneFilter(search["phone"]),
     status: isStatus(search["status"]) ? search["status"] : undefined,
   }
