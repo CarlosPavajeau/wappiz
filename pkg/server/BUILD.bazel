@@ -1,4 +1,4 @@
-load("@rules_go//go:def.bzl", "go_library")
+load("@rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "server",
@@ -22,5 +22,16 @@ go_library(
         "//pkg/uid",
         "@com_github_gin_contrib_cors//:cors",
         "@com_github_gin_gonic_gin//:gin",
+    ],
+)
+
+go_test(
+    name = "server_test",
+    srcs = ["middleware_logger_test.go"],
+    embed = [":server"],
+    deps = [
+        "//pkg/logger",
+        "@com_github_gin_gonic_gin//:gin",
+        "@com_github_stretchr_testify//require",
     ],
 )

@@ -3,17 +3,28 @@ package server
 import (
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 	"wappiz/pkg/logger"
 
 	"github.com/gin-gonic/gin"
 )
 
-func WithLogging() gin.HandlerFunc {
+// WithLogging emits one wide event per request. Requests whose path starts
+// with any of skipPathPrefixes are not logged, so high-frequency traffic such
+// as health probes does not drown out real requests.
+func WithLogging(skipPathPrefixes ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		start := time.Now()
 		path := c.Request.URL.Path
 
+		for _, prefix := range skipPathPrefixes {
+			if strings.HasPrefix(path, prefix) {
+				c.Next()
+				return
+			}
+		}
+
+		start := time.Now()
 		ctx, event := logger.StartWideEvent(c,
 			fmt.Sprintf("%s %s", c.Request.Method, path),
 		)
