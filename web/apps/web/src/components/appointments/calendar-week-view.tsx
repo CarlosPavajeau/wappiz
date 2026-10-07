@@ -36,9 +36,9 @@ export function CalendarWeekView({
   const byDate = useMemo(() => groupByDate(apts), [apts])
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Desktop: time grid */}
-      <div className="hidden flex-1 flex-col md:flex">
+      <div className="hidden min-h-0 flex-1 flex-col md:flex">
         <div className="flex shrink-0 border-b border-border/40">
           <div className="w-14 shrink-0" />
           {days.map((d) => {
@@ -102,7 +102,7 @@ export function CalendarWeekView({
       </div>
 
       {/* Mobile: agenda list */}
-      <ScrollArea className="flex-1 md:hidden">
+      <ScrollArea className="min-h-0 flex-1 md:hidden">
         <ul className="divide-y divide-border/40">
           {days.map((d) => {
             const key = toDateKey(d)
