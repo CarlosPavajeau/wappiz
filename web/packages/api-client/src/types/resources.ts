@@ -23,6 +23,10 @@ export type CreateResourceRequest = {
   avatarUrl?: string
 }
 
+export type CreateResourceResponse = {
+  id: string
+}
+
 export type AssignServicesRequest = {
   serviceIds: string[]
 }

@@ -2,6 +2,7 @@ package resources_create
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -84,6 +85,26 @@ func (f fixture) createResource(t *testing.T) int {
 	f.router.ServeHTTP(w, req)
 
 	return w.Code
+}
+
+func TestHandle_ReturnsCreatedResourceID(t *testing.T) {
+	t.Parallel()
+	f := newFixture(t, featureflags.Static())
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/resources", strings.NewReader(`{"name":"Carlos","type":"barber"}`))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	f.router.ServeHTTP(w, req)
+	require.Equal(t, http.StatusCreated, w.Code)
+
+	var res Response
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &res))
+
+	var name string
+	err := f.database.Primary().QueryRowContext(context.Background(),
+		`SELECT name FROM resources WHERE id = $1 AND tenant_id = $2`, res.ID, f.tenantID).Scan(&name)
+	require.NoError(t, err)
+	require.Equal(t, "Carlos", name)
 }
 
 func TestHandle_ResourceLimits(t *testing.T) {

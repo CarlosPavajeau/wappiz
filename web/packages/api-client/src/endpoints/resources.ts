@@ -3,6 +3,7 @@ import type { EndpointDefinition } from "../core/types"
 import type {
   AssignServicesRequest,
   CreateResourceRequest,
+  CreateResourceResponse,
   CreateScheduleOverrideRequest,
   CreateScheduleOverrideResponse,
   DeleteScheduleOverrideRequest,
@@ -21,7 +22,7 @@ const definitions = {
   create: {
     method: "POST",
     path: "/resources",
-  } as EndpointDefinition<Resource, CreateResourceRequest>,
+  } as EndpointDefinition<CreateResourceResponse, CreateResourceRequest>,
   createOverride: {
     method: "POST",
     path: (id: string) => `/resources/${id}/overrides`,
