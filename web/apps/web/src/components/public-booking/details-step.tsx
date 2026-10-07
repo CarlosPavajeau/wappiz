@@ -40,10 +40,21 @@ import {
 import { formatDateIn, formatTimeIn } from "@/lib/time-zone"
 
 const detailsSchema = type({
-  customerName: type("string")
-    .pipe((value) => value.trim())
-    .to("2 <= string <= 100")
-    .configure({ message: "Ingresa tu nombre" }),
+  // Messages are set per failure: a `.configure()` on the whole pipe doesn't
+  // reach the length constraints, so arktype's English default leaked through.
+  customerName: type("string").pipe((value, ctx) => {
+    const name = value.trim()
+    if (name.length === 0) {
+      return ctx.error({ message: "Ingresa tu nombre" })
+    }
+    if (name.length < 2) {
+      return ctx.error({ message: "Tu nombre debe tener al menos 2 letras" })
+    }
+    if (name.length > 100) {
+      return ctx.error({ message: "Tu nombre no puede superar 100 caracteres" })
+    }
+    return name
+  }),
   // Only Colombian WhatsApp numbers are supported for now.
   phoneNumber: type("string").pipe(
     (value, ctx) =>

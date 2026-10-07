@@ -36,6 +36,8 @@ import { Spinner } from "../ui/spinner"
 import { PublicBookingLink } from "./public-booking-link"
 import { PublicBookingWhatsappAlert } from "./public-booking-whatsapp-alert"
 
+const email = type("string.email")
+
 const settingsSchema = type({
   "autoBlockAfterLateCancel?": type("number > 0").configure({
     message: "Debe ser al menos 1",
@@ -45,9 +47,15 @@ const settingsSchema = type({
   }),
   "botName?": "string | undefined",
   "cancellationMessage?": "string | undefined",
-  "contactEmail?": type("string.email | string == 0 | undefined").configure({
-    message: "Ingresa un correo electrónico válido",
-  }),
+  // A union builds its message from each branch and ignores `.configure()`,
+  // so the "empty or email" rule is a narrow with its own message.
+  "contactEmail?": type("string | undefined").narrow(
+    (value, ctx) =>
+      value === undefined ||
+      value === "" ||
+      email.allows(value) ||
+      ctx.reject({ message: "Ingresa un correo electrónico válido" })
+  ),
   "lateCancelHours?": type("number >= 0").configure({
     message: "Debe ser 0 o más",
   }),

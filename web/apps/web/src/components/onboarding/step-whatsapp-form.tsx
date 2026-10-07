@@ -22,7 +22,9 @@ import { api } from "@/lib/client-api"
 import { onboardingProgressQuery } from "@/queries/onboarding"
 
 const whatsappSchema = type({
-  contactEmail: "string.email",
+  contactEmail: type("string.email").configure({
+    message: "Ingresa un correo electrónico válido",
+  }),
   "notes?": "string",
 })
 
