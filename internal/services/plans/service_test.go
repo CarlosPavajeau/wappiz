@@ -20,7 +20,7 @@ func TestService_BillingFlagOff(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("resources are unlimited", func(t *testing.T) {
-		require.NoError(t, svc.EnsureCanCreateResource(ctx, uuid.New()))
+		require.NoError(t, svc.EnsureCanCreateResource(ctx, nil, uuid.New()))
 	})
 
 	t.Run("appointments are unlimited", func(t *testing.T) {

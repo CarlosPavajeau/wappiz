@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 	"wappiz/internal/services/featureflags"
 	"wappiz/internal/services/plans"
 	"wappiz/pkg/db"
@@ -128,5 +129,42 @@ func TestHandle_ResourceLimits(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, f.createResource(t))
 		require.Equal(t, http.StatusCreated, f.createResource(t))
+	})
+
+	t.Run("billing flag on serialises concurrent creations", func(t *testing.T) {
+		t.Parallel()
+		f := newFixture(t, true)
+		ctx := context.Background()
+		svc := plans.New(plans.Config{
+			DB:          f.database,
+			Flags:       fakeFlags{billing: true},
+			Environment: testEnvironment,
+		})
+
+		// Hold the quota check of an in-flight creation open, then race a
+		// request against it: it must wait for the commit and see the new
+		// resource instead of the stale count.
+		tx, err := f.database.Primary().Begin(ctx)
+		require.NoError(t, err)
+		require.NoError(t, svc.EnsureCanCreateResource(ctx, tx, f.tenantID))
+		require.NoError(t, db.Query.InsertResource(ctx, tx, db.InsertResourceParams{
+			ID:       uuid.New(),
+			TenantID: f.tenantID,
+			Name:     "Carlos",
+			Type:     "barber",
+		}))
+
+		status := make(chan int, 1)
+		go func() { status <- f.createResource(t) }()
+
+		select {
+		case got := <-status:
+			require.NoError(t, tx.Rollback())
+			t.Fatalf("request finished with %d while the quota lock was held", got)
+		case <-time.After(300 * time.Millisecond):
+		}
+
+		require.NoError(t, tx.Commit())
+		require.Equal(t, http.StatusForbidden, <-status)
 	})
 }

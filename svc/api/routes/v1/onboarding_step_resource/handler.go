@@ -66,12 +66,6 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	}
 
-	// The step can be resubmitted after it is passed, so it must respect the
-	// plan's resource quota like any other resource creation.
-	if err := h.Plans.EnsureCanCreateResource(c.Request.Context(), tenantID); err != nil {
-		return err
-	}
-
 	startTime, err := parseTime(req.StartTime)
 	if err != nil {
 		return fault.Wrap(err,
@@ -92,6 +86,12 @@ func (h *Handler) Handle(c *gin.Context) error {
 	}
 
 	err = db.Tx(c.Request.Context(), h.DB.Primary(), func(ctx context.Context, txx db.DBTX) error {
+		// The step can be resubmitted after it is passed, so it must respect
+		// the plan's resource quota like any other resource creation.
+		if err := h.Plans.EnsureCanCreateResource(ctx, txx, tenantID); err != nil {
+			return err
+		}
+
 		resourceID := uuid.New()
 		if err := db.Query.InsertResource(c.Request.Context(), txx, db.InsertResourceParams{
 			ID:        resourceID,

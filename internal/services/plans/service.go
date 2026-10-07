@@ -33,7 +33,11 @@ type Service interface {
 	// EnsureCanCreateResource returns a fault coded
 	// [codes.ErrorsForbiddenResourceQuotaExceeded] when the tenant has used
 	// every resource its plan allows.
-	EnsureCanCreateResource(ctx context.Context, tenantID uuid.UUID) error
+	//
+	// tx must be the transaction that inserts the resource: the check locks
+	// the tenant row until tx ends, so concurrent creations are serialised
+	// and cannot both pass on the same count.
+	EnsureCanCreateResource(ctx context.Context, tx db.DBTX, tenantID uuid.UUID) error
 
 	// AppointmentLimit returns the tenant's monthly appointment cap, shaped
 	// for [db.Query.IncrementTenantAppointmentCount]: an invalid (null) value
@@ -62,12 +66,16 @@ func New(cfg Config) Service {
 	}
 }
 
-func (s *service) EnsureCanCreateResource(ctx context.Context, tenantID uuid.UUID) error {
+func (s *service) EnsureCanCreateResource(ctx context.Context, tx db.DBTX, tenantID uuid.UUID) error {
 	if !s.flags.IsEnabled(ctx, featureflags.Billing, tenantID) {
 		return nil
 	}
 
-	features, err := s.activePlanFeatures(ctx, tenantID)
+	if _, err := db.Query.LockTenantForQuota(ctx, tx, tenantID); err != nil {
+		return fault.Wrap(err, fault.Internal("lock tenant for resource quota"))
+	}
+
+	features, err := s.activePlanFeatures(ctx, tx, tenantID)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("find active plan features"))
 	}
@@ -80,7 +88,7 @@ func (s *service) EnsureCanCreateResource(ctx context.Context, tenantID uuid.UUI
 		limit = *features.MaxResources
 	}
 
-	count, err := db.Query.CountResourcesByTenant(ctx, s.db.Primary(), tenantID)
+	count, err := db.Query.CountResourcesByTenant(ctx, tx, tenantID)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("count resources by tenant"))
 	}
@@ -101,7 +109,7 @@ func (s *service) AppointmentLimit(ctx context.Context, tenantID uuid.UUID) (sql
 		return sql.NullInt32{}, nil
 	}
 
-	features, err := s.activePlanFeatures(ctx, tenantID)
+	features, err := s.activePlanFeatures(ctx, s.db.Primary(), tenantID)
 	if err != nil {
 		return sql.NullInt32{}, fault.Wrap(err, fault.Internal("find active plan features"))
 	}
@@ -118,8 +126,8 @@ func (s *service) AppointmentLimit(ctx context.Context, tenantID uuid.UUID) (sql
 
 // activePlanFeatures returns the features of the tenant's active plan, or nil
 // when the tenant has no active subscription and the free plan applies.
-func (s *service) activePlanFeatures(ctx context.Context, tenantID uuid.UUID) (*db.PlanFeatures, error) {
-	plan, err := db.Query.FindActivePlanByTenant(ctx, s.db.Primary(), db.FindActivePlanByTenantParams{
+func (s *service) activePlanFeatures(ctx context.Context, q db.DBTX, tenantID uuid.UUID) (*db.PlanFeatures, error) {
+	plan, err := db.Query.FindActivePlanByTenant(ctx, q, db.FindActivePlanByTenantParams{
 		TenantID:    tenantID,
 		Environment: s.environment,
 	})

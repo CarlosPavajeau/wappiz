@@ -1268,6 +1268,15 @@ type Querier interface {
 	//  WHERE is_active = true
 	//    AND environment = $1
 	ListActivePlans(ctx context.Context, db DBTX, environment string) ([]ListActivePlansRow, error)
+	// Serialises quota checks for a tenant until the caller's transaction ends.
+	// NO KEY UPDATE conflicts with itself but not with the KEY SHARE locks that
+	// foreign-key inserts take, so unrelated writes for the tenant still proceed.
+	//
+	//  SELECT id
+	//  FROM tenants
+	//  WHERE id = $1
+	//  FOR NO KEY UPDATE
+	LockTenantForQuota(ctx context.Context, db DBTX, id uuid.UUID) (uuid.UUID, error)
 	//Mark24hAppointmentReminderSent
 	//
 	//  UPDATE appointments

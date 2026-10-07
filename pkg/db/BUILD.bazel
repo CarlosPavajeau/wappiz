@@ -125,6 +125,7 @@ go_library(
         "tenants_find_by_user_id.sql_generated.go",
         "tenants_find_owner_email.sql_generated.go",
         "tenants_insert.sql_generated.go",
+        "tenants_lock_for_quota.sql_generated.go",
         "tenants_reject_pending_activation.sql_generated.go",
         "tenants_update.sql_generated.go",
         "tenants_update_appointment_count.sql_generated.go",
