@@ -5,6 +5,8 @@ export const env = createEnv({
   client: {
     VITE_API_URL: z.string(),
     VITE_CLOUDFLARE_TURNSTILE_SITE_KEY: z.string(),
+    VITE_PUBLIC_POSTHOG_HOST: z.url(),
+    VITE_PUBLIC_POSTHOG_KEY: z.string(),
   },
   clientPrefix: "VITE_",
   emptyStringAsUndefined: true,

@@ -9,6 +9,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import { Analytics } from "@vercel/analytics/react"
 import { SpeedInsights } from "@vercel/speed-insights/react"
+import { env } from "@wappiz/env/web"
 import { NuqsAdapter } from "nuqs/adapters/tanstack-router"
 
 import { Toaster } from "@/components/ui/sonner"
@@ -106,9 +107,9 @@ function RootDocument() {
       </head>
       <body>
         <PostHogProvider
-          apiKey={import.meta.env["VITE_PUBLIC_POSTHOG_KEY"]}
+          apiKey={env.VITE_PUBLIC_POSTHOG_KEY}
           options={{
-            api_host: import.meta.env["VITE_PUBLIC_POSTHOG_HOST"],
+            api_host: env.VITE_PUBLIC_POSTHOG_HOST,
             defaults: "2025-11-30",
           }}
         >

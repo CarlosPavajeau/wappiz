@@ -1,14 +1,31 @@
 import { Loading03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 
 import { ActivePlanCard } from "@/components/billing/active-plan-card"
 import { OrdersTable } from "@/components/billing/orders-table"
 import { PlanSkeleton } from "@/components/billing/plan-skeleton"
 import { authClient } from "@/lib/auth-client"
+import { billingEnabledQuery } from "@/queries/feature-flags"
+import { tenantQuery } from "@/queries/tenants"
 
 export const Route = createFileRoute("/_authed/dashboard/billing/")({
+  // Billing is dormant until the billing feature flag is enabled for the tenant.
+  beforeLoad: async ({ context }) => {
+    if (context.isSuperAdmin) {
+      throw redirect({ to: "/dashboard" })
+    }
+
+    const tenant = await context.queryClient.ensureQueryData(tenantQuery)
+    const enabled = await context.queryClient.ensureQueryData(
+      billingEnabledQuery(tenant.id)
+    )
+
+    if (!enabled) {
+      throw redirect({ to: "/dashboard" })
+    }
+  },
   component: RouteComponent,
 })
 

@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useBillingEnabled } from "@/hooks/use-billing-enabled"
 import { authClient } from "@/lib/auth-client"
 import { clearTokenCache } from "@/lib/client-api"
 
@@ -25,6 +26,7 @@ export function UserMenu() {
     from: "/_authed",
   })
 
+  const billingEnabled = useBillingEnabled()
   const navigate = useNavigate()
 
   const { mutate: signOut, isPending } = useMutation({
@@ -79,7 +81,7 @@ export function UserMenu() {
               Cerrar sesión
             </DropdownMenuItem>
 
-            {!isSuperAdmin && (
+            {!isSuperAdmin && billingEnabled && (
               <DropdownMenuItem
                 render={<Link to="/dashboard/billing" />}
                 nativeButton={false}

@@ -1,13 +1,14 @@
+import { env } from "@wappiz/env/web"
 import { PostHog } from "posthog-node"
 
 let posthogClient: PostHog | null = null
 
 export function getPostHogClient() {
   if (!posthogClient) {
-    posthogClient = new PostHog(import.meta.env["VITE_PUBLIC_POSTHOG_KEY"], {
+    posthogClient = new PostHog(env.VITE_PUBLIC_POSTHOG_KEY, {
       flushAt: 1,
       flushInterval: 0,
-      host: import.meta.env["VITE_PUBLIC_POSTHOG_HOST"],
+      host: env.VITE_PUBLIC_POSTHOG_HOST,
     })
   }
   return posthogClient
