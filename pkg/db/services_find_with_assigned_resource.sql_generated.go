@@ -21,12 +21,14 @@ SELECT DISTINCT s.id,
                 s.price,
                 s.is_active,
                 s.sort_order,
-                s.created_at
+                s.created_at,
+                s.deleted_at
 FROM services s
          JOIN resource_services rs ON rs.service_id = s.id
          JOIN resources r ON r.id = rs.resource_id AND r.is_active = true AND r.deleted_at IS NULL
 WHERE s.tenant_id = $1
   AND s.is_active = true
+  AND s.deleted_at IS NULL
 ORDER BY s.created_at
 `
 
@@ -41,12 +43,14 @@ ORDER BY s.created_at
 //	                s.price,
 //	                s.is_active,
 //	                s.sort_order,
-//	                s.created_at
+//	                s.created_at,
+//	                s.deleted_at
 //	FROM services s
 //	         JOIN resource_services rs ON rs.service_id = s.id
 //	         JOIN resources r ON r.id = rs.resource_id AND r.is_active = true AND r.deleted_at IS NULL
 //	WHERE s.tenant_id = $1
 //	  AND s.is_active = true
+//	  AND s.deleted_at IS NULL
 //	ORDER BY s.created_at
 func (q *Queries) FindServicesWithAssignedResourceByTenantID(ctx context.Context, db DBTX, tenantID uuid.UUID) ([]Service, error) {
 	rows, err := db.QueryContext(ctx, findServicesWithAssignedResourceByTenantID, tenantID)
@@ -68,6 +72,7 @@ func (q *Queries) FindServicesWithAssignedResourceByTenantID(ctx context.Context
 			&i.IsActive,
 			&i.SortOrder,
 			&i.CreatedAt,
+			&i.DeletedAt,
 		); err != nil {
 			return nil, err
 		}

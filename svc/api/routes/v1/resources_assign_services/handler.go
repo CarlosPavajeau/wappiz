@@ -1,7 +1,10 @@
 package resources_assign_services
 
 import (
+	"bytes"
+	"context"
 	"net/http"
+	"slices"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
@@ -58,19 +61,37 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	}
 
-	if err := db.Query.DeleteResourceService(c.Request.Context(), h.DB.Primary(), id); err != nil {
-		return fault.Wrap(err, fault.Internal("failed to assign services"))
+	serviceIDs := slices.Compact(slices.SortedFunc(slices.Values(req.ServiceIDs), func(a, b uuid.UUID) int {
+		return bytes.Compare(a[:], b[:])
+	}))
 
-	}
-
-	for _, serviceID := range req.ServiceIDs {
-		if err := db.Query.InsertResourceService(c.Request.Context(), h.DB.Primary(), db.InsertResourceServiceParams{
-			ResourceID: id,
-			ServiceID:  serviceID,
-		}); err != nil {
-			return fault.Wrap(err, fault.Internal("failed to assign services"))
-
+	// Replacing the links in one transaction keeps a rejected or failed request
+	// from leaving the resource with none of its previous services.
+	err = db.Tx(c.Request.Context(), h.DB.Primary(), func(ctx context.Context, tx db.DBTX) error {
+		if err := db.Query.DeleteResourceService(ctx, tx, id); err != nil {
+			return fault.Wrap(err, fault.Internal("failed to unlink services"))
 		}
+
+		linked, err := db.Query.InsertResourceServicesForTenant(ctx, tx, db.InsertResourceServicesForTenantParams{
+			ResourceID: id,
+			ServiceIds: serviceIDs,
+			TenantID:   tenantID,
+		})
+		if err != nil {
+			return fault.Wrap(err, fault.Internal("failed to link services"))
+		}
+		if linked != int64(len(serviceIDs)) {
+			return fault.New("unknown services",
+				fault.Code(codes.ErrorsBadRequest),
+				fault.Internal("some service ids do not exist, belong to a different tenant or are deleted"),
+				fault.Public("Uno o más servicios no existen"),
+			)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "services assigned"})

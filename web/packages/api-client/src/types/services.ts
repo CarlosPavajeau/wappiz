@@ -18,4 +18,6 @@ export type CreateServiceRequest = {
   price: number
 }
 
-export type UpdateServiceRequest = CreateServiceRequest
+export type UpdateServiceRequest = CreateServiceRequest & {
+  isActive: boolean
+}

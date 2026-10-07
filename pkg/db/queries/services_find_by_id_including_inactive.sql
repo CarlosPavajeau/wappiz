@@ -1,6 +1,6 @@
 -- name: FindServiceByIDIncludingInactive :one
--- Services are soft-deleted, so an existing appointment can point at one the
--- owner has since deactivated. Use this when describing what was already
+-- An existing appointment can point at a service the owner has since paused
+-- or deleted, so this returns both. Use this when describing what was already
 -- booked; use FindServiceByID when the service must still be bookable.
 SELECT id,
        tenant_id,
@@ -11,6 +11,7 @@ SELECT id,
        price,
        is_active,
        sort_order,
-       created_at
+       created_at,
+       deleted_at
 FROM services
 WHERE id = $1;

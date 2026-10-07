@@ -19,6 +19,10 @@ const definitions = {
     method: "PUT",
     path: (id: string) => `/services/${id}`,
   } as EndpointDefinition<Service, UpdateServiceRequest, string>,
+  delete: {
+    method: "DELETE",
+    path: (id: string) => `/services/${id}`,
+  } as EndpointDefinition<void, void, string>,
 }
 
 export const servicesEndpoint = defineResource(definitions)

@@ -24,11 +24,14 @@ export const services = pgTable(
     durationMinutes: integer("duration_minutes").notNull(),
     bufferMinutes: integer("buffer_minutes").default(0).notNull(),
     price: numeric({ precision: 10, scale: 2 }).notNull(),
+    // Whether the service can be booked. Deletion is tracked by deletedAt
+    // instead, so the owner can pause a service without losing it.
     isActive: boolean("is_active").default(true).notNull(),
     sortOrder: integer("sort_order").default(0).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .default(sql`now()`)
       .notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => [
     index("idx_services_tenant_id").using(

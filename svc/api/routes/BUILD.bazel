@@ -63,6 +63,7 @@ go_library(
         "//svc/api/routes/v1/resources_update_sort_order",
         "//svc/api/routes/v1/resources_upsert_working_hours",
         "//svc/api/routes/v1/services_create",
+        "//svc/api/routes/v1/services_delete",
         "//svc/api/routes/v1/services_list",
         "//svc/api/routes/v1/services_update",
         "//svc/api/routes/v1/tenant_flow_fields_create",

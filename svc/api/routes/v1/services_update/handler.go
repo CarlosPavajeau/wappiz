@@ -20,7 +20,9 @@ type Request struct {
 	DurationMinutes int32   `json:"durationMinutes" binding:"required,min=1"`
 	BufferMinutes   int32   `json:"bufferMinutes"`
 	Price           float64 `json:"price"           binding:"required,min=0"`
-	IsActive        bool    `json:"isActive"`
+	// Pointer so an omitted field is rejected instead of silently pausing the
+	// service through bool's zero value.
+	IsActive *bool `json:"isActive" binding:"required"`
 }
 
 type Handler struct {
@@ -47,19 +49,25 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	tenantID := middleware.TenantIDFromContext(c)
 
-	if err := db.Query.UpdateService(c.Request.Context(), h.DB.Primary(), db.UpdateServiceParams{
+	rows, err := db.Query.UpdateService(c.Request.Context(), h.DB.Primary(), db.UpdateServiceParams{
 		ID:              id,
 		Name:            req.Name,
-		Description:     sql.NullString{String: req.Description},
+		Description:     sql.NullString{String: req.Description, Valid: req.Description != ""},
 		DurationMinutes: req.DurationMinutes,
 		BufferMinutes:   req.BufferMinutes,
 		Price:           fmt.Sprint(req.Price),
-		SortOrder:       1,
-		IsActive:        req.IsActive,
+		IsActive:        *req.IsActive,
 		TenantID:        tenantID,
-	}); err != nil {
+	})
+	if err != nil {
 		return fault.Wrap(err, fault.Internal("failed to update service"))
-
+	}
+	if rows == 0 {
+		return fault.New("service not found",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("service does not exist, belongs to a different tenant or is deleted"),
+			fault.Public("El servicio no existe"),
+		)
 	}
 
 	c.Status(http.StatusNoContent)

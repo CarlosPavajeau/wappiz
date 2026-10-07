@@ -21,10 +21,12 @@ SELECT id,
        price,
        is_active,
        sort_order,
-       created_at
+       created_at,
+       deleted_at
 FROM services
 WHERE id = $1
   AND is_active = true
+  AND deleted_at IS NULL
 `
 
 // FindServiceByID
@@ -38,10 +40,12 @@ WHERE id = $1
 //	       price,
 //	       is_active,
 //	       sort_order,
-//	       created_at
+//	       created_at,
+//	       deleted_at
 //	FROM services
 //	WHERE id = $1
 //	  AND is_active = true
+//	  AND deleted_at IS NULL
 func (q *Queries) FindServiceByID(ctx context.Context, db DBTX, id uuid.UUID) (Service, error) {
 	row := db.QueryRowContext(ctx, findServiceByID, id)
 	var i Service
@@ -56,6 +60,7 @@ func (q *Queries) FindServiceByID(ctx context.Context, db DBTX, id uuid.UUID) (S
 		&i.IsActive,
 		&i.SortOrder,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

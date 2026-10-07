@@ -5,7 +5,7 @@ SELECT r.id AS resource_id,
        rs.service_id
 FROM resources r
          JOIN resource_services rs ON rs.resource_id = r.id
-         JOIN services s ON s.id = rs.service_id AND s.is_active = true
+         JOIN services s ON s.id = rs.service_id AND s.is_active = true AND s.deleted_at IS NULL
 WHERE r.tenant_id = $1
   AND r.is_active = true
   AND r.deleted_at IS NULL
