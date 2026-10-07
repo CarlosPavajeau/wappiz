@@ -18,6 +18,8 @@ import (
 	"wappiz/svc/api/routes/v1/customers_get_incidents"
 	"wappiz/svc/api/routes/v1/customers_list"
 	"wappiz/svc/api/routes/v1/customers_unblock"
+	"wappiz/svc/api/routes/v1/health_liveness"
+	"wappiz/svc/api/routes/v1/health_readiness"
 	"wappiz/svc/api/routes/v1/onboarding_get_progress"
 	"wappiz/svc/api/routes/v1/onboarding_get_templates"
 	"wappiz/svc/api/routes/v1/onboarding_step_resource"
@@ -71,6 +73,8 @@ import (
 //     X-Hub-Signature-256 header against [Services.AppSecret].
 //   - Public booking — /v1/public routes need no token and are rate limited
 //     per client IP instead; booking additionally requires a captcha.
+//   - Health — /health/live and /health/ready need no token and are not rate
+//     limited, so orchestrators and uptime monitors can probe them freely.
 //
 // Routes are registered via [RegisterRoute] which reads the method and path
 // directly from each handler, keeping routing declarations co-located with
@@ -190,6 +194,11 @@ func Register(g *gin.Engine, svc *Services) {
 		Booking:   svc.Booking,
 		Turnstile: svc.Turnstile,
 	})
+
+	// health — unauthenticated, unthrottled probes for orchestrators and
+	// uptime monitors.
+	RegisterRoute(g, &health_liveness.Handler{})
+	RegisterRoute(g, &health_readiness.Handler{DB: svc.Database.Primary()})
 
 	// webhooks
 	RegisterRoute(g, &webhooks_verify_webhook.Handler{})

@@ -37,6 +37,8 @@ go_library(
         "//svc/api/routes/v1/customers_get_incidents",
         "//svc/api/routes/v1/customers_list",
         "//svc/api/routes/v1/customers_unblock",
+        "//svc/api/routes/v1/health_liveness",
+        "//svc/api/routes/v1/health_readiness",
         "//svc/api/routes/v1/onboarding_get_progress",
         "//svc/api/routes/v1/onboarding_get_templates",
         "//svc/api/routes/v1/onboarding_step_resource",

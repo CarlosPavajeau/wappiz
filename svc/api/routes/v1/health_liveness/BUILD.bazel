@@ -1,0 +1,20 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "health_liveness",
+    srcs = ["handler.go"],
+    importpath = "wappiz/svc/api/routes/v1/health_liveness",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_gin_gonic_gin//:gin"],
+)
+
+go_test(
+    name = "health_liveness_test",
+    srcs = ["handler_test.go"],
+    embed = [":health_liveness"],
+    deps = [
+        "//pkg/server",
+        "@com_github_gin_gonic_gin//:gin",
+        "@com_github_stretchr_testify//require",
+    ],
+)
