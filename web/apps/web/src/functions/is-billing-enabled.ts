@@ -19,8 +19,13 @@ export const isBillingEnabled = createServerFn({ method: "GET" })
       return false
     }
 
+    const posthog = getPostHogClient()
+    if (!posthog) {
+      return false
+    }
+
     try {
-      const enabled = await getPostHogClient().isFeatureEnabled(
+      const enabled = await posthog.isFeatureEnabled(
         FeatureFlag.Billing,
         data.tenantId
       )
