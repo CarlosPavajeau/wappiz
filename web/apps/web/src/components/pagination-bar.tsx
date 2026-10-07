@@ -52,6 +52,10 @@ export function PaginationBar({
       return
     }
     event.preventDefault()
+    // Disabled prev/next and the active page point at the current page.
+    if (target === page) {
+      return
+    }
     onPageChange(target)
   }
 
@@ -69,6 +73,7 @@ export function PaginationBar({
               href={hrefFor(Math.max(1, page - 1))}
               onClick={goTo(Math.max(1, page - 1))}
               aria-disabled={!hasPrevious}
+              tabIndex={hasPrevious ? undefined : -1}
               className={
                 hasPrevious ? undefined : "pointer-events-none opacity-50"
               }
@@ -99,6 +104,7 @@ export function PaginationBar({
               href={hrefFor(Math.min(pageCount, page + 1))}
               onClick={goTo(Math.min(pageCount, page + 1))}
               aria-disabled={!hasNext}
+              tabIndex={hasNext ? undefined : -1}
               className={hasNext ? undefined : "pointer-events-none opacity-50"}
               text="Siguiente"
             />
