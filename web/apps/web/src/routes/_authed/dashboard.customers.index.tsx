@@ -11,7 +11,7 @@ import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router"
 import type { Customer } from "@wappiz/api-client/types/customers"
-import { useCallback, useEffect, useEffectEvent, useState } from "react"
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -218,9 +218,23 @@ function NoMatches({ onClear }: { onClear: () => void }) {
   )
 }
 
+type TextFilters = Pick<CustomerSearch, "name" | "phone">
+
+const EMPTY_DRAFT: CustomerSearchDraft = { name: "", phone: "" }
+
+const filtersKey = ({ name, phone }: TextFilters) =>
+  JSON.stringify([name ?? null, phone ?? null])
+
+const draftFilters = (draft: CustomerSearchDraft): TextFilters => ({
+  name: nameFilter(draft.name),
+  phone: phoneFilter(draft.phone),
+})
+
 /**
  * Inputs read local state, not the URL: typing must feel instant, and only
- * the debounced value is worth a navigation and a request.
+ * the debounced value is worth a navigation and a request. The URL still wins
+ * whenever it changes for another reason (Back, Forward, a shared link), so
+ * the inputs never show filters the rows are not using.
  */
 function useSearchDraft(
   search: CustomerSearch,
@@ -232,19 +246,72 @@ function useSearchDraft(
   })
   const debouncedDraft = useDebouncedValue(draft, SEARCH_DEBOUNCE_MS)
 
-  // An effect event reads the latest URL without re-running on URL changes;
-  // otherwise clearing the filters would race the stale debounced text and
-  // write it back.
-  const applyDraft = useEffectEvent((next: CustomerSearchDraft) => {
-    const name = nameFilter(next.name)
-    const phone = phoneFilter(next.phone)
-    if (name !== search.name || phone !== search.phone) {
-      void updateSearch({ name, page: undefined, phone })
+  // Filters this hook wrote to the URL whose echo has not arrived yet, oldest
+  // first. Telling our own writes apart from restores lets typing continue
+  // while an earlier write lands, without that echo resetting the inputs.
+  const pendingWrites = useRef<string[]>([])
+  // The draft a restore replaced. Its debounce can settle in the same commit
+  // as the restore, when this render still sees it as the current draft.
+  const replacedDraft = useRef<CustomerSearchDraft | null>(null)
+
+  // Only writes that change the URL produce an echo; recording any other
+  // would leave an entry behind that a later restore could be mistaken for.
+  const recordWrite = (filters: TextFilters) => {
+    const key = filtersKey(filters)
+    if (key === filtersKey(search)) {
+      return false
+    }
+    pendingWrites.current.push(key)
+    return true
+  }
+
+  const syncFromUrl = useEffectEvent((filters: TextFilters) => {
+    const key = filtersKey(filters)
+    const own = pendingWrites.current.indexOf(key)
+    if (own !== -1) {
+      pendingWrites.current.splice(0, own + 1)
+      return
+    }
+    // A navigation we did not make supersedes anything still in flight.
+    pendingWrites.current = []
+    if (key !== filtersKey(draftFilters(draft))) {
+      replacedDraft.current = draft
+      setDraft({ name: filters.name ?? "", phone: filters.phone ?? "" })
+    }
+  })
+  // Deriving the draft during render is not an option: telling a restore
+  // from our own echo reads and consumes `pendingWrites`, which must not
+  // happen in render (StrictMode renders twice and would consume it twice).
+  useEffect(
+    // oxlint-disable-next-line react/set-state-in-effect
+    () => syncFromUrl({ name: search.name, phone: search.phone }),
+    [search.name, search.phone]
+  )
+
+  // Effect events read the latest draft and URL without re-running when they
+  // change, so only a newly settled debounce triggers a write.
+  const applyDraft = useEffectEvent((settled: CustomerSearchDraft) => {
+    // A debounce that settled on a draft a restore has since replaced must
+    // not write it back over the restored URL.
+    if (settled !== draft || settled === replacedDraft.current) {
+      return
+    }
+    const filters = draftFilters(settled)
+    if (recordWrite(filters)) {
+      void updateSearch({ ...filters, page: undefined })
     }
   })
   useEffect(() => applyDraft(debouncedDraft), [debouncedDraft])
 
-  return [draft, setDraft] as const
+  /** Empties the inputs and the URL filters at once; `extra` rides along. */
+  const clearDraft = (extra: Partial<CustomerSearch>) => {
+    const filters: TextFilters = { name: undefined, phone: undefined }
+    setDraft(EMPTY_DRAFT)
+    recordWrite(filters)
+    void updateSearch({ ...extra, ...filters, page: undefined })
+  }
+
+  return { clearDraft, draft, setDraft }
 }
 
 function LoadError({
@@ -292,7 +359,7 @@ function RouteComponent() {
       navigate({ replace: true, search: (prev) => ({ ...prev, ...patch }) }),
     [navigate]
   )
-  const [draft, setDraft] = useSearchDraft(search, updateSearch)
+  const { clearDraft, draft, setDraft } = useSearchDraft(search, updateSearch)
 
   const { data, isError, isFetching, isPending, isPlaceholderData, refetch } =
     useQuery(
@@ -319,15 +386,7 @@ function RouteComponent() {
     }
   }, [data, isPlaceholderData, updateSearch])
 
-  const clearFilters = useCallback(() => {
-    setDraft({ name: "", phone: "" })
-    void updateSearch({
-      name: undefined,
-      page: undefined,
-      phone: undefined,
-      status: undefined,
-    })
-  }, [setDraft, updateSearch])
+  const clearFilters = () => clearDraft({ status: undefined })
 
   const goToPage = useCallback(
     (target: number) =>
