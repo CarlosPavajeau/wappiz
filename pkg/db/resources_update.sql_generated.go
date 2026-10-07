@@ -12,42 +12,50 @@ import (
 	"github.com/google/uuid"
 )
 
-const updateResource = `-- name: UpdateResource :exec
+const updateResource = `-- name: UpdateResource :execrows
 UPDATE resources
 SET name       = $1,
     type       = $2,
     avatar_url = $3,
-    sort_order = $4
+    is_active  = $4
 WHERE id = $5
   AND tenant_id = $6
+  AND deleted_at IS NULL
 `
 
 type UpdateResourceParams struct {
 	Name      string         `db:"name"`
 	Type      string         `db:"type"`
 	AvatarUrl sql.NullString `db:"avatar_url"`
-	SortOrder int32          `db:"sort_order"`
+	IsActive  bool           `db:"is_active"`
 	ID        uuid.UUID      `db:"id"`
 	TenantID  uuid.UUID      `db:"tenant_id"`
 }
 
-// UpdateResource
+// sort_order is owned by the resources_update_sort_order route; writing it
+// here would reset the order whenever a client edits the resource details.
+// Deleted resources are excluded so an edit racing a delete cannot revive
+// the row; zero affected rows means the resource is gone.
 //
 //	UPDATE resources
 //	SET name       = $1,
 //	    type       = $2,
 //	    avatar_url = $3,
-//	    sort_order = $4
+//	    is_active  = $4
 //	WHERE id = $5
 //	  AND tenant_id = $6
-func (q *Queries) UpdateResource(ctx context.Context, db DBTX, arg UpdateResourceParams) error {
-	_, err := db.ExecContext(ctx, updateResource,
+//	  AND deleted_at IS NULL
+func (q *Queries) UpdateResource(ctx context.Context, db DBTX, arg UpdateResourceParams) (int64, error) {
+	result, err := db.ExecContext(ctx, updateResource,
 		arg.Name,
 		arg.Type,
 		arg.AvatarUrl,
-		arg.SortOrder,
+		arg.IsActive,
 		arg.ID,
 		arg.TenantID,
 	)
-	return err
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

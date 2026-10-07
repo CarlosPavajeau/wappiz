@@ -8,4 +8,5 @@ FROM resources r
          JOIN services s ON s.id = rs.service_id AND s.is_active = true
 WHERE r.tenant_id = $1
   AND r.is_active = true
+  AND r.deleted_at IS NULL
 ORDER BY r.sort_order, r.created_at, rs.service_id;

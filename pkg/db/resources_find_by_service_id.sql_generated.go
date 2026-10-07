@@ -26,6 +26,7 @@ FROM resources r
 WHERE r.tenant_id = $1
   AND rs.service_id = $2
   AND r.is_active = true
+  AND r.deleted_at IS NULL
 ORDER BY r.created_at
 `
 
@@ -60,6 +61,7 @@ type FindResourcesByServiceIDRow struct {
 //	WHERE r.tenant_id = $1
 //	  AND rs.service_id = $2
 //	  AND r.is_active = true
+//	  AND r.deleted_at IS NULL
 //	ORDER BY r.created_at
 func (q *Queries) FindResourcesByServiceID(ctx context.Context, db DBTX, arg FindResourcesByServiceIDParams) ([]FindResourcesByServiceIDRow, error) {
 	rows, err := db.QueryContext(ctx, findResourcesByServiceID, arg.TenantID, arg.ServiceID)

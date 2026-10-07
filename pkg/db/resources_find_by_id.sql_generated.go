@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,21 +21,23 @@ SELECT id,
        COALESCE(avatar_url, '') as avatar_url,
        is_active,
        sort_order,
-       created_at
+       created_at,
+       deleted_at
 FROM resources
 WHERE id = $1
 LIMIT 1
 `
 
 type FindResourceByIdRow struct {
-	ID        uuid.UUID `db:"id"`
-	TenantID  uuid.UUID `db:"tenant_id"`
-	Name      string    `db:"name"`
-	Type      string    `db:"type"`
-	AvatarUrl string    `db:"avatar_url"`
-	IsActive  bool      `db:"is_active"`
-	SortOrder int32     `db:"sort_order"`
-	CreatedAt time.Time `db:"created_at"`
+	ID        uuid.UUID    `db:"id"`
+	TenantID  uuid.UUID    `db:"tenant_id"`
+	Name      string       `db:"name"`
+	Type      string       `db:"type"`
+	AvatarUrl string       `db:"avatar_url"`
+	IsActive  bool         `db:"is_active"`
+	SortOrder int32        `db:"sort_order"`
+	CreatedAt time.Time    `db:"created_at"`
+	DeletedAt sql.NullTime `db:"deleted_at"`
 }
 
 // FindResourceById
@@ -46,7 +49,8 @@ type FindResourceByIdRow struct {
 //	       COALESCE(avatar_url, '') as avatar_url,
 //	       is_active,
 //	       sort_order,
-//	       created_at
+//	       created_at,
+//	       deleted_at
 //	FROM resources
 //	WHERE id = $1
 //	LIMIT 1
@@ -62,6 +66,7 @@ func (q *Queries) FindResourceById(ctx context.Context, db DBTX, id uuid.UUID) (
 		&i.IsActive,
 		&i.SortOrder,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

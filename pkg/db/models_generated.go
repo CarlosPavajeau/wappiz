@@ -289,7 +289,7 @@ type Customer struct {
 	CreatedAt       time.Time      `db:"created_at"`
 	NoShowCount     int32          `db:"no_show_count"`
 	LateCancelCount int32          `db:"late_cancel_count"`
-	DocumentId      sql.NullString `db:"documentId"`
+	DocumentID      sql.NullString `db:"document_id"`
 	BirthDate       sql.NullTime   `db:"birth_date"`
 	Email           sql.NullString `db:"email"`
 	Address         sql.NullString `db:"address"`
@@ -357,6 +357,7 @@ type Resource struct {
 	IsActive  bool           `db:"is_active"`
 	SortOrder int32          `db:"sort_order"`
 	CreatedAt time.Time      `db:"created_at"`
+	DeletedAt sql.NullTime   `db:"deleted_at"`
 }
 
 type ResourceService struct {

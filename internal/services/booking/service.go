@@ -126,6 +126,13 @@ func (s *Service) Create(ctx context.Context, p CreateParams) (Appointment, erro
 			fault.Public("El recurso no existe"),
 		)
 	}
+	if resource.DeletedAt.Valid {
+		return Appointment{}, fault.New("resource not found for tenant",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("resource is deleted"),
+			fault.Public("El recurso no existe"),
+		)
+	}
 
 	supported, err := s.resourceSupportsService(ctx, p.TenantID, p.ResourceID, p.ServiceID)
 	if err != nil {
