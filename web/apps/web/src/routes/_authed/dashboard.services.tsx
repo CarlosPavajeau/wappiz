@@ -40,7 +40,10 @@ export const Route = createFileRoute("/_authed/dashboard/services")({
   component: RouteComponent,
   loader: async ({ context }) => {
     const { queryClient } = context
-    const services = await queryClient.ensureQueryData(listServicesQuery)
+    const services = await queryClient.query({
+      ...listServicesQuery,
+      staleTime: "static",
+    })
     return {
       services,
     }

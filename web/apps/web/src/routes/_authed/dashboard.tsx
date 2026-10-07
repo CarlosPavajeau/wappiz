@@ -34,9 +34,10 @@ export const Route = createFileRoute("/_authed/dashboard")({
       return
     }
 
-    const progress = await context.queryClient.ensureQueryData(
-      onboardingProgressQuery
-    )
+    const progress = await context.queryClient.query({
+      ...onboardingProgressQuery,
+      staleTime: "static",
+    })
 
     if (!progress) {
       throw notFound()
