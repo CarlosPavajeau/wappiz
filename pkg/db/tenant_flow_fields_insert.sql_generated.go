@@ -7,17 +7,15 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 )
 
-const insertTenantFlowField = `-- name: InsertTenantFlowField :exec
+const insertTenantFlowField = `-- name: InsertTenantFlowField :one
 INSERT INTO tenant_flow_fields (
     id,
     tenant_id,
     field_key,
-    field_type,
     question,
     is_required,
     is_one_time,
@@ -31,22 +29,36 @@ VALUES (
     $4,
     $5,
     $6,
-    $7,
-    $8,
-    $9
+    true,
+    $7
 )
+RETURNING id,
+          field_key,
+          question,
+          is_required,
+          is_one_time,
+          is_enabled,
+          sort_order
 `
 
 type InsertTenantFlowFieldParams struct {
-	ID         uuid.UUID      `db:"id"`
-	TenantID   uuid.UUID      `db:"tenant_id"`
-	FieldKey   string         `db:"field_key"`
-	FieldType  FlowFieldType  `db:"field_type"`
-	Question   sql.NullString `db:"question"`
-	IsRequired bool           `db:"is_required"`
-	IsOneTime  bool           `db:"is_one_time"`
-	IsEnabled  bool           `db:"is_enabled"`
-	SortOrder  int32          `db:"sort_order"`
+	ID         uuid.UUID `db:"id"`
+	TenantID   uuid.UUID `db:"tenant_id"`
+	FieldKey   string    `db:"field_key"`
+	Question   string    `db:"question"`
+	IsRequired bool      `db:"is_required"`
+	IsOneTime  bool      `db:"is_one_time"`
+	SortOrder  int32     `db:"sort_order"`
+}
+
+type InsertTenantFlowFieldRow struct {
+	ID         uuid.UUID `db:"id"`
+	FieldKey   string    `db:"field_key"`
+	Question   string    `db:"question"`
+	IsRequired bool      `db:"is_required"`
+	IsOneTime  bool      `db:"is_one_time"`
+	IsEnabled  bool      `db:"is_enabled"`
+	SortOrder  int32     `db:"sort_order"`
 }
 
 // InsertTenantFlowField
@@ -55,7 +67,6 @@ type InsertTenantFlowFieldParams struct {
 //	    id,
 //	    tenant_id,
 //	    field_key,
-//	    field_type,
 //	    question,
 //	    is_required,
 //	    is_one_time,
@@ -69,21 +80,35 @@ type InsertTenantFlowFieldParams struct {
 //	    $4,
 //	    $5,
 //	    $6,
-//	    $7,
-//	    $8,
-//	    $9
+//	    true,
+//	    $7
 //	)
-func (q *Queries) InsertTenantFlowField(ctx context.Context, db DBTX, arg InsertTenantFlowFieldParams) error {
-	_, err := db.ExecContext(ctx, insertTenantFlowField,
+//	RETURNING id,
+//	          field_key,
+//	          question,
+//	          is_required,
+//	          is_one_time,
+//	          is_enabled,
+//	          sort_order
+func (q *Queries) InsertTenantFlowField(ctx context.Context, db DBTX, arg InsertTenantFlowFieldParams) (InsertTenantFlowFieldRow, error) {
+	row := db.QueryRowContext(ctx, insertTenantFlowField,
 		arg.ID,
 		arg.TenantID,
 		arg.FieldKey,
-		arg.FieldType,
 		arg.Question,
 		arg.IsRequired,
 		arg.IsOneTime,
-		arg.IsEnabled,
 		arg.SortOrder,
 	)
-	return err
+	var i InsertTenantFlowFieldRow
+	err := row.Scan(
+		&i.ID,
+		&i.FieldKey,
+		&i.Question,
+		&i.IsRequired,
+		&i.IsOneTime,
+		&i.IsEnabled,
+		&i.SortOrder,
+	)
+	return i, err
 }

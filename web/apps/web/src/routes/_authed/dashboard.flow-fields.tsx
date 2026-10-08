@@ -16,7 +16,6 @@ import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -85,82 +84,53 @@ const flowFieldSchema = type({
 
 type FlowFieldFormValues = typeof flowFieldSchema.infer
 
-type PredefinedFieldInfo = {
+type FieldTemplate = {
   label: string
   description: string
-  placeholder: string
+  question: string
+  isOneTime: boolean
+  isRequired: boolean
 }
 
-// Predefined fields are seeded on tenant creation with only a technical key
-// (see svc/api/routes/v1/tenants_create), so the UI owns their readable names.
-const PREDEFINED_FIELDS = new Map<string, PredefinedFieldInfo>([
-  [
-    "document_id",
-    {
-      description: "Cédula u otro documento del cliente",
-      label: "Documento de identidad",
-      placeholder: "¿Cuál es tu número de documento?",
-    },
-  ],
-  [
-    "visit_reason",
-    {
-      description: "Por qué el cliente agenda la cita",
-      label: "Motivo de la visita",
-      placeholder: "¿Cuál es el motivo de tu visita?",
-    },
-  ],
-  [
-    "email",
-    {
-      description: "Correo de contacto del cliente",
-      label: "Correo electrónico",
-      placeholder: "¿Cuál es tu correo electrónico?",
-    },
-  ],
-  [
-    "address",
-    {
-      description: "Dirección de residencia del cliente",
-      label: "Dirección",
-      placeholder: "¿Cuál es tu dirección?",
-    },
-  ],
-  [
-    "birth_date",
-    {
-      description: "Fecha de nacimiento del cliente",
-      label: "Fecha de nacimiento",
-      placeholder: "¿Cuál es tu fecha de nacimiento?",
-    },
-  ],
-])
-
-function predefinedInfo(
-  field: TenantFlowField | undefined
-): PredefinedFieldInfo | undefined {
-  if (field?.fieldType !== "predefined") {
-    return undefined
-  }
-  return PREDEFINED_FIELDS.get(field.fieldKey)
-}
-
-type FieldDisplay = {
-  title: string
-  subtitle: string | undefined
-}
-
-function fieldDisplay(field: TenantFlowField): FieldDisplay {
-  const info = predefinedInfo(field)
-  if (info !== undefined) {
-    return {
-      subtitle: field.question || info.description,
-      title: info.label,
-    }
-  }
-  // Custom keys are generated ids (custom_<hex>), meaningless to users.
-  return { subtitle: undefined, title: field.question || field.fieldKey }
-}
+// Starting points offered when creating a field; picking one only pre-fills
+// the form. Data that rarely changes is asked once per customer by default.
+const FIELD_TEMPLATES: FieldTemplate[] = [
+  {
+    description: "Cédula u otro documento del cliente",
+    isOneTime: true,
+    isRequired: true,
+    label: "Documento de identidad",
+    question: "¿Cuál es tu número de documento?",
+  },
+  {
+    description: "Por qué el cliente agenda la cita",
+    isOneTime: false,
+    isRequired: false,
+    label: "Motivo de la visita",
+    question: "¿Cuál es el motivo de tu visita?",
+  },
+  {
+    description: "Correo de contacto del cliente",
+    isOneTime: true,
+    isRequired: false,
+    label: "Correo electrónico",
+    question: "¿Cuál es tu correo electrónico?",
+  },
+  {
+    description: "Dirección de residencia del cliente",
+    isOneTime: true,
+    isRequired: false,
+    label: "Dirección",
+    question: "¿Cuál es tu dirección?",
+  },
+  {
+    description: "Fecha de nacimiento del cliente",
+    isOneTime: true,
+    isRequired: false,
+    label: "Fecha de nacimiento",
+    question: "¿Cuál es tu fecha de nacimiento?",
+  },
+]
 
 type FlowFieldDialogProps = {
   field?: TenantFlowField
@@ -186,16 +156,6 @@ function toRequest(values: FlowFieldFormValues): UpsertTenantFlowFieldRequest {
   }
 }
 
-function dialogTitle(field: TenantFlowField | undefined): string {
-  if (field === undefined) {
-    return "Nuevo campo del flujo"
-  }
-  const info = predefinedInfo(field)
-  return info === undefined
-    ? "Editar campo del flujo"
-    : `Editar campo: ${info.label}`
-}
-
 function FlowFieldDialog({ field }: FlowFieldDialogProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
@@ -206,6 +166,7 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { isSubmitting },
   } = useForm<FlowFieldFormValues>({
     defaultValues: defaultValuesFor(field),
@@ -284,7 +245,9 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
 
       <DialogContent className="gap-5 sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{dialogTitle(field)}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Editar campo del flujo" : "Nuevo campo del flujo"}
+          </DialogTitle>
           <DialogDescription>
             Controla que dato pide el bot, cuando lo pide y si puede continuar
             sin respuesta.
@@ -293,6 +256,40 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
 
         <form id={formId} onSubmit={onSubmit}>
           <FieldGroup>
+            {!isEdit && (
+              <Field>
+                <FieldLabel>Plantillas</FieldLabel>
+                <FieldDescription>
+                  Elige una para llenar el formulario y ajústalo si quieres.
+                </FieldDescription>
+                <div className="flex flex-wrap gap-2">
+                  {FIELD_TEMPLATES.map((template) => (
+                    <Button
+                      key={template.label}
+                      type="button"
+                      size="xs"
+                      variant="outline"
+                      title={template.description}
+                      onClick={() => {
+                        setValue("question", template.question, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })
+                        setValue("isOneTime", template.isOneTime, {
+                          shouldDirty: true,
+                        })
+                        setValue("isRequired", template.isRequired, {
+                          shouldDirty: true,
+                        })
+                      }}
+                    >
+                      {template.label}
+                    </Button>
+                  ))}
+                </div>
+              </Field>
+            )}
+
             <Controller
               control={control}
               name="question"
@@ -306,10 +303,7 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                   <Textarea
                     {...formField}
                     id={formField.name}
-                    placeholder={
-                      predefinedInfo(field)?.placeholder ??
-                      "¿Cuál es tu correo electrónico?"
-                    }
+                    placeholder="¿Cuál es tu correo electrónico?"
                     className="min-h-24 resize-none"
                     aria-invalid={fieldState.invalid}
                   />
@@ -437,19 +431,6 @@ function FlowFieldEnabledSwitch({ field }: { field: TenantFlowField }) {
   )
 }
 
-function FlowFieldName({ field }: { field: TenantFlowField }) {
-  const { title, subtitle } = fieldDisplay(field)
-
-  return (
-    <div className="flex min-w-0 flex-col">
-      <span className="font-medium">{title}</span>
-      {subtitle !== undefined && (
-        <span className="text-xs text-muted-foreground">{subtitle}</span>
-      )}
-    </div>
-  )
-}
-
 function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
   return (
     <Table>
@@ -458,8 +439,7 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
       </TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead>Campo</TableHead>
-          <TableHead>Tipo</TableHead>
+          <TableHead>Pregunta</TableHead>
           <TableHead>Orden</TableHead>
           <TableHead>Obligatorio</TableHead>
           <TableHead>Frecuencia</TableHead>
@@ -470,16 +450,7 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
       <TableBody>
         {fields.map((field) => (
           <TableRow key={field.id}>
-            <TableCell>
-              <FlowFieldName field={field} />
-            </TableCell>
-            <TableCell>
-              <Badge
-                variant={field.fieldType === "custom" ? "default" : "secondary"}
-              >
-                {field.fieldType === "custom" ? "Personalizado" : "Predefinido"}
-              </Badge>
-            </TableCell>
+            <TableCell className="font-medium">{field.question}</TableCell>
             <TableCell className="text-muted-foreground tabular-nums">
               {field.sortOrder}
             </TableCell>

@@ -61,48 +61,6 @@ func (ns NullAppointmentStatus) Value() (driver.Value, error) {
 	return string(ns.AppointmentStatus), nil
 }
 
-type FlowFieldType string
-
-const (
-	FlowFieldTypePredefined FlowFieldType = "predefined"
-	FlowFieldTypeCustom     FlowFieldType = "custom"
-)
-
-func (e *FlowFieldType) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = FlowFieldType(s)
-	case string:
-		*e = FlowFieldType(s)
-	default:
-		return fmt.Errorf("unsupported scan type for FlowFieldType: %T", src)
-	}
-	return nil
-}
-
-type NullFlowFieldType struct {
-	FlowFieldType FlowFieldType
-	Valid         bool // Valid is true if FlowFieldType is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullFlowFieldType) Scan(value interface{}) error {
-	if value == nil {
-		ns.FlowFieldType, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.FlowFieldType.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullFlowFieldType) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.FlowFieldType), nil
-}
-
 type ScheduleOverrideKind string
 
 const (
@@ -445,16 +403,15 @@ type Tenant struct {
 }
 
 type TenantFlowField struct {
-	ID         uuid.UUID      `db:"id"`
-	TenantID   uuid.UUID      `db:"tenant_id"`
-	FieldKey   string         `db:"field_key"`
-	FieldType  FlowFieldType  `db:"field_type"`
-	Question   sql.NullString `db:"question"`
-	IsRequired bool           `db:"is_required"`
-	IsOneTime  bool           `db:"is_one_time"`
-	IsEnabled  bool           `db:"is_enabled"`
-	SortOrder  int32          `db:"sort_order"`
-	CreatedAt  time.Time      `db:"created_at"`
+	ID         uuid.UUID `db:"id"`
+	TenantID   uuid.UUID `db:"tenant_id"`
+	FieldKey   string    `db:"field_key"`
+	Question   string    `db:"question"`
+	IsRequired bool      `db:"is_required"`
+	IsOneTime  bool      `db:"is_one_time"`
+	IsEnabled  bool      `db:"is_enabled"`
+	SortOrder  int32     `db:"sort_order"`
+	CreatedAt  time.Time `db:"created_at"`
 }
 
 type TenantUser struct {

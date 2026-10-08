@@ -1,7 +1,6 @@
 package tenant_flow_fields_update
 
 import (
-	"database/sql"
 	"net/http"
 	"strings"
 	"wappiz/pkg/codes"
@@ -62,7 +61,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 	rowsAffected, err := db.Query.UpdateFlowField(c.Request.Context(), h.DB.Primary(), db.UpdateFlowFieldParams{
 		ID:         id,
 		TenantID:   middleware.TenantIDFromContext(c),
-		Question:   sql.NullString{String: question, Valid: true},
+		Question:   question,
 		IsRequired: *req.IsRequired,
 		IsOneTime:  isOneTime,
 		SortOrder:  *req.SortOrder,

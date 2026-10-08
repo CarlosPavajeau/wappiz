@@ -52,7 +52,6 @@ func TestHandle_CreatesCustomFlowField(t *testing.T) {
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &body))
 	require.NotEmpty(t, body.ID)
 	require.True(t, strings.HasPrefix(body.FieldKey, "custom_"))
-	require.Equal(t, "custom", body.FieldType)
 	require.Equal(t, "Cual es tu correo?", body.Question)
 	require.True(t, body.IsRequired)
 	require.True(t, body.IsOneTime)

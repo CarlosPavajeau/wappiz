@@ -12,7 +12,6 @@ import (
 type Response struct {
 	ID         string `json:"id"`
 	FieldKey   string `json:"fieldKey"`
-	FieldType  string `json:"fieldType"`
 	Question   string `json:"question"`
 	IsRequired bool   `json:"isRequired"`
 	IsOneTime  bool   `json:"isOneTime"`
@@ -41,8 +40,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		response[i] = Response{
 			ID:         field.ID.String(),
 			FieldKey:   field.FieldKey,
-			FieldType:  string(field.FieldType),
-			Question:   field.Question.String,
+			Question:   field.Question,
 			IsRequired: field.IsRequired,
 			IsOneTime:  field.IsOneTime,
 			IsEnabled:  field.IsEnabled,

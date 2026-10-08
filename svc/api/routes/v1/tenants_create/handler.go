@@ -17,17 +17,6 @@ import (
 	"github.com/google/uuid"
 )
 
-var predefinedFields = []struct {
-	FieldKey  string
-	SortOrder int32
-}{
-	{FieldKey: "document_id", SortOrder: 1},
-	{FieldKey: "visit_reason", SortOrder: 2},
-	{FieldKey: "email", SortOrder: 3},
-	{FieldKey: "address", SortOrder: 4},
-	{FieldKey: "birth_date", SortOrder: 5},
-}
-
 type Request struct {
 	Name string `json:"name" binding:"required"`
 }
@@ -102,15 +91,6 @@ func (h *Handler) Handle(c *gin.Context) error {
 			return uuid.Nil, err
 		}
 
-		fieldKeys, sortOrders := predefinedFieldParams()
-		if err := db.Query.CreateTenantPredefinedFlowFields(ctx, txx, db.CreateTenantPredefinedFlowFieldsParams{
-			TenantID:   tenantID,
-			FieldKeys:  fieldKeys,
-			SortOrders: sortOrders,
-		}); err != nil {
-			return uuid.Nil, err
-		}
-
 		return tenantID, nil
 	})
 
@@ -139,16 +119,4 @@ func randomSuffix(n int) string {
 		b[i] = slugAlphabet[rand.Intn(len(slugAlphabet))]
 	}
 	return string(b)
-}
-
-func predefinedFieldParams() ([]string, []int32) {
-	fieldKeys := make([]string, len(predefinedFields))
-	sortOrders := make([]int32, len(predefinedFields))
-
-	for i, f := range predefinedFields {
-		fieldKeys[i] = f.FieldKey
-		sortOrders[i] = f.SortOrder
-	}
-
-	return fieldKeys, sortOrders
 }

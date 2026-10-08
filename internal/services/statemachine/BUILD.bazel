@@ -4,7 +4,7 @@ go_library(
     name = "statemachine",
     srcs = [
         "advance_to_confirm_or_name.go",
-        "advance_to_custom_fields_or_confirm.go",
+        "advance_to_flow_fields_or_confirm.go",
         "common.go",
         "filter_slots_by_customer_availability.go",
         "handle_awaiting_name.go",

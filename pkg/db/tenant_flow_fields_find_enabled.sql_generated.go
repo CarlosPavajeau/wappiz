@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -15,7 +14,6 @@ import (
 const findTenantEnabledFlowFields = `-- name: FindTenantEnabledFlowFields :many
 SELECT id,
        field_key,
-       field_type,
        question,
        is_required,
        is_one_time,
@@ -27,20 +25,18 @@ ORDER BY sort_order, created_at
 `
 
 type FindTenantEnabledFlowFieldsRow struct {
-	ID         uuid.UUID      `db:"id"`
-	FieldKey   string         `db:"field_key"`
-	FieldType  FlowFieldType  `db:"field_type"`
-	Question   sql.NullString `db:"question"`
-	IsRequired bool           `db:"is_required"`
-	IsOneTime  bool           `db:"is_one_time"`
-	SortOrder  int32          `db:"sort_order"`
+	ID         uuid.UUID `db:"id"`
+	FieldKey   string    `db:"field_key"`
+	Question   string    `db:"question"`
+	IsRequired bool      `db:"is_required"`
+	IsOneTime  bool      `db:"is_one_time"`
+	SortOrder  int32     `db:"sort_order"`
 }
 
 // FindTenantEnabledFlowFields
 //
 //	SELECT id,
 //	       field_key,
-//	       field_type,
 //	       question,
 //	       is_required,
 //	       is_one_time,
@@ -61,7 +57,6 @@ func (q *Queries) FindTenantEnabledFlowFields(ctx context.Context, db DBTX, tena
 		if err := rows.Scan(
 			&i.ID,
 			&i.FieldKey,
-			&i.FieldType,
 			&i.Question,
 			&i.IsRequired,
 			&i.IsOneTime,

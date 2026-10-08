@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,7 +15,6 @@ import (
 const findAllTenantFlowFields = `-- name: FindAllTenantFlowFields :many
 SELECT id,
        field_key,
-       field_type,
        question,
        is_required,
        is_one_time,
@@ -29,22 +27,20 @@ ORDER BY sort_order, created_at
 `
 
 type FindAllTenantFlowFieldsRow struct {
-	ID         uuid.UUID      `db:"id"`
-	FieldKey   string         `db:"field_key"`
-	FieldType  FlowFieldType  `db:"field_type"`
-	Question   sql.NullString `db:"question"`
-	IsRequired bool           `db:"is_required"`
-	IsOneTime  bool           `db:"is_one_time"`
-	IsEnabled  bool           `db:"is_enabled"`
-	SortOrder  int32          `db:"sort_order"`
-	CreatedAt  time.Time      `db:"created_at"`
+	ID         uuid.UUID `db:"id"`
+	FieldKey   string    `db:"field_key"`
+	Question   string    `db:"question"`
+	IsRequired bool      `db:"is_required"`
+	IsOneTime  bool      `db:"is_one_time"`
+	IsEnabled  bool      `db:"is_enabled"`
+	SortOrder  int32     `db:"sort_order"`
+	CreatedAt  time.Time `db:"created_at"`
 }
 
 // FindAllTenantFlowFields
 //
 //	SELECT id,
 //	       field_key,
-//	       field_type,
 //	       question,
 //	       is_required,
 //	       is_one_time,
@@ -66,7 +62,6 @@ func (q *Queries) FindAllTenantFlowFields(ctx context.Context, db DBTX, tenantID
 		if err := rows.Scan(
 			&i.ID,
 			&i.FieldKey,
-			&i.FieldType,
 			&i.Question,
 			&i.IsRequired,
 			&i.IsOneTime,

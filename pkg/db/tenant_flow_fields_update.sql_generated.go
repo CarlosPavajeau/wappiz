@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -23,12 +22,12 @@ WHERE id = $1
 `
 
 type UpdateFlowFieldParams struct {
-	ID         uuid.UUID      `db:"id"`
-	TenantID   uuid.UUID      `db:"tenant_id"`
-	Question   sql.NullString `db:"question"`
-	IsRequired bool           `db:"is_required"`
-	IsOneTime  bool           `db:"is_one_time"`
-	SortOrder  int32          `db:"sort_order"`
+	ID         uuid.UUID `db:"id"`
+	TenantID   uuid.UUID `db:"tenant_id"`
+	Question   string    `db:"question"`
+	IsRequired bool      `db:"is_required"`
+	IsOneTime  bool      `db:"is_one_time"`
+	SortOrder  int32     `db:"sort_order"`
 }
 
 // UpdateFlowField
