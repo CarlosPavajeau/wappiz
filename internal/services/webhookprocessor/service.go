@@ -7,15 +7,25 @@ import (
 	"time"
 	"wappiz/internal/services/statemachine"
 	"wappiz/pkg/buffer"
+	"wappiz/pkg/counter"
 	"wappiz/pkg/crypto"
 	"wappiz/pkg/db"
 	"wappiz/pkg/logger"
 )
 
+// seenMessageTTL only needs to outlive retries of messages already processed,
+// which happen when our acknowledgement was lost or slow; Meta resends those
+// within minutes to hours. A message that never reached us is not a duplicate,
+// so covering Meta's whole multi-day retry window would only cost memory:
+// Redis holds one key per message received in the last TTL.
+const seenMessageTTL = 24 * time.Hour
+
 type Config struct {
 	DB           db.Database
 	StateMachine statemachine.StateMachineService
 	Crypto       *crypto.Service
+	// SeenMessages records processed message IDs, shared by every instance.
+	SeenMessages counter.Counter
 	Workers      int
 	BufferCap    int
 }
@@ -24,6 +34,7 @@ type service struct {
 	db           db.Database
 	stateMachine statemachine.StateMachineService
 	crypto       *crypto.Service
+	seenMessages counter.Counter
 	msgBuffer    *buffer.Buffer[Request]
 	wg           sync.WaitGroup
 }
@@ -33,6 +44,7 @@ func New(cfg Config) Service {
 		db:           cfg.DB,
 		stateMachine: cfg.StateMachine,
 		crypto:       cfg.Crypto,
+		seenMessages: cfg.SeenMessages,
 		msgBuffer: buffer.New[Request](buffer.Config{
 			Name:     "webhook_payloads",
 			Capacity: cfg.BufferCap,
@@ -96,6 +108,10 @@ func (s *service) processPayload(req Request) {
 			}
 
 			for _, msg := range change.Value.Messages {
+				if !s.claimMessage(ctx, phoneNumberID, msg.ID) {
+					continue
+				}
+
 				incoming, err := s.buildIncomingMessage(msg, change.Value.Metadata, waConfig, decryptedAccessToken)
 				if err != nil {
 					logger.Warn("webhook: failed to build message",
@@ -112,6 +128,32 @@ func (s *service) processPayload(req Request) {
 			}
 		}
 	}
+}
+
+// claimMessage reports whether msgID is seen for the first time. Meta
+// delivers webhooks at least once, so the same message can arrive again
+// after a timeout or a restart; processing it twice would answer twice and
+// count a single reply as two failed attempts. Messages without an ID, or a
+// store failure, are let through: a rare duplicate is better than a
+// customer's message silently lost.
+func (s *service) claimMessage(ctx context.Context, phoneNumberID, msgID string) bool {
+	if msgID == "" {
+		return true
+	}
+
+	first, err := s.seenMessages.SetIfNotExists(ctx, "whatsapp-message:"+phoneNumberID+":"+msgID, 1, seenMessageTTL)
+	if err != nil {
+		logger.Warn("webhook: failed to record message id, processing anyway",
+			"phone_number_id", phoneNumberID,
+			"err", err)
+		return true
+	}
+	if !first {
+		logger.Info("webhook: duplicate message ignored",
+			"phone_number_id", phoneNumberID,
+			"message_id", msgID)
+	}
+	return first
 }
 
 func (s *service) buildIncomingMessage(

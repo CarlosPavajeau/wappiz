@@ -212,6 +212,7 @@ func Run(ctx context.Context, cfg Config) error {
 		DB:           database,
 		StateMachine: stateMachineSvc,
 		Crypto:       cryptoSvc,
+		SeenMessages: ctr,
 		Workers:      cfg.Webhook.Workers,
 		BufferCap:    cfg.Webhook.BufferCap,
 	})
