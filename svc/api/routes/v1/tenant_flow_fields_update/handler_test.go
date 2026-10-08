@@ -2,15 +2,16 @@ package tenant_flow_fields_update
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
+	"wappiz/internal/testutil"
 	"wappiz/pkg/db"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
-	"wappiz/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -40,7 +41,7 @@ func TestHandle_UpdatesTenantOwnedFlowField(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPut,
 		"/v1/tenants/flow-fields/"+fieldID.String(),
-		strings.NewReader(`{"question":"  Cual es tu email?  ","isRequired":true,"isOneTime":true,"sortOrder":9}`),
+		strings.NewReader(`{"question":"  Cual es tu email?  ","rule":{"type":"email"},"isRequired":true,"isOneTime":true,"sortOrder":9}`),
 	)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -50,16 +51,20 @@ func TestHandle_UpdatesTenantOwnedFlowField(t *testing.T) {
 	require.Equal(t, http.StatusNoContent, w.Code, w.Body.String())
 
 	var question string
+	var fieldType string
+	var maxLength sql.NullInt16
 	var required bool
 	var oneTime bool
 	var sortOrder int32
 	err := database.Primary().QueryRowContext(
 		context.Background(),
-		`SELECT question, is_required, is_one_time, sort_order FROM tenant_flow_fields WHERE id = $1`,
+		`SELECT question, field_type, max_length, is_required, is_one_time, sort_order FROM tenant_flow_fields WHERE id = $1`,
 		fieldID,
-	).Scan(&question, &required, &oneTime, &sortOrder)
+	).Scan(&question, &fieldType, &maxLength, &required, &oneTime, &sortOrder)
 	require.NoError(t, err)
 	require.Equal(t, "Cual es tu email?", question)
+	require.Equal(t, "email", fieldType)
+	require.False(t, maxLength.Valid)
 	require.True(t, required)
 	require.True(t, oneTime)
 	require.Equal(t, int32(9), sortOrder)
@@ -90,7 +95,7 @@ func TestHandle_ReturnsNotFoundForOtherTenantFlowField(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPut,
 		"/v1/tenants/flow-fields/"+fieldID.String(),
-		strings.NewReader(`{"question":"No debe cambiar","isRequired":true,"sortOrder":9}`),
+		strings.NewReader(`{"question":"No debe cambiar","rule":{"type":"text","minLength":0,"maxLength":280},"isRequired":true,"sortOrder":9}`),
 	)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -136,7 +141,7 @@ func TestHandle_ReturnsNotFoundForMissingFlowField(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPut,
 		"/v1/tenants/flow-fields/"+uuid.New().String(),
-		strings.NewReader(`{"question":"No debe existir","isRequired":true,"sortOrder":9}`),
+		strings.NewReader(`{"question":"No debe existir","rule":{"type":"text","minLength":0,"maxLength":280},"isRequired":true,"sortOrder":9}`),
 	)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -158,7 +163,7 @@ func TestHandle_RejectsInvalidUpdateID(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPut,
 		"/v1/tenants/flow-fields/not-a-uuid",
-		strings.NewReader(`{"question":"Pregunta","isRequired":true,"sortOrder":0}`),
+		strings.NewReader(`{"question":"Pregunta","rule":{"type":"text","minLength":0,"maxLength":280},"isRequired":true,"sortOrder":0}`),
 	)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -192,10 +197,12 @@ func insertFlowField(t *testing.T, dbtx db.DBTX, id uuid.UUID, tenantID uuid.UUI
 			tenant_id,
 			field_key,
 			question,
+			min_length,
+			max_length,
 			is_required,
 			is_enabled,
 			sort_order
-		) VALUES ($1, $2, $3, 'Original', false, true, 1)`,
+		) VALUES ($1, $2, $3, 'Original', 0, 500, false, true, 1)`,
 		id,
 		tenantID,
 		key,

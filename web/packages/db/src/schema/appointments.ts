@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm"
 import {
+  check,
   index,
   integer,
   numeric,
@@ -209,5 +210,9 @@ export const appointmentFieldResponses = pgTable(
   (table) => [
     unique("uq_appointment_field").on(table.appointmentId, table.fieldKey),
     index("idx_field_responses_appointment").on(table.appointmentId),
+    check(
+      "appointment_field_responses_length_check",
+      sql`char_length(response) <= 1000`
+    ),
   ]
 )

@@ -1,4 +1,4 @@
-package publicbooking
+package phone
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParsePhoneNumber(t *testing.T) {
+func TestParse(t *testing.T) {
 	t.Run("normalises formatted Colombian mobiles", func(t *testing.T) {
 		for _, raw := range []string{
 			"+57 300 123 4567",
@@ -16,7 +16,7 @@ func TestParsePhoneNumber(t *testing.T) {
 			"300 123 4567",
 			"3001234567",
 		} {
-			got, err := ParsePhoneNumber(raw)
+			got, err := Parse(raw)
 			require.NoError(t, err, raw)
 			require.Equal(t, "573001234567", got, raw)
 		}
@@ -31,7 +31,7 @@ func TestParsePhoneNumber(t *testing.T) {
 			"57300abc4567",
 			"0300 123 4567",
 		} {
-			_, err := ParsePhoneNumber(raw)
+			_, err := Parse(raw)
 			require.Error(t, err, raw)
 		}
 	})
@@ -46,7 +46,7 @@ func TestParsePhoneNumber(t *testing.T) {
 			"+57 57 300 123 4567", // doubled dial code
 			"+57 300 123 456",     // too short
 		} {
-			_, err := ParsePhoneNumber(raw)
+			_, err := Parse(raw)
 			require.Error(t, err, raw)
 		}
 	})

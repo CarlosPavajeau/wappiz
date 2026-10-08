@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -15,6 +16,11 @@ const findTenantEnabledFlowFields = `-- name: FindTenantEnabledFlowFields :many
 SELECT id,
        field_key,
        question,
+       field_type,
+       min_length,
+       max_length,
+       min_value,
+       max_value,
        is_required,
        is_one_time,
        sort_order
@@ -25,12 +31,17 @@ ORDER BY sort_order, created_at
 `
 
 type FindTenantEnabledFlowFieldsRow struct {
-	ID         uuid.UUID `db:"id"`
-	FieldKey   string    `db:"field_key"`
-	Question   string    `db:"question"`
-	IsRequired bool      `db:"is_required"`
-	IsOneTime  bool      `db:"is_one_time"`
-	SortOrder  int32     `db:"sort_order"`
+	ID         uuid.UUID     `db:"id"`
+	FieldKey   string        `db:"field_key"`
+	Question   string        `db:"question"`
+	FieldType  FlowFieldType `db:"field_type"`
+	MinLength  sql.NullInt16 `db:"min_length"`
+	MaxLength  sql.NullInt16 `db:"max_length"`
+	MinValue   sql.NullInt32 `db:"min_value"`
+	MaxValue   sql.NullInt32 `db:"max_value"`
+	IsRequired bool          `db:"is_required"`
+	IsOneTime  bool          `db:"is_one_time"`
+	SortOrder  int32         `db:"sort_order"`
 }
 
 // FindTenantEnabledFlowFields
@@ -38,6 +49,11 @@ type FindTenantEnabledFlowFieldsRow struct {
 //	SELECT id,
 //	       field_key,
 //	       question,
+//	       field_type,
+//	       min_length,
+//	       max_length,
+//	       min_value,
+//	       max_value,
 //	       is_required,
 //	       is_one_time,
 //	       sort_order
@@ -58,6 +74,11 @@ func (q *Queries) FindTenantEnabledFlowFields(ctx context.Context, db DBTX, tena
 			&i.ID,
 			&i.FieldKey,
 			&i.Question,
+			&i.FieldType,
+			&i.MinLength,
+			&i.MaxLength,
+			&i.MinValue,
+			&i.MaxValue,
 			&i.IsRequired,
 			&i.IsOneTime,
 			&i.SortOrder,

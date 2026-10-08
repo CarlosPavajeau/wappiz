@@ -6,6 +6,7 @@ import (
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
+	"wappiz/pkg/flowfield"
 	"wappiz/svc/api/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -14,20 +15,22 @@ import (
 )
 
 type Request struct {
-	Question   string `json:"question"`
-	IsRequired *bool  `json:"isRequired"`
-	IsOneTime  *bool  `json:"isOneTime"`
-	SortOrder  *int32 `json:"sortOrder"`
+	Question   string          `json:"question"`
+	Rule       *flowfield.Spec `json:"rule"`
+	IsRequired *bool           `json:"isRequired"`
+	IsOneTime  *bool           `json:"isOneTime"`
+	SortOrder  *int32          `json:"sortOrder"`
 }
 
 type Response struct {
-	ID         string `json:"id"`
-	FieldKey   string `json:"fieldKey"`
-	Question   string `json:"question"`
-	IsRequired bool   `json:"isRequired"`
-	IsOneTime  bool   `json:"isOneTime"`
-	IsEnabled  bool   `json:"isEnabled"`
-	SortOrder  int32  `json:"sortOrder"`
+	ID         string         `json:"id"`
+	FieldKey   string         `json:"fieldKey"`
+	Question   string         `json:"question"`
+	Rule       flowfield.Spec `json:"rule"`
+	IsRequired bool           `json:"isRequired"`
+	IsOneTime  bool           `json:"isOneTime"`
+	IsEnabled  bool           `json:"isEnabled"`
+	SortOrder  int32          `json:"sortOrder"`
 }
 
 type Handler struct {
@@ -43,8 +46,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		return err
 	}
 
-	question := strings.TrimSpace(req.Question)
-	if len(question) < 2 || req.IsRequired == nil || req.SortOrder == nil || *req.SortOrder < 0 {
+	if req.Rule == nil || req.IsRequired == nil || req.SortOrder == nil || *req.SortOrder < 0 {
 		return fault.New("invalid flow field",
 			fault.Code(codes.ErrorsBadRequest),
 			fault.Internal("invalid flow field payload"),
@@ -52,6 +54,17 @@ func (h *Handler) Handle(c *gin.Context) error {
 		)
 
 	}
+
+	question, err := flowfield.ParseQuestion(req.Question)
+	if err != nil {
+		return err
+	}
+
+	rule, err := flowfield.FromSpec(*req.Rule)
+	if err != nil {
+		return err
+	}
+	columns := flowfield.ToColumns(rule)
 
 	isOneTime := false
 	if req.IsOneTime != nil {
@@ -64,6 +77,11 @@ func (h *Handler) Handle(c *gin.Context) error {
 		TenantID:   middleware.TenantIDFromContext(c),
 		FieldKey:   customFieldKey(id),
 		Question:   question,
+		FieldType:  columns.Type,
+		MinLength:  columns.MinLength,
+		MaxLength:  columns.MaxLength,
+		MinValue:   columns.MinValue,
+		MaxValue:   columns.MaxValue,
 		IsRequired: *req.IsRequired,
 		IsOneTime:  isOneTime,
 		SortOrder:  *req.SortOrder,
@@ -77,6 +95,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		ID:         field.ID.String(),
 		FieldKey:   field.FieldKey,
 		Question:   field.Question,
+		Rule:       flowfield.ToSpec(rule),
 		IsRequired: field.IsRequired,
 		IsOneTime:  field.IsOneTime,
 		IsEnabled:  field.IsEnabled,

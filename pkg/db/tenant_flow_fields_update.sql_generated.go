@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -14,29 +15,44 @@ import (
 const updateFlowField = `-- name: UpdateFlowField :execrows
 UPDATE tenant_flow_fields
 SET question    = $3,
-    is_required = $4,
-    is_one_time = $5,
-    sort_order  = $6
+    field_type  = $4,
+    min_length  = $5,
+    max_length  = $6,
+    min_value   = $7,
+    max_value   = $8,
+    is_required = $9,
+    is_one_time = $10,
+    sort_order  = $11
 WHERE id = $1
   AND tenant_id = $2
 `
 
 type UpdateFlowFieldParams struct {
-	ID         uuid.UUID `db:"id"`
-	TenantID   uuid.UUID `db:"tenant_id"`
-	Question   string    `db:"question"`
-	IsRequired bool      `db:"is_required"`
-	IsOneTime  bool      `db:"is_one_time"`
-	SortOrder  int32     `db:"sort_order"`
+	ID         uuid.UUID     `db:"id"`
+	TenantID   uuid.UUID     `db:"tenant_id"`
+	Question   string        `db:"question"`
+	FieldType  FlowFieldType `db:"field_type"`
+	MinLength  sql.NullInt16 `db:"min_length"`
+	MaxLength  sql.NullInt16 `db:"max_length"`
+	MinValue   sql.NullInt32 `db:"min_value"`
+	MaxValue   sql.NullInt32 `db:"max_value"`
+	IsRequired bool          `db:"is_required"`
+	IsOneTime  bool          `db:"is_one_time"`
+	SortOrder  int32         `db:"sort_order"`
 }
 
 // UpdateFlowField
 //
 //	UPDATE tenant_flow_fields
 //	SET question    = $3,
-//	    is_required = $4,
-//	    is_one_time = $5,
-//	    sort_order  = $6
+//	    field_type  = $4,
+//	    min_length  = $5,
+//	    max_length  = $6,
+//	    min_value   = $7,
+//	    max_value   = $8,
+//	    is_required = $9,
+//	    is_one_time = $10,
+//	    sort_order  = $11
 //	WHERE id = $1
 //	  AND tenant_id = $2
 func (q *Queries) UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) (int64, error) {
@@ -44,6 +60,11 @@ func (q *Queries) UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFi
 		arg.ID,
 		arg.TenantID,
 		arg.Question,
+		arg.FieldType,
+		arg.MinLength,
+		arg.MaxLength,
+		arg.MinValue,
+		arg.MaxValue,
 		arg.IsRequired,
 		arg.IsOneTime,
 		arg.SortOrder,

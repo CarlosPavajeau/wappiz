@@ -9,6 +9,7 @@ go_library(
         "//pkg/codes",
         "//pkg/db",
         "//pkg/fault",
+        "//pkg/flowfield",
         "//pkg/server",
         "//svc/api/internal/middleware",
         "@com_github_gin_gonic_gin//:gin",

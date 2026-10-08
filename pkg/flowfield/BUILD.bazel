@@ -1,0 +1,33 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "flowfield",
+    srcs = [
+        "parse.go",
+        "rule.go",
+        "spec.go",
+    ],
+    importpath = "wappiz/pkg/flowfield",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/db",
+        "//pkg/fault",
+        "//pkg/phone",
+    ],
+)
+
+go_test(
+    name = "flowfield_test",
+    srcs = [
+        "parse_test.go",
+        "rule_test.go",
+    ],
+    embed = [":flowfield"],
+    deps = [
+        "//pkg/codes",
+        "//pkg/db",
+        "//pkg/fault",
+        "@com_github_stretchr_testify//require",
+    ],
+)

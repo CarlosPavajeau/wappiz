@@ -44,11 +44,13 @@ go_library(
         "//internal/events",
         "//internal/services/booking",
         "//internal/services/plans",
+        "//internal/services/ratelimit",
         "//internal/services/slotfinder",
         "//pkg/codes",
         "//pkg/datetime",
         "//pkg/db",
         "//pkg/fault",
+        "//pkg/flowfield",
         "//pkg/logger",
         "//pkg/whatsapp",
         "@com_github_google_uuid//:uuid",
@@ -58,11 +60,16 @@ go_library(
 
 go_test(
     name = "statemachine_test",
-    srcs = ["handle_confirm_integration_test.go"],
+    srcs = [
+        "handle_capture_field_integration_test.go",
+        "handle_confirm_integration_test.go",
+        "process_test.go",
+    ],
     embed = [":statemachine"],
     deps = [
         "//internal/events",
         "//internal/services/plans",
+        "//internal/services/ratelimit",
         "//internal/services/slotfinder",
         "//internal/testutil",
         "//pkg/db",

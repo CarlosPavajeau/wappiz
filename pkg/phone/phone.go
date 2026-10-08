@@ -1,4 +1,4 @@
-package publicbooking
+package phone
 
 import (
 	"strings"
@@ -14,14 +14,14 @@ const (
 	colombiaMobilePrefix = "3"
 )
 
-// ParsePhoneNumber normalises a customer-typed Colombian mobile number to the
+// Parse normalises a customer-typed Colombian mobile number to the
 // digits-only form WhatsApp reports in webhooks (e.g. "573001234567"), so a
 // customer booking from the page and from the bot resolves to the same row.
 // Visual separators and a leading "+" or "00" are accepted; anything else is
 // rejected rather than silently dropped. A bare national number
 // ("3001234567") is accepted only without an international prefix, since
 // "+300…" would name a different country.
-func ParsePhoneNumber(raw string) (string, error) {
+func Parse(raw string) (string, error) {
 	s := strings.TrimSpace(raw)
 	international := true
 	switch {

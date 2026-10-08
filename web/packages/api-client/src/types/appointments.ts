@@ -1,3 +1,5 @@
+import type { FlowFieldType } from "./tenant-flow-fields"
+
 export type AppointmentStatus =
   | "pending"
   | "confirmed"
@@ -24,6 +26,8 @@ export type Appointment = {
 export type AppointmentFieldResponse = {
   fieldKey: string
   question: string
+  // Null when the field was deleted after it was answered.
+  fieldType: FlowFieldType | null
   response: string
 }
 

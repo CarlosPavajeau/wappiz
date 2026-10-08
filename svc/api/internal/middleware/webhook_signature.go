@@ -1,15 +1,22 @@
 package middleware
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
+
+// maxWebhookBodyBytes bounds what is buffered before the signature is checked,
+// so an unauthenticated caller cannot make the server hold an arbitrarily large
+// body in memory. Meta batches stay far below this.
+const maxWebhookBodyBytes = 1 << 20
 
 func WithWhatsAppSignature(appSecret string) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -19,8 +26,13 @@ func WithWhatsAppSignature(appSecret string) gin.HandlerFunc {
 			return
 		}
 
-		body, err := io.ReadAll(c.Request.Body)
+		body, err := io.ReadAll(http.MaxBytesReader(c.Writer, c.Request.Body, maxWebhookBodyBytes))
 		if err != nil {
+			var tooLarge *http.MaxBytesError
+			if errors.As(err, &tooLarge) {
+				c.AbortWithStatus(http.StatusRequestEntityTooLarge)
+				return
+			}
 			c.AbortWithStatus(http.StatusBadRequest)
 			return
 		}
@@ -30,7 +42,7 @@ func WithWhatsAppSignature(appSecret string) gin.HandlerFunc {
 			return
 		}
 
-		c.Request.Body = io.NopCloser(strings.NewReader(string(body)))
+		c.Request.Body = io.NopCloser(bytes.NewReader(body))
 		c.Next()
 	}
 }

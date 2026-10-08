@@ -31,7 +31,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 
 	tenantId := middleware.TenantIDFromContext(c)
 
-	err = db.Query.ToggleFlowField(c.Request.Context(), h.DB.Primary(), db.ToggleFlowFieldParams{
+	rowsAffected, err := db.Query.ToggleFlowField(c.Request.Context(), h.DB.Primary(), db.ToggleFlowFieldParams{
 		ID:       flowFieldID,
 		TenantID: tenantId,
 	})
@@ -39,6 +39,13 @@ func (h *Handler) Handle(c *gin.Context) error {
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("failed toggling flow field"))
 
+	}
+	if rowsAffected == 0 {
+		return fault.New("flow field not found",
+			fault.Code(codes.ErrorsNotFound),
+			fault.Internal("flow field not found for tenant"),
+			fault.Public("Campo no encontrado"),
+		)
 	}
 
 	c.Status(http.StatusOK)

@@ -4,11 +4,16 @@ import (
 	"context"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
+	"wappiz/pkg/flowfield"
+	"wappiz/pkg/logger"
 
 	"github.com/google/uuid"
 )
 
 func (s *service) advanceToFlowFieldsOrConfirm(ctx context.Context, msg IncomingMessage, session db.ConversationSession, sessionData SessionData, fields []db.FindTenantEnabledFlowFieldsRow) error {
+	// Attempts are counted per question; moving on starts the next one fresh.
+	sessionData.FlowFieldAttempts = 0
+
 	nextField, err := s.nextFlowField(ctx, session.TenantID, session.CustomerID, &sessionData, fields)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("find next custom flow field"))
@@ -25,6 +30,11 @@ func (s *service) advanceToFlowFieldsOrConfirm(ctx context.Context, msg Incoming
 		return s.sendConfirmation(ctx, msg, session)
 	}
 
+	rule, err := flowFieldRule(*nextField)
+	if err != nil {
+		return err
+	}
+
 	sessionData.PendingFlowFieldKey = &nextField.FieldKey
 	session.Step = string(StepCaptureField)
 
@@ -32,7 +42,7 @@ func (s *service) advanceToFlowFieldsOrConfirm(ctx context.Context, msg Incoming
 		return fault.Wrap(err, fault.Internal("update session"))
 	}
 
-	return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, flowFieldQuestion(*nextField))
+	return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, flowFieldQuestion(*nextField, rule))
 }
 
 func (s *service) nextFlowField(ctx context.Context, tenantID uuid.UUID, customerID uuid.UUID, sessionData *SessionData, fields []db.FindTenantEnabledFlowFieldsRow) (*db.FindTenantEnabledFlowFieldsRow, error) {
@@ -60,6 +70,7 @@ func (s *service) nextFlowField(ctx context.Context, tenantID uuid.UUID, custome
 
 func (s *service) hydrateOneTimeFlowFieldAnswers(ctx context.Context, tenantID uuid.UUID, customerID uuid.UUID, sessionData *SessionData, fields []db.FindTenantEnabledFlowFieldsRow) error {
 	var fieldKeys []string
+	rules := map[string]flowfield.Rule{}
 	for _, field := range fields {
 		if !field.IsOneTime {
 			continue
@@ -67,7 +78,12 @@ func (s *service) hydrateOneTimeFlowFieldAnswers(ctx context.Context, tenantID u
 		if _, ok := sessionData.FlowFieldAnswers[field.FieldKey]; ok {
 			continue
 		}
+		rule, err := flowFieldRule(field)
+		if err != nil {
+			return err
+		}
 		fieldKeys = append(fieldKeys, field.FieldKey)
+		rules[field.FieldKey] = rule
 	}
 	if len(fieldKeys) == 0 {
 		return nil
@@ -89,19 +105,29 @@ func (s *service) hydrateOneTimeFlowFieldAnswers(ctx context.Context, tenantID u
 		sessionData.FlowFieldAnswers = map[string]string{}
 	}
 	for _, answer := range answers {
-		if answer.Response == "" {
+		rule, ok := rules[answer.FieldKey]
+		if !ok || answer.Response == "" {
 			continue
 		}
-		sessionData.FlowFieldAnswers[answer.FieldKey] = answer.Response
+		// The tenant may have tightened the field since this answer was given
+		// (or it predates validation); such answers are asked again.
+		normalized, err := rule.Parse(answer.Response)
+		if err != nil {
+			logger.Info("[scheduling] stored one-time answer no longer valid, asking again",
+				"field_key", answer.FieldKey)
+			continue
+		}
+		sessionData.FlowFieldAnswers[answer.FieldKey] = normalized
 	}
 
 	return nil
 }
 
-func flowFieldQuestion(field db.FindTenantEnabledFlowFieldsRow) string {
+func flowFieldQuestion(field db.FindTenantEnabledFlowFieldsRow, rule flowfield.Rule) string {
+	question := field.Question + "\n_" + rule.Hint() + "_"
 	if field.IsRequired {
-		return field.Question
+		return question
 	}
 
-	return field.Question + "\n\nOpcional: responde *Omitir* si prefieres no compartir este dato."
+	return question + "\n\nOpcional: responde *Omitir* si prefieres no compartir este dato."
 }

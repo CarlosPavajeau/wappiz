@@ -9,9 +9,18 @@ import {
 import { HugeiconsIcon } from "@hugeicons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { ApiError } from "@wappiz/api-client"
-import type { Appointment } from "@wappiz/api-client/types/appointments"
+import type {
+  Appointment,
+  AppointmentFieldResponse,
+} from "@wappiz/api-client/types/appointments"
 import { type } from "arktype"
-import { differenceInMinutes, format, formatDuration } from "date-fns"
+import {
+  differenceInMinutes,
+  format,
+  formatDuration,
+  isValid,
+  parseISO,
+} from "date-fns"
 import { es } from "date-fns/locale"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -248,6 +257,17 @@ function AppointmentSchedule({ appointment }: Props) {
   )
 }
 
+// Date answers are stored as YYYY-MM-DD so they sort and parse reliably.
+function formatFieldResponse(field: AppointmentFieldResponse): string {
+  if (field.fieldType !== "date") {
+    return field.response
+  }
+  const date = parseISO(field.response)
+  return isValid(date)
+    ? format(date, "d 'de' MMMM 'de' yyyy", { locale: es })
+    : field.response
+}
+
 function AppointmentFieldResponses({ appointment }: Props) {
   if (appointment.fieldResponses.length === 0) {
     return null
@@ -266,7 +286,7 @@ function AppointmentFieldResponses({ appointment }: Props) {
           <InfoRow
             key={field.fieldKey}
             label={field.question}
-            value={field.response}
+            value={formatFieldResponse(field)}
           />
         ))}
       </dl>

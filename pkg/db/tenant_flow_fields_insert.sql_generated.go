@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -17,6 +18,11 @@ INSERT INTO tenant_flow_fields (
     tenant_id,
     field_key,
     question,
+    field_type,
+    min_length,
+    max_length,
+    min_value,
+    max_value,
     is_required,
     is_one_time,
     is_enabled,
@@ -29,12 +35,22 @@ VALUES (
     $4,
     $5,
     $6,
+    $7,
+    $8,
+    $9,
+    $10,
+    $11,
     true,
-    $7
+    $12
 )
 RETURNING id,
           field_key,
           question,
+          field_type,
+          min_length,
+          max_length,
+          min_value,
+          max_value,
           is_required,
           is_one_time,
           is_enabled,
@@ -42,23 +58,33 @@ RETURNING id,
 `
 
 type InsertTenantFlowFieldParams struct {
-	ID         uuid.UUID `db:"id"`
-	TenantID   uuid.UUID `db:"tenant_id"`
-	FieldKey   string    `db:"field_key"`
-	Question   string    `db:"question"`
-	IsRequired bool      `db:"is_required"`
-	IsOneTime  bool      `db:"is_one_time"`
-	SortOrder  int32     `db:"sort_order"`
+	ID         uuid.UUID     `db:"id"`
+	TenantID   uuid.UUID     `db:"tenant_id"`
+	FieldKey   string        `db:"field_key"`
+	Question   string        `db:"question"`
+	FieldType  FlowFieldType `db:"field_type"`
+	MinLength  sql.NullInt16 `db:"min_length"`
+	MaxLength  sql.NullInt16 `db:"max_length"`
+	MinValue   sql.NullInt32 `db:"min_value"`
+	MaxValue   sql.NullInt32 `db:"max_value"`
+	IsRequired bool          `db:"is_required"`
+	IsOneTime  bool          `db:"is_one_time"`
+	SortOrder  int32         `db:"sort_order"`
 }
 
 type InsertTenantFlowFieldRow struct {
-	ID         uuid.UUID `db:"id"`
-	FieldKey   string    `db:"field_key"`
-	Question   string    `db:"question"`
-	IsRequired bool      `db:"is_required"`
-	IsOneTime  bool      `db:"is_one_time"`
-	IsEnabled  bool      `db:"is_enabled"`
-	SortOrder  int32     `db:"sort_order"`
+	ID         uuid.UUID     `db:"id"`
+	FieldKey   string        `db:"field_key"`
+	Question   string        `db:"question"`
+	FieldType  FlowFieldType `db:"field_type"`
+	MinLength  sql.NullInt16 `db:"min_length"`
+	MaxLength  sql.NullInt16 `db:"max_length"`
+	MinValue   sql.NullInt32 `db:"min_value"`
+	MaxValue   sql.NullInt32 `db:"max_value"`
+	IsRequired bool          `db:"is_required"`
+	IsOneTime  bool          `db:"is_one_time"`
+	IsEnabled  bool          `db:"is_enabled"`
+	SortOrder  int32         `db:"sort_order"`
 }
 
 // InsertTenantFlowField
@@ -68,6 +94,11 @@ type InsertTenantFlowFieldRow struct {
 //	    tenant_id,
 //	    field_key,
 //	    question,
+//	    field_type,
+//	    min_length,
+//	    max_length,
+//	    min_value,
+//	    max_value,
 //	    is_required,
 //	    is_one_time,
 //	    is_enabled,
@@ -80,12 +111,22 @@ type InsertTenantFlowFieldRow struct {
 //	    $4,
 //	    $5,
 //	    $6,
+//	    $7,
+//	    $8,
+//	    $9,
+//	    $10,
+//	    $11,
 //	    true,
-//	    $7
+//	    $12
 //	)
 //	RETURNING id,
 //	          field_key,
 //	          question,
+//	          field_type,
+//	          min_length,
+//	          max_length,
+//	          min_value,
+//	          max_value,
 //	          is_required,
 //	          is_one_time,
 //	          is_enabled,
@@ -96,6 +137,11 @@ func (q *Queries) InsertTenantFlowField(ctx context.Context, db DBTX, arg Insert
 		arg.TenantID,
 		arg.FieldKey,
 		arg.Question,
+		arg.FieldType,
+		arg.MinLength,
+		arg.MaxLength,
+		arg.MinValue,
+		arg.MaxValue,
 		arg.IsRequired,
 		arg.IsOneTime,
 		arg.SortOrder,
@@ -105,6 +151,11 @@ func (q *Queries) InsertTenantFlowField(ctx context.Context, db DBTX, arg Insert
 		&i.ID,
 		&i.FieldKey,
 		&i.Question,
+		&i.FieldType,
+		&i.MinLength,
+		&i.MaxLength,
+		&i.MinValue,
+		&i.MaxValue,
 		&i.IsRequired,
 		&i.IsOneTime,
 		&i.IsEnabled,

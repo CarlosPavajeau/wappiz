@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const toggleFlowField = `-- name: ToggleFlowField :exec
+const toggleFlowField = `-- name: ToggleFlowField :execrows
 UPDATE tenant_flow_fields
 SET is_enabled = NOT is_enabled
 WHERE id = $1
@@ -29,7 +29,10 @@ type ToggleFlowFieldParams struct {
 //	SET is_enabled = NOT is_enabled
 //	WHERE id = $1
 //	  AND tenant_id = $2
-func (q *Queries) ToggleFlowField(ctx context.Context, db DBTX, arg ToggleFlowFieldParams) error {
-	_, err := db.ExecContext(ctx, toggleFlowField, arg.ID, arg.TenantID)
-	return err
+func (q *Queries) ToggleFlowField(ctx context.Context, db DBTX, arg ToggleFlowFieldParams) (int64, error) {
+	result, err := db.ExecContext(ctx, toggleFlowField, arg.ID, arg.TenantID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

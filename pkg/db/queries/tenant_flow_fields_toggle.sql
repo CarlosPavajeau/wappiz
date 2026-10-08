@@ -1,4 +1,4 @@
--- name: ToggleFlowField :exec
+-- name: ToggleFlowField :execrows
 UPDATE tenant_flow_fields
 SET is_enabled = NOT is_enabled
 WHERE id = $1
