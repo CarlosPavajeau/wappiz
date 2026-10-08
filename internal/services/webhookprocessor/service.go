@@ -134,6 +134,7 @@ func (s *service) processPayload(req Request) {
 					logger.Warn("webhook: failed to build message",
 						"from", msg.From,
 						"err", err)
+					s.releaseMessage(ctx, phoneNumberID, msg.ID)
 					continue
 				}
 
@@ -141,6 +142,7 @@ func (s *service) processPayload(req Request) {
 					logger.Warn("webhook: error processing message from",
 						"from", msg.From,
 						"err", err)
+					s.releaseMessage(ctx, phoneNumberID, msg.ID)
 				}
 			}
 		}
@@ -170,7 +172,7 @@ func (s *service) claimMessage(ctx context.Context, phoneNumberID, msgID string)
 		return true
 	}
 
-	first, err := s.seenMessages.SetIfNotExists(ctx, "whatsapp-message:"+phoneNumberID+":"+msgID, 1, seenMessageTTL)
+	first, err := s.seenMessages.SetIfNotExists(ctx, seenMessageKey(phoneNumberID, msgID), 1, seenMessageTTL)
 	if err != nil {
 		logger.Warn("webhook: failed to record message id, processing anyway",
 			"phone_number_id", phoneNumberID,
@@ -183,6 +185,32 @@ func (s *service) claimMessage(ctx context.Context, phoneNumberID, msgID string)
 			"message_id", msgID)
 	}
 	return first
+}
+
+// releaseMessage forgets a claimed message whose processing failed, so a
+// redelivery gets another chance instead of being skipped as a duplicate.
+// Processing may have failed after replying, so a redelivery can repeat that
+// reply; as in claimMessage, a rare duplicate beats a lost message. The
+// failure may be the payload deadline itself, so the release detaches from
+// it and gets its own short deadline.
+func (s *service) releaseMessage(ctx context.Context, phoneNumberID, msgID string) {
+	if msgID == "" {
+		return
+	}
+
+	releaseCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+	defer cancel()
+
+	if err := s.seenMessages.Delete(releaseCtx, seenMessageKey(phoneNumberID, msgID)); err != nil {
+		logger.Warn("webhook: failed to release message id",
+			"phone_number_id", phoneNumberID,
+			"message_id", msgID,
+			"err", err)
+	}
+}
+
+func seenMessageKey(phoneNumberID, msgID string) string {
+	return "whatsapp-message:" + phoneNumberID + ":" + msgID
 }
 
 func (s *service) buildIncomingMessage(

@@ -19,9 +19,16 @@ func (failingCounter) SetIfNotExists(context.Context, string, int64, ...time.Dur
 	return false, errors.New("redis down")
 }
 
+func newMemoryCounter(t *testing.T) *counter.MemoryCounter {
+	t.Helper()
+	c := counter.NewMemoryCounter(clock.New())
+	t.Cleanup(func() { require.NoError(t, c.Close()) })
+	return c
+}
+
 func TestClaimMessage(t *testing.T) {
 	t.Run("processes a message once", func(t *testing.T) {
-		s := &service{seenMessages: counter.NewMemoryCounter(clock.New())}
+		s := &service{seenMessages: newMemoryCounter(t)}
 		ctx := context.Background()
 
 		require.True(t, s.claimMessage(ctx, "phone-1", "wamid.A"))
@@ -37,9 +44,42 @@ func TestClaimMessage(t *testing.T) {
 		require.True(t, s.claimMessage(ctx, "phone-1", "wamid.A"))
 		require.True(t, s.claimMessage(ctx, "phone-1", "wamid.A"))
 
-		s.seenMessages = counter.NewMemoryCounter(clock.New())
+		s.seenMessages = newMemoryCounter(t)
 		require.True(t, s.claimMessage(ctx, "phone-1", ""))
 		require.True(t, s.claimMessage(ctx, "phone-1", ""))
+	})
+}
+
+// deadlineAwareCounter fails like Redis does when the context is done; the
+// in-memory counter ignores the context.
+type deadlineAwareCounter struct{ *counter.MemoryCounter }
+
+func (c deadlineAwareCounter) Delete(ctx context.Context, key string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	return c.MemoryCounter.Delete(ctx, key)
+}
+
+func TestReleaseMessage(t *testing.T) {
+	t.Run("lets a redelivery of a failed message through", func(t *testing.T) {
+		s := &service{seenMessages: newMemoryCounter(t)}
+		ctx := context.Background()
+
+		require.True(t, s.claimMessage(ctx, "phone-1", "wamid.A"))
+		s.releaseMessage(ctx, "phone-1", "wamid.A")
+		require.True(t, s.claimMessage(ctx, "phone-1", "wamid.A"))
+		require.False(t, s.claimMessage(ctx, "phone-1", "wamid.A"))
+	})
+
+	t.Run("works after the payload deadline expired", func(t *testing.T) {
+		s := &service{seenMessages: deadlineAwareCounter{newMemoryCounter(t)}}
+		ctx, cancel := context.WithCancel(context.Background())
+
+		require.True(t, s.claimMessage(ctx, "phone-1", "wamid.A"))
+		cancel()
+		s.releaseMessage(ctx, "phone-1", "wamid.A")
+		require.True(t, s.claimMessage(context.Background(), "phone-1", "wamid.A"))
 	})
 }
 
