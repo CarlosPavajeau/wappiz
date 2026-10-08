@@ -85,6 +85,83 @@ const flowFieldSchema = type({
 
 type FlowFieldFormValues = typeof flowFieldSchema.infer
 
+type PredefinedFieldInfo = {
+  label: string
+  description: string
+  placeholder: string
+}
+
+// Predefined fields are seeded on tenant creation with only a technical key
+// (see svc/api/routes/v1/tenants_create), so the UI owns their readable names.
+const PREDEFINED_FIELDS = new Map<string, PredefinedFieldInfo>([
+  [
+    "document_id",
+    {
+      description: "Cédula u otro documento del cliente",
+      label: "Documento de identidad",
+      placeholder: "¿Cuál es tu número de documento?",
+    },
+  ],
+  [
+    "visit_reason",
+    {
+      description: "Por qué el cliente agenda la cita",
+      label: "Motivo de la visita",
+      placeholder: "¿Cuál es el motivo de tu visita?",
+    },
+  ],
+  [
+    "email",
+    {
+      description: "Correo de contacto del cliente",
+      label: "Correo electrónico",
+      placeholder: "¿Cuál es tu correo electrónico?",
+    },
+  ],
+  [
+    "address",
+    {
+      description: "Dirección de residencia del cliente",
+      label: "Dirección",
+      placeholder: "¿Cuál es tu dirección?",
+    },
+  ],
+  [
+    "birth_date",
+    {
+      description: "Fecha de nacimiento del cliente",
+      label: "Fecha de nacimiento",
+      placeholder: "¿Cuál es tu fecha de nacimiento?",
+    },
+  ],
+])
+
+function predefinedInfo(
+  field: TenantFlowField | undefined
+): PredefinedFieldInfo | undefined {
+  if (field?.fieldType !== "predefined") {
+    return undefined
+  }
+  return PREDEFINED_FIELDS.get(field.fieldKey)
+}
+
+type FieldDisplay = {
+  title: string
+  subtitle: string | undefined
+}
+
+function fieldDisplay(field: TenantFlowField): FieldDisplay {
+  const info = predefinedInfo(field)
+  if (info !== undefined) {
+    return {
+      subtitle: field.question || info.description,
+      title: info.label,
+    }
+  }
+  // Custom keys are generated ids (custom_<hex>), meaningless to users.
+  return { subtitle: undefined, title: field.question || field.fieldKey }
+}
+
 type FlowFieldDialogProps = {
   field?: TenantFlowField
 }
@@ -107,6 +184,16 @@ function toRequest(values: FlowFieldFormValues): UpsertTenantFlowFieldRequest {
     question: values.question.trim(),
     sortOrder: values.sortOrder,
   }
+}
+
+function dialogTitle(field: TenantFlowField | undefined): string {
+  if (field === undefined) {
+    return "Nuevo campo del flujo"
+  }
+  const info = predefinedInfo(field)
+  return info === undefined
+    ? "Editar campo del flujo"
+    : `Editar campo: ${info.label}`
 }
 
 function FlowFieldDialog({ field }: FlowFieldDialogProps) {
@@ -197,9 +284,7 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
 
       <DialogContent className="gap-5 sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Editar campo del flujo" : "Nuevo campo del flujo"}
-          </DialogTitle>
+          <DialogTitle>{dialogTitle(field)}</DialogTitle>
           <DialogDescription>
             Controla que dato pide el bot, cuando lo pide y si puede continuar
             sin respuesta.
@@ -221,7 +306,10 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                   <Textarea
                     {...formField}
                     id={formField.name}
-                    placeholder="¿Cuál es tu correo electrónico?"
+                    placeholder={
+                      predefinedInfo(field)?.placeholder ??
+                      "¿Cuál es tu correo electrónico?"
+                    }
                     className="min-h-24 resize-none"
                     aria-invalid={fieldState.invalid}
                   />
@@ -349,6 +437,19 @@ function FlowFieldEnabledSwitch({ field }: { field: TenantFlowField }) {
   )
 }
 
+function FlowFieldName({ field }: { field: TenantFlowField }) {
+  const { title, subtitle } = fieldDisplay(field)
+
+  return (
+    <div className="flex min-w-0 flex-col">
+      <span className="font-medium">{title}</span>
+      {subtitle !== undefined && (
+        <span className="text-xs text-muted-foreground">{subtitle}</span>
+      )}
+    </div>
+  )
+}
+
 function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
   return (
     <Table>
@@ -357,7 +458,7 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
       </TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead>Pregunta</TableHead>
+          <TableHead>Campo</TableHead>
           <TableHead>Tipo</TableHead>
           <TableHead>Orden</TableHead>
           <TableHead>Obligatorio</TableHead>
@@ -370,14 +471,7 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
         {fields.map((field) => (
           <TableRow key={field.id}>
             <TableCell>
-              <div className="flex min-w-0 flex-col">
-                <span className="font-medium">
-                  {field.question || field.fieldKey}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {field.fieldKey}
-                </span>
-              </div>
+              <FlowFieldName field={field} />
             </TableCell>
             <TableCell>
               <Badge
