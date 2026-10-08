@@ -81,8 +81,6 @@ export const tenantWhatsappConfigs = pgTable(
   ]
 )
 
-export const flowFieldType = pgEnum("flow_field_type", ["predefined", "custom"])
-
 export const tenantFlowFields = pgTable(
   "tenant_flow_fields",
   {
@@ -91,8 +89,7 @@ export const tenantFlowFields = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     fieldKey: varchar("field_key", { length: 50 }).notNull(),
-    fieldType: flowFieldType("field_type").notNull(),
-    question: text(),
+    question: text().notNull(),
     isRequired: boolean("is_required").default(false).notNull(),
     isOneTime: boolean("is_one_time").default(false).notNull(),
     isEnabled: boolean("is_enabled").default(true).notNull(),

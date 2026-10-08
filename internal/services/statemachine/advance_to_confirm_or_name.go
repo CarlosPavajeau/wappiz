@@ -10,7 +10,7 @@ func (s *service) advanceToConfirmOrName(ctx context.Context, msg IncomingMessag
 	var err error
 	if customer.Name.Valid {
 		sessionData.ConfirmedName = new(customer.Name.String)
-		return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData, nil)
+		return s.advanceToFlowFieldsOrConfirm(ctx, msg, session, sessionData, nil)
 	}
 
 	session.Step = string(StepAwaitingName)

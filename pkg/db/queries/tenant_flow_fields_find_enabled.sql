@@ -1,7 +1,6 @@
 -- name: FindTenantEnabledFlowFields :many
 SELECT id,
        field_key,
-       field_type,
        question,
        is_required,
        is_one_time,

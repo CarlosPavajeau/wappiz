@@ -154,37 +154,6 @@ type Querier interface {
 	//    AND status IN ('pending', 'confirmed', 'check_in', 'in_progress')
 	//    AND ends_at > now()
 	CountUpcomingAppointmentsByService(ctx context.Context, db DBTX, serviceID uuid.UUID) (int64, error)
-	//CreateTenantPredefinedFlowFields
-	//
-	//  WITH fields AS (
-	//      SELECT
-	//          $2::text[] AS field_keys,
-	//          $3::int[] AS sort_orders
-	//  )
-	//  INSERT INTO tenant_flow_fields (
-	//      id,
-	//      tenant_id,
-	//      field_key,
-	//      field_type,
-	//      question,
-	//      is_required,
-	//      is_one_time,
-	//      is_enabled,
-	//      sort_order
-	//  )
-	//  SELECT
-	//      gen_random_uuid(),
-	//      $1,
-	//      UNNEST(fields.field_keys),
-	//      'predefined',
-	//      NULL,
-	//      false,
-	//      false,
-	//      false,
-	//      UNNEST(fields.sort_orders)
-	//  FROM fields
-	//  ON CONFLICT (tenant_id, field_key) DO NOTHING
-	CreateTenantPredefinedFlowFields(ctx context.Context, db DBTX, arg CreateTenantPredefinedFlowFieldsParams) error
 	//DeleteConversationSession
 	//
 	//  DELETE
@@ -259,7 +228,6 @@ type Querier interface {
 	//
 	//  SELECT id,
 	//         field_key,
-	//         field_type,
 	//         question,
 	//         is_required,
 	//         is_one_time,
@@ -742,7 +710,6 @@ type Querier interface {
 	//
 	//  SELECT id,
 	//         field_key,
-	//         field_type,
 	//         question,
 	//         is_required,
 	//         is_one_time,
@@ -1075,39 +1042,6 @@ type Querier interface {
 	//          updated_at = NOW()
 	//      WHERE conversation_sessions.expires_at <= NOW()
 	InsertConversationSessionWhenInactive(ctx context.Context, db DBTX, arg InsertConversationSessionWhenInactiveParams) (int64, error)
-	//InsertCustomTenantFlowField
-	//
-	//  INSERT INTO tenant_flow_fields (
-	//      id,
-	//      tenant_id,
-	//      field_key,
-	//      field_type,
-	//      question,
-	//      is_required,
-	//      is_one_time,
-	//      is_enabled,
-	//      sort_order
-	//  )
-	//  VALUES (
-	//      $1,
-	//      $2,
-	//      $3,
-	//      'custom',
-	//      $4,
-	//      $5,
-	//      $6,
-	//      true,
-	//      $7
-	//  )
-	//  RETURNING id,
-	//            field_key,
-	//            field_type,
-	//            question,
-	//            is_required,
-	//            is_one_time,
-	//            is_enabled,
-	//            sort_order
-	InsertCustomTenantFlowField(ctx context.Context, db DBTX, arg InsertCustomTenantFlowFieldParams) (InsertCustomTenantFlowFieldRow, error)
 	//InsertCustomer
 	//
 	//  INSERT INTO customers (id, tenant_id, phone_number)
@@ -1248,7 +1182,6 @@ type Querier interface {
 	//      id,
 	//      tenant_id,
 	//      field_key,
-	//      field_type,
 	//      question,
 	//      is_required,
 	//      is_one_time,
@@ -1262,11 +1195,17 @@ type Querier interface {
 	//      $4,
 	//      $5,
 	//      $6,
-	//      $7,
-	//      $8,
-	//      $9
+	//      true,
+	//      $7
 	//  )
-	InsertTenantFlowField(ctx context.Context, db DBTX, arg InsertTenantFlowFieldParams) error
+	//  RETURNING id,
+	//            field_key,
+	//            question,
+	//            is_required,
+	//            is_one_time,
+	//            is_enabled,
+	//            sort_order
+	InsertTenantFlowField(ctx context.Context, db DBTX, arg InsertTenantFlowFieldParams) (InsertTenantFlowFieldRow, error)
 	//InsertTenantWhatsappConfig
 	//
 	//  INSERT INTO tenant_whatsapp_configs(

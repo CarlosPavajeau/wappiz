@@ -1,7 +1,6 @@
 package tenant_flow_fields_create
 
 import (
-	"database/sql"
 	"net/http"
 	"strings"
 	"wappiz/pkg/codes"
@@ -24,7 +23,6 @@ type Request struct {
 type Response struct {
 	ID         string `json:"id"`
 	FieldKey   string `json:"fieldKey"`
-	FieldType  string `json:"fieldType"`
 	Question   string `json:"question"`
 	IsRequired bool   `json:"isRequired"`
 	IsOneTime  bool   `json:"isOneTime"`
@@ -61,11 +59,11 @@ func (h *Handler) Handle(c *gin.Context) error {
 	}
 
 	id := uuid.New()
-	field, err := db.Query.InsertCustomTenantFlowField(c.Request.Context(), h.DB.Primary(), db.InsertCustomTenantFlowFieldParams{
+	field, err := db.Query.InsertTenantFlowField(c.Request.Context(), h.DB.Primary(), db.InsertTenantFlowFieldParams{
 		ID:         id,
 		TenantID:   middleware.TenantIDFromContext(c),
 		FieldKey:   customFieldKey(id),
-		Question:   sql.NullString{String: question, Valid: true},
+		Question:   question,
 		IsRequired: *req.IsRequired,
 		IsOneTime:  isOneTime,
 		SortOrder:  *req.SortOrder,
@@ -78,8 +76,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 	c.JSON(http.StatusCreated, Response{
 		ID:         field.ID.String(),
 		FieldKey:   field.FieldKey,
-		FieldType:  string(field.FieldType),
-		Question:   field.Question.String,
+		Question:   field.Question,
 		IsRequired: field.IsRequired,
 		IsOneTime:  field.IsOneTime,
 		IsEnabled:  field.IsEnabled,

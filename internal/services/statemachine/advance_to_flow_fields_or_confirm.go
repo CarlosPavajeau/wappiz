@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 )
 
-func (s *service) advanceToCustomFieldsOrConfirm(ctx context.Context, msg IncomingMessage, session db.ConversationSession, sessionData SessionData, fields []db.FindTenantEnabledFlowFieldsRow) error {
-	nextField, err := s.nextCustomFlowField(ctx, session.TenantID, session.CustomerID, &sessionData, fields)
+func (s *service) advanceToFlowFieldsOrConfirm(ctx context.Context, msg IncomingMessage, session db.ConversationSession, sessionData SessionData, fields []db.FindTenantEnabledFlowFieldsRow) error {
+	nextField, err := s.nextFlowField(ctx, session.TenantID, session.CustomerID, &sessionData, fields)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("find next custom flow field"))
 	}
@@ -35,7 +35,7 @@ func (s *service) advanceToCustomFieldsOrConfirm(ctx context.Context, msg Incomi
 	return s.whatsapp.SendText(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, flowFieldQuestion(*nextField))
 }
 
-func (s *service) nextCustomFlowField(ctx context.Context, tenantID uuid.UUID, customerID uuid.UUID, sessionData *SessionData, fields []db.FindTenantEnabledFlowFieldsRow) (*db.FindTenantEnabledFlowFieldsRow, error) {
+func (s *service) nextFlowField(ctx context.Context, tenantID uuid.UUID, customerID uuid.UUID, sessionData *SessionData, fields []db.FindTenantEnabledFlowFieldsRow) (*db.FindTenantEnabledFlowFieldsRow, error) {
 	if len(fields) == 0 {
 		var err error
 		fields, err = db.Query.FindTenantEnabledFlowFields(ctx, s.db.Primary(), tenantID)
@@ -49,9 +49,6 @@ func (s *service) nextCustomFlowField(ctx context.Context, tenantID uuid.UUID, c
 	}
 
 	for _, field := range fields {
-		if field.FieldType != db.FlowFieldTypeCustom {
-			continue
-		}
 		if _, ok := sessionData.FlowFieldAnswers[field.FieldKey]; ok {
 			continue
 		}
@@ -64,7 +61,7 @@ func (s *service) nextCustomFlowField(ctx context.Context, tenantID uuid.UUID, c
 func (s *service) hydrateOneTimeFlowFieldAnswers(ctx context.Context, tenantID uuid.UUID, customerID uuid.UUID, sessionData *SessionData, fields []db.FindTenantEnabledFlowFieldsRow) error {
 	var fieldKeys []string
 	for _, field := range fields {
-		if field.FieldType != db.FlowFieldTypeCustom || !field.IsOneTime {
+		if !field.IsOneTime {
 			continue
 		}
 		if _, ok := sessionData.FlowFieldAnswers[field.FieldKey]; ok {
@@ -102,14 +99,9 @@ func (s *service) hydrateOneTimeFlowFieldAnswers(ctx context.Context, tenantID u
 }
 
 func flowFieldQuestion(field db.FindTenantEnabledFlowFieldsRow) string {
-	question := "Por favor comparte esta información: " + field.FieldKey
-	if field.Question.Valid && field.Question.String != "" {
-		question = field.Question.String
-	}
-
 	if field.IsRequired {
-		return question
+		return field.Question
 	}
 
-	return question + "\n\nOpcional: responde *Omitir* si prefieres no compartir este dato."
+	return field.Question + "\n\nOpcional: responde *Omitir* si prefieres no compartir este dato."
 }

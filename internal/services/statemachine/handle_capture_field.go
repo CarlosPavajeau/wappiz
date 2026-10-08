@@ -19,13 +19,13 @@ func (s *service) handleCaptureField(ctx context.Context, msg IncomingMessage, s
 	}
 
 	if sessionData.PendingFlowFieldKey == nil {
-		return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData, fields)
+		return s.advanceToFlowFieldsOrConfirm(ctx, msg, session, sessionData, fields)
 	}
 
-	field, found := findCustomFlowField(fields, *sessionData.PendingFlowFieldKey)
+	field, found := findFlowField(fields, *sessionData.PendingFlowFieldKey)
 	if !found {
 		sessionData.PendingFlowFieldKey = nil
-		return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData, fields)
+		return s.advanceToFlowFieldsOrConfirm(ctx, msg, session, sessionData, fields)
 	}
 
 	answer := strings.TrimSpace(msg.Body)
@@ -46,12 +46,12 @@ func (s *service) handleCaptureField(ctx context.Context, msg IncomingMessage, s
 	sessionData.FlowFieldAnswers[field.FieldKey] = answer
 	sessionData.PendingFlowFieldKey = nil
 
-	return s.advanceToCustomFieldsOrConfirm(ctx, msg, session, sessionData, fields)
+	return s.advanceToFlowFieldsOrConfirm(ctx, msg, session, sessionData, fields)
 }
 
-func findCustomFlowField(fields []db.FindTenantEnabledFlowFieldsRow, fieldKey string) (*db.FindTenantEnabledFlowFieldsRow, bool) {
+func findFlowField(fields []db.FindTenantEnabledFlowFieldsRow, fieldKey string) (*db.FindTenantEnabledFlowFieldsRow, bool) {
 	for _, field := range fields {
-		if field.FieldType == db.FlowFieldTypeCustom && field.FieldKey == fieldKey {
+		if field.FieldKey == fieldKey {
 			return &field, true
 		}
 	}

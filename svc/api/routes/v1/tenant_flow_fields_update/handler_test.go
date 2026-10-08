@@ -191,12 +191,11 @@ func insertFlowField(t *testing.T, dbtx db.DBTX, id uuid.UUID, tenantID uuid.UUI
 			id,
 			tenant_id,
 			field_key,
-			field_type,
 			question,
 			is_required,
 			is_enabled,
 			sort_order
-		) VALUES ($1, $2, $3, 'predefined', 'Original', false, true, 1)`,
+		) VALUES ($1, $2, $3, 'Original', false, true, 1)`,
 		id,
 		tenantID,
 		key,
