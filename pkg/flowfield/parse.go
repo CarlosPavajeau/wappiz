@@ -117,8 +117,7 @@ func (r NumberRule) rangeText() string {
 // is taken in UTC, which at worst accepts tomorrow for a few evening hours in
 // the Americas.
 func (DateRule) Parse(answer string) (string, error) {
-	normalized := strings.NewReplacer("-", "/", ".", "/").Replace(answer)
-	date, err := time.Parse(dateLayout, normalized)
+	date, err := parseDate(answer)
 	if err != nil {
 		return "", invalidAnswer("malformed date", "Escribe la fecha como DD/MM/AAAA, por ejemplo 25/12/1990.")
 	}
@@ -130,6 +129,17 @@ func (DateRule) Parse(answer string) (string, error) {
 		return "", invalidAnswer("date in the future", "La fecha no puede ser futura.")
 	}
 	return date.Format(StoredDateLayout), nil
+}
+
+// parseDate also accepts StoredDateLayout, so a saved answer validates again
+// when a one-time field is reused. Year-first input is unambiguous, so
+// accepting it from customers costs nothing.
+func parseDate(answer string) (time.Time, error) {
+	if date, err := time.Parse(StoredDateLayout, answer); err == nil {
+		return date, nil
+	}
+	normalized := strings.NewReplacer("-", "/", ".", "/").Replace(answer)
+	return time.Parse(dateLayout, normalized)
 }
 
 func (DateRule) Hint() string { return "Formato DD/MM/AAAA, sin fechas futuras." }

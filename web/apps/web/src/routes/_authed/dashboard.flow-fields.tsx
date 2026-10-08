@@ -26,8 +26,10 @@ import {
   FLOW_FIELD_TYPE_LABELS,
   FLOW_FIELD_TYPES,
   isFlowFieldType,
+  MAX_NUMBER_LIMIT,
   MAX_QUESTION_LENGTH,
   MAX_TEXT_LENGTH,
+  MIN_NUMBER_LIMIT,
 } from "@/components/flow-fields/flow-field-rules"
 import { Button } from "@/components/ui/button"
 import {
@@ -118,6 +120,22 @@ const flowFieldSchema = type({
     return ctx.reject({
       message: "El mínimo no puede ser mayor que el máximo",
       path: ["textMinLength"],
+    })
+  }
+  // A union ignores `.configure()`, so the integer range of the optional
+  // number bounds is checked here with its own message.
+  const outOfRange = (["numberMin", "numberMax"] as const).find((key) => {
+    const value = data[key]
+    return (
+      data.fieldType === "number" &&
+      value !== null &&
+      (value < MIN_NUMBER_LIMIT || value > MAX_NUMBER_LIMIT)
+    )
+  })
+  if (outOfRange !== undefined) {
+    return ctx.reject({
+      message: `Usa un número entre ${MIN_NUMBER_LIMIT.toLocaleString("es-CO")} y ${MAX_NUMBER_LIMIT.toLocaleString("es-CO")}`,
+      path: [outOfRange],
     })
   }
   if (
@@ -508,6 +526,7 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                 legend="Longitud de la respuesta (caracteres)"
                 minName="textMinLength"
                 maxName="textMaxLength"
+                min={0}
                 max={MAX_TEXT_LENGTH}
                 optional={false}
               />
@@ -519,6 +538,8 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
                 legend="Rango permitido (opcional)"
                 minName="numberMin"
                 maxName="numberMax"
+                min={MIN_NUMBER_LIMIT}
+                max={MAX_NUMBER_LIMIT}
                 optional
               />
             )}
@@ -623,7 +644,8 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
 type RangeFieldsProps = {
   control: Control<FlowFieldFormValues>
   legend: string
-  max?: number
+  min: number
+  max: number
 } & (
   | { optional: false; minName: "textMinLength"; maxName: "textMaxLength" }
   | { optional: true; minName: "numberMin"; maxName: "numberMax" }
@@ -632,6 +654,7 @@ type RangeFieldsProps = {
 function RangeFields({
   control,
   legend,
+  min,
   max,
   optional,
   minName,
@@ -660,7 +683,7 @@ function RangeFields({
                   type="number"
                   inputMode="numeric"
                   step={1}
-                  min={optional ? undefined : 0}
+                  min={min}
                   max={max}
                   placeholder={optional ? "Sin límite" : undefined}
                   value={formField.value ?? ""}

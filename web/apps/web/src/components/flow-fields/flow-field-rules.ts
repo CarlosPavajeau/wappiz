@@ -7,6 +7,9 @@ import type {
 export const MAX_QUESTION_LENGTH = 500
 export const MAX_TEXT_LENGTH = 1000
 export const DEFAULT_TEXT_MAX_LENGTH = 280
+// Number limits are stored as Postgres integers.
+export const MIN_NUMBER_LIMIT = -2_147_483_648
+export const MAX_NUMBER_LIMIT = 2_147_483_647
 
 export const FLOW_FIELD_TYPES = [
   "text",

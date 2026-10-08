@@ -112,7 +112,7 @@ func TestNumberRule(t *testing.T) {
 
 func TestDateRule(t *testing.T) {
 	t.Run("accepts day-first dates with any separator", func(t *testing.T) {
-		for _, answer := range []string{"05/03/1990", "5/3/1990", "5-3-1990", "05.03.1990"} {
+		for _, answer := range []string{"05/03/1990", "5/3/1990", "5-3-1990", "05.03.1990", "1990-03-05"} {
 			got, err := DateRule{}.Parse(answer)
 			require.NoError(t, err, answer)
 			require.Equal(t, "1990-03-05", got)
@@ -128,7 +128,7 @@ func TestDateRule(t *testing.T) {
 
 	t.Run("rejects impossible, future or pre-1900 dates", func(t *testing.T) {
 		dayAfterTomorrow := time.Now().UTC().AddDate(0, 0, 2).Format("02/01/2006")
-		for _, answer := range []string{"31/02/2000", "1990-03-05", "05/03/90", "31/12/1899", dayAfterTomorrow, "ayer"} {
+		for _, answer := range []string{"31/02/2000", "1990-13-05", "05/03/90", "31/12/1899", dayAfterTomorrow, "ayer"} {
 			requireRejected(t, DateRule{}, answer)
 		}
 	})
@@ -140,4 +140,24 @@ func TestPhoneRule(t *testing.T) {
 	require.Equal(t, "573001234567", got)
 
 	requireRejected(t, PhoneRule{}, "12345")
+}
+
+// One-time answers are stored normalised and parsed again on later bookings,
+// so every rule must accept its own output unchanged.
+func TestParseIsIdempotent(t *testing.T) {
+	low, high := int32(1), int32(100)
+	for rule, answer := range map[Rule]string{
+		TextRule{MinLength: 0, MaxLength: 50}: "  hola\n mundo ",
+		EmailRule{}:                           "Ana@Correo.COM",
+		DocumentRule{}:                        "1.023.456.789",
+		NumberRule{Min: &low, Max: &high}:     "+07",
+		DateRule{}:                            "5/3/1990",
+		PhoneRule{}:                           "+57 300 123 4567",
+	} {
+		first, err := rule.Parse(answer)
+		require.NoError(t, err, rule.Type())
+		second, err := rule.Parse(first)
+		require.NoError(t, err, rule.Type())
+		require.Equal(t, first, second, rule.Type())
+	}
 }

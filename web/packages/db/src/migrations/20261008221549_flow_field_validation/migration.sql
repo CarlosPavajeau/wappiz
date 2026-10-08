@@ -11,6 +11,11 @@ ALTER TABLE "tenant_flow_fields" ADD COLUMN "max_value" integer;--> statement-br
 UPDATE "tenant_flow_fields" SET "min_length" = 0, "max_length" = 500 WHERE "field_type" = 'text';--> statement-breakpoint
 UPDATE "tenant_flow_fields" SET "question" = left("question", 500) WHERE char_length("question") > 500;--> statement-breakpoint
 UPDATE "appointment_field_responses" SET "response" = left("response", 1000) WHERE char_length("response") > 1000;--> statement-breakpoint
+-- Sessions open at deploy time may hold an answer captured before the limit;
+-- confirming would then violate the check and roll back the booking. They
+-- live at most 30 minutes, so dropping them only makes those customers start
+-- over with their next message.
+DELETE FROM "conversation_sessions" WHERE EXISTS (SELECT 1 FROM jsonb_each_text(CASE WHEN jsonb_typeof("data"->'flow_field_answers') = 'object' THEN "data"->'flow_field_answers' ELSE '{}'::jsonb END) AS "answer" WHERE char_length("answer"."value") > 1000);--> statement-breakpoint
 ALTER TABLE "appointment_field_responses" ADD CONSTRAINT "appointment_field_responses_length_check" CHECK (char_length(response) <= 1000);--> statement-breakpoint
 ALTER TABLE "tenant_flow_fields" ADD CONSTRAINT "tenant_flow_fields_question_length_check" CHECK (char_length(question) BETWEEN 2 AND 500);--> statement-breakpoint
 ALTER TABLE "tenant_flow_fields" ADD CONSTRAINT "tenant_flow_fields_text_length_check" CHECK (field_type <> 'text' OR (min_length IS NOT NULL AND max_length IS NOT NULL AND min_length >= 0 AND min_length <= max_length AND max_length BETWEEN 1 AND 1000));--> statement-breakpoint
