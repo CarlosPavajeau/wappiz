@@ -31,6 +31,7 @@ type SessionData struct {
 	ConfirmedName           *string           `json:"confirmed_name,omitempty"`
 	FlowFieldAnswers        map[string]string `json:"flow_field_answers,omitempty"`
 	PendingFlowFieldKey     *string           `json:"pending_flow_field_key,omitempty"`
+	FlowFieldAttempts       int               `json:"flow_field_attempts,omitempty"`
 	RescheduleAppointmentID *uuid.UUID        `json:"reschedule_appointment_id,omitempty"`
 }
 

@@ -3,6 +3,7 @@ package statemachine
 import (
 	"wappiz/internal/events"
 	"wappiz/internal/services/plans"
+	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/db"
 	"wappiz/pkg/whatsapp"
@@ -14,6 +15,7 @@ type Config struct {
 	SlotFinder slotfinder.SlotFinderService
 	Publisher  *events.Publisher
 	Plans      plans.Service
+	Ratelimit  ratelimit.Service
 }
 
 type service struct {
@@ -22,6 +24,7 @@ type service struct {
 	slotFinder slotfinder.SlotFinderService
 	publisher  *events.Publisher
 	plans      plans.Service
+	ratelimit  ratelimit.Service
 }
 
 func New(cfg Config) *service {
@@ -31,5 +34,6 @@ func New(cfg Config) *service {
 		slotFinder: cfg.SlotFinder,
 		publisher:  cfg.Publisher,
 		plans:      cfg.Plans,
+		ratelimit:  cfg.Ratelimit,
 	}
 }

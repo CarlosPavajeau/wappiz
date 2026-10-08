@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"wappiz/internal/testutil"
 	"wappiz/pkg/db"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
-	"wappiz/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -39,7 +39,7 @@ func TestHandle_CreatesCustomFlowField(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/v1/tenants/flow-fields",
-		strings.NewReader(`{"question":"  Cual es tu correo?  ","isRequired":true,"isOneTime":true,"sortOrder":7}`),
+		strings.NewReader(`{"question":"  Cual es tu correo?  ","rule":{"type":"text","minLength":2,"maxLength":120},"isRequired":true,"isOneTime":true,"sortOrder":7}`),
 	)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -53,6 +53,9 @@ func TestHandle_CreatesCustomFlowField(t *testing.T) {
 	require.NotEmpty(t, body.ID)
 	require.True(t, strings.HasPrefix(body.FieldKey, "custom_"))
 	require.Equal(t, "Cual es tu correo?", body.Question)
+	require.Equal(t, db.FlowFieldTypeText, body.Rule.Type)
+	require.NotNil(t, body.Rule.MaxLength)
+	require.Equal(t, int16(120), *body.Rule.MaxLength)
 	require.True(t, body.IsRequired)
 	require.True(t, body.IsOneTime)
 	require.True(t, body.IsEnabled)
@@ -92,7 +95,7 @@ func TestHandle_DefaultsOneTimeToFalse(t *testing.T) {
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/v1/tenants/flow-fields",
-		strings.NewReader(`{"question":"Cual es tu correo?","isRequired":true,"sortOrder":7}`),
+		strings.NewReader(`{"question":"Cual es tu correo?","rule":{"type":"email"},"isRequired":true,"sortOrder":7}`),
 	)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -151,17 +154,27 @@ func TestHandle_RejectsInvalidCreatePayload(t *testing.T) {
 	})
 	r.POST("/v1/tenants/flow-fields", server.ToGinHandler(h))
 
-	req := httptest.NewRequest(
-		http.MethodPost,
-		"/v1/tenants/flow-fields",
-		strings.NewReader(`{"question":" ","isRequired":true,"sortOrder":0}`),
-	)
-	req.Header.Set("Content-Type", "application/json")
+	for name, payload := range map[string]string{
+		"blank question":           `{"question":" ","rule":{"type":"email"},"isRequired":true,"sortOrder":0}`,
+		"question too long":        `{"question":"` + strings.Repeat("a", 501) + `","rule":{"type":"email"},"isRequired":true,"sortOrder":0}`,
+		"missing rule":             `{"question":"Correo","isRequired":true,"sortOrder":0}`,
+		"unknown type":             `{"question":"Correo","rule":{"type":"color"},"isRequired":true,"sortOrder":0}`,
+		"text without max":         `{"question":"Motivo","rule":{"type":"text","minLength":0},"isRequired":true,"sortOrder":0}`,
+		"text above hard limit":    `{"question":"Motivo","rule":{"type":"text","minLength":0,"maxLength":5000},"isRequired":true,"sortOrder":0}`,
+		"length limits on email":   `{"question":"Correo","rule":{"type":"email","maxLength":10},"isRequired":true,"sortOrder":0}`,
+		"number range inverted":    `{"question":"Edad","rule":{"type":"number","minValue":10,"maxValue":1},"isRequired":true,"sortOrder":0}`,
+		"value limits on document": `{"question":"Documento","rule":{"type":"document","maxValue":10},"isRequired":true,"sortOrder":0}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/v1/tenants/flow-fields", strings.NewReader(payload))
+			req.Header.Set("Content-Type", "application/json")
 
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
 
-	require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+			require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+		})
+	}
 }
 
 func insertCustomer(t *testing.T, dbtx db.DBTX, id uuid.UUID, tenantID uuid.UUID, phoneNumber string) {

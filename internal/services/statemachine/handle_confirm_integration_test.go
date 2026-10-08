@@ -9,6 +9,7 @@ import (
 	"time"
 	"wappiz/internal/events"
 	"wappiz/internal/services/plans"
+	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/testutil"
 	"wappiz/pkg/db"
@@ -46,6 +47,13 @@ func (alwaysBookable) IsBookable(context.Context, slotfinder.IsBookableParams) (
 	return true, nil
 }
 
+// allowAllSenders keeps the per-sender rate limit out of these tests.
+type allowAllSenders struct{ ratelimit.Service }
+
+func (allowAllSenders) Ratelimit(context.Context, ratelimit.RatelimitRequest) (ratelimit.RatelimitResponse, error) {
+	return ratelimit.RatelimitResponse{Success: true}, nil
+}
+
 type unlimitedPlan struct{ plans.Service }
 
 func (unlimitedPlan) AppointmentLimit(context.Context, uuid.UUID) (sql.NullInt32, error) {
@@ -64,6 +72,14 @@ type confirmFixture struct {
 }
 
 func newConfirmFixture(t *testing.T) confirmFixture {
+	t.Helper()
+	return newBookingFixture(t, StepConfirm, nil)
+}
+
+// newBookingFixture seeds a tenant, customer, resource and service, and a
+// session at step whose data already holds the chosen slot. configure, when
+// set, adjusts the session data before it is stored.
+func newBookingFixture(t *testing.T, step SessionStep, configure func(*SessionData)) confirmFixture {
 	t.Helper()
 
 	database := testutil.NewHarness(t).DB
@@ -89,11 +105,15 @@ func newConfirmFixture(t *testing.T) confirmFixture {
 	exec(`INSERT INTO resource_services (resource_id, service_id) VALUES ($1, $2)`, resourceID, serviceID)
 
 	startsAt := time.Now().Add(24 * time.Hour).Truncate(time.Minute)
-	data, err := json.Marshal(SessionData{ServiceID: &serviceID, ResourceID: &resourceID, StartsAt: &startsAt})
+	sessionData := SessionData{ServiceID: &serviceID, ResourceID: &resourceID, StartsAt: &startsAt}
+	if configure != nil {
+		configure(&sessionData)
+	}
+	data, err := json.Marshal(sessionData)
 	require.NoError(t, err)
 	exec(`INSERT INTO conversation_sessions (id, tenant_id, whatsapp_config_id, customer_id, step, data, expires_at)
 	      VALUES ($1, $2, $3, $4, $5, $6, now() + interval '30 minutes')`,
-		sessionID, tenantID, configID, customerID, string(StepConfirm), data)
+		sessionID, tenantID, configID, customerID, string(step), data)
 
 	session, err := db.Query.FindCustomerActiveConversationSession(ctx, database.Primary(),
 		db.FindCustomerActiveConversationSessionParams{TenantID: tenantID, CustomerID: customerID})
@@ -114,6 +134,7 @@ func newConfirmFixture(t *testing.T) confirmFixture {
 			SlotFinder: alwaysBookable{},
 			Publisher:  events.NewPublisher(),
 			Plans:      unlimitedPlan{},
+			Ratelimit:  allowAllSenders{},
 		}),
 		msg: IncomingMessage{
 			TenantID:         tenantID,

@@ -23,10 +23,14 @@ go_library(
 
 go_test(
     name = "middleware_test",
-    srcs = ["authentication_test.go"],
+    srcs = [
+        "authentication_test.go",
+        "webhook_signature_test.go",
+    ],
     embed = [":middleware"],
     deps = [
         "//pkg/db",
+        "@com_github_gin_gonic_gin//:gin",
         "@com_github_stretchr_testify//require",
     ],
 )

@@ -229,6 +229,11 @@ type Querier interface {
 	//  SELECT id,
 	//         field_key,
 	//         question,
+	//         field_type,
+	//         min_length,
+	//         max_length,
+	//         min_value,
+	//         max_value,
 	//         is_required,
 	//         is_one_time,
 	//         is_enabled,
@@ -711,6 +716,11 @@ type Querier interface {
 	//  SELECT id,
 	//         field_key,
 	//         question,
+	//         field_type,
+	//         min_length,
+	//         max_length,
+	//         min_value,
+	//         max_value,
 	//         is_required,
 	//         is_one_time,
 	//         sort_order
@@ -1183,6 +1193,11 @@ type Querier interface {
 	//      tenant_id,
 	//      field_key,
 	//      question,
+	//      field_type,
+	//      min_length,
+	//      max_length,
+	//      min_value,
+	//      max_value,
 	//      is_required,
 	//      is_one_time,
 	//      is_enabled,
@@ -1195,12 +1210,22 @@ type Querier interface {
 	//      $4,
 	//      $5,
 	//      $6,
+	//      $7,
+	//      $8,
+	//      $9,
+	//      $10,
+	//      $11,
 	//      true,
-	//      $7
+	//      $12
 	//  )
 	//  RETURNING id,
 	//            field_key,
 	//            question,
+	//            field_type,
+	//            min_length,
+	//            max_length,
+	//            min_value,
+	//            max_value,
 	//            is_required,
 	//            is_one_time,
 	//            is_enabled,
@@ -1444,7 +1469,7 @@ type Querier interface {
 	//  SET is_enabled = NOT is_enabled
 	//  WHERE id = $1
 	//    AND tenant_id = $2
-	ToggleFlowField(ctx context.Context, db DBTX, arg ToggleFlowFieldParams) error
+	ToggleFlowField(ctx context.Context, db DBTX, arg ToggleFlowFieldParams) (int64, error)
 	//UnblockCustomer
 	//
 	//  UPDATE customers
@@ -1486,9 +1511,14 @@ type Querier interface {
 	//
 	//  UPDATE tenant_flow_fields
 	//  SET question    = $3,
-	//      is_required = $4,
-	//      is_one_time = $5,
-	//      sort_order  = $6
+	//      field_type  = $4,
+	//      min_length  = $5,
+	//      max_length  = $6,
+	//      min_value   = $7,
+	//      max_value   = $8,
+	//      is_required = $9,
+	//      is_one_time = $10,
+	//      sort_order  = $11
 	//  WHERE id = $1
 	//    AND tenant_id = $2
 	UpdateFlowField(ctx context.Context, db DBTX, arg UpdateFlowFieldParams) (int64, error)

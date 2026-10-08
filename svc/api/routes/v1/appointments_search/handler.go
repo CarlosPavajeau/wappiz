@@ -30,7 +30,9 @@ type Response struct {
 type FieldResponse struct {
 	FieldKey string `json:"fieldKey"`
 	Question string `json:"question"`
-	Response string `json:"response"`
+	// FieldType is null when the field was deleted after it was answered.
+	FieldType *string `json:"fieldType"`
+	Response  string  `json:"response"`
 }
 
 type Handler struct {
@@ -179,6 +181,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 		           json_build_object(
 		             'fieldKey', afr.field_key,
 		             'question', COALESCE(tff.question, afr.field_key),
+		             'fieldType', tff.field_type,
 		             'response', afr.response
 		           )
 		           ORDER BY COALESCE(tff.sort_order, 2147483647), afr.created_at

@@ -4,7 +4,8 @@ CREATE TABLE "appointment_field_responses" (
 	"field_key" varchar(50) NOT NULL,
 	"response" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "uq_appointment_field" UNIQUE("appointment_id","field_key")
+	CONSTRAINT "uq_appointment_field" UNIQUE("appointment_id","field_key"),
+	CONSTRAINT "appointment_field_responses_length_check" CHECK (char_length(response) <= 1000)
 );
 
 CREATE INDEX "idx_field_responses_appointment" ON "appointment_field_responses" ("appointment_id");

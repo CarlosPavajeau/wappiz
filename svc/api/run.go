@@ -172,14 +172,6 @@ func Run(ctx context.Context, cfg Config) error {
 	})
 
 	slotFinder := slotfinder.New(database)
-	stateMachineSvc := statemachine.New(statemachine.Config{
-		DB:         database,
-		Whatsapp:   waSvc,
-		SlotFinder: slotFinder,
-		Publisher:  pub,
-		Plans:      plansSvc,
-	})
-
 	bookingSvc := booking.New(booking.Config{
 		DB:         database,
 		SlotFinder: slotFinder,
@@ -207,6 +199,15 @@ func Run(ctx context.Context, cfg Config) error {
 	}
 
 	r.Defer(rlSvc.Close)
+
+	stateMachineSvc := statemachine.New(statemachine.Config{
+		DB:         database,
+		Whatsapp:   waSvc,
+		SlotFinder: slotFinder,
+		Publisher:  pub,
+		Plans:      plansSvc,
+		Ratelimit:  rlSvc,
+	})
 
 	webhookProcessorSvc := webhookprocessor.New(webhookprocessor.Config{
 		DB:           database,

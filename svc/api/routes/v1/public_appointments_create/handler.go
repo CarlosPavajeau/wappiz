@@ -11,6 +11,7 @@ import (
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
+	"wappiz/pkg/phone"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/publicbooking"
 
@@ -77,7 +78,7 @@ func (h *Handler) Handle(c *gin.Context) error {
 	if err != nil {
 		return err
 	}
-	phoneNumber, err := publicbooking.ParsePhoneNumber(req.PhoneNumber)
+	phoneNumber, err := phone.Parse(req.PhoneNumber)
 	if err != nil {
 		return err
 	}

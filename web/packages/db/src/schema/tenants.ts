@@ -1,10 +1,12 @@
 import { sql } from "drizzle-orm"
 import {
   boolean,
+  check,
   integer,
   jsonb,
   pgEnum,
   pgTable,
+  smallint,
   timestamp,
   uuid,
   varchar,
@@ -81,6 +83,17 @@ export const tenantWhatsappConfigs = pgTable(
   ]
 )
 
+// Each type has its own validation; the length columns only apply to "text"
+// and the value columns only to "number", which the checks below enforce.
+export const flowFieldType = pgEnum("flow_field_type", [
+  "text",
+  "email",
+  "document",
+  "number",
+  "date",
+  "phone",
+])
+
 export const tenantFlowFields = pgTable(
   "tenant_flow_fields",
   {
@@ -90,6 +103,11 @@ export const tenantFlowFields = pgTable(
       .references(() => tenants.id, { onDelete: "cascade" }),
     fieldKey: varchar("field_key", { length: 50 }).notNull(),
     question: text().notNull(),
+    fieldType: flowFieldType("field_type").default("text").notNull(),
+    minLength: smallint("min_length"),
+    maxLength: smallint("max_length"),
+    minValue: integer("min_value"),
+    maxValue: integer("max_value"),
     isRequired: boolean("is_required").default(false).notNull(),
     isOneTime: boolean("is_one_time").default(false).notNull(),
     isEnabled: boolean("is_enabled").default(true).notNull(),
@@ -98,5 +116,27 @@ export const tenantFlowFields = pgTable(
       .default(sql`now()`)
       .notNull(),
   },
-  (table) => [unique("uq_tenant_field_key").on(table.tenantId, table.fieldKey)]
+  (table) => [
+    unique("uq_tenant_field_key").on(table.tenantId, table.fieldKey),
+    check(
+      "tenant_flow_fields_question_length_check",
+      sql`char_length(question) BETWEEN 2 AND 500`
+    ),
+    check(
+      "tenant_flow_fields_text_length_check",
+      sql`field_type <> 'text' OR (min_length IS NOT NULL AND max_length IS NOT NULL AND min_length >= 0 AND min_length <= max_length AND max_length BETWEEN 1 AND 1000)`
+    ),
+    check(
+      "tenant_flow_fields_length_only_text_check",
+      sql`field_type = 'text' OR (min_length IS NULL AND max_length IS NULL)`
+    ),
+    check(
+      "tenant_flow_fields_value_only_number_check",
+      sql`field_type = 'number' OR (min_value IS NULL AND max_value IS NULL)`
+    ),
+    check(
+      "tenant_flow_fields_value_range_check",
+      sql`min_value IS NULL OR max_value IS NULL OR min_value <= max_value`
+    ),
+  ]
 )

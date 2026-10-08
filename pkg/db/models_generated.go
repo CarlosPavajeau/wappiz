@@ -61,6 +61,52 @@ func (ns NullAppointmentStatus) Value() (driver.Value, error) {
 	return string(ns.AppointmentStatus), nil
 }
 
+type FlowFieldType string
+
+const (
+	FlowFieldTypeText     FlowFieldType = "text"
+	FlowFieldTypeEmail    FlowFieldType = "email"
+	FlowFieldTypeDocument FlowFieldType = "document"
+	FlowFieldTypeNumber   FlowFieldType = "number"
+	FlowFieldTypeDate     FlowFieldType = "date"
+	FlowFieldTypePhone    FlowFieldType = "phone"
+)
+
+func (e *FlowFieldType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = FlowFieldType(s)
+	case string:
+		*e = FlowFieldType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for FlowFieldType: %T", src)
+	}
+	return nil
+}
+
+type NullFlowFieldType struct {
+	FlowFieldType FlowFieldType
+	Valid         bool // Valid is true if FlowFieldType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullFlowFieldType) Scan(value interface{}) error {
+	if value == nil {
+		ns.FlowFieldType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.FlowFieldType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullFlowFieldType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.FlowFieldType), nil
+}
+
 type ScheduleOverrideKind string
 
 const (
@@ -274,11 +320,13 @@ type DomainEventHandlerCompletion struct {
 }
 
 type Jwk struct {
-	CreatedAt  time.Time    `db:"created_at"`
-	ExpiresAt  sql.NullTime `db:"expires_at"`
-	ID         string       `db:"id"`
-	PrivateKey string       `db:"private_key"`
-	PublicKey  string       `db:"public_key"`
+	Alg        sql.NullString `db:"alg"`
+	CreatedAt  time.Time      `db:"created_at"`
+	Crv        sql.NullString `db:"crv"`
+	ExpiresAt  sql.NullTime   `db:"expires_at"`
+	ID         string         `db:"id"`
+	PrivateKey string         `db:"private_key"`
+	PublicKey  string         `db:"public_key"`
 }
 
 type OnboardingProgress struct {
@@ -403,15 +451,20 @@ type Tenant struct {
 }
 
 type TenantFlowField struct {
-	ID         uuid.UUID `db:"id"`
-	TenantID   uuid.UUID `db:"tenant_id"`
-	FieldKey   string    `db:"field_key"`
-	Question   string    `db:"question"`
-	IsRequired bool      `db:"is_required"`
-	IsOneTime  bool      `db:"is_one_time"`
-	IsEnabled  bool      `db:"is_enabled"`
-	SortOrder  int32     `db:"sort_order"`
-	CreatedAt  time.Time `db:"created_at"`
+	ID         uuid.UUID     `db:"id"`
+	TenantID   uuid.UUID     `db:"tenant_id"`
+	FieldKey   string        `db:"field_key"`
+	Question   string        `db:"question"`
+	FieldType  FlowFieldType `db:"field_type"`
+	MinLength  sql.NullInt16 `db:"min_length"`
+	MaxLength  sql.NullInt16 `db:"max_length"`
+	MinValue   sql.NullInt32 `db:"min_value"`
+	MaxValue   sql.NullInt32 `db:"max_value"`
+	IsRequired bool          `db:"is_required"`
+	IsOneTime  bool          `db:"is_one_time"`
+	IsEnabled  bool          `db:"is_enabled"`
+	SortOrder  int32         `db:"sort_order"`
+	CreatedAt  time.Time     `db:"created_at"`
 }
 
 type TenantUser struct {

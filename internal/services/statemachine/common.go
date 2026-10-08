@@ -7,11 +7,27 @@ import (
 	"wappiz/internal/services/slotfinder"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/fault"
+	"wappiz/pkg/flowfield"
 )
 
 const (
-	maxDateAttempts = 3
-	sessionTTL      = 30 * time.Minute
+	maxDateAttempts      = 3
+	maxFlowFieldAttempts = 3
+	sessionTTL           = 30 * time.Minute
+
+	// maxMessageLength caps any inbound text before a handler sees it. It
+	// matches the longest answer a flow field can accept, and is well under
+	// WhatsApp's own 4096-character limit.
+	maxMessageLength = flowfield.MaxTextLength
+
+	// A customer typing by hand sends a few messages a minute; more than this
+	// is a script or a stuck client, and every message costs a DB round trip
+	// and possibly an outbound WhatsApp message.
+	senderMessagesPerMinute = 20
+
+	// Same bounds as names typed on the public booking page.
+	minNameLength = 2
+	maxNameLength = 100
 )
 
 func appointmentStatusLabel(status string) string {
