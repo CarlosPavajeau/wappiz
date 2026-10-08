@@ -3,6 +3,7 @@ package webhookprocessor
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"sync"
 	"time"
 	"wappiz/internal/services/statemachine"
@@ -19,6 +20,14 @@ import (
 // so covering Meta's whole multi-day retry window would only cost memory:
 // Redis holds one key per message received in the last TTL.
 const seenMessageTTL = 24 * time.Hour
+
+// maxMessageAge matches the conversation session TTL. Meta can deliver a
+// message hours or days late after an outage on either side; by then the
+// session it belonged to has expired, so answering would restart a booking
+// the customer no longer expects. They are dropped without a reply: after an
+// outage a customer may have several queued, and one late reply each would
+// read as spam.
+const maxMessageAge = 30 * time.Minute
 
 type Config struct {
 	DB           db.Database
@@ -108,6 +117,14 @@ func (s *service) processPayload(req Request) {
 			}
 
 			for _, msg := range change.Value.Messages {
+				if isStale(msg.Timestamp, time.Now()) {
+					logger.Info("webhook: stale message ignored",
+						"phone_number_id", phoneNumberID,
+						"message_id", msg.ID,
+						"timestamp", msg.Timestamp)
+					continue
+				}
+
 				if !s.claimMessage(ctx, phoneNumberID, msg.ID) {
 					continue
 				}
@@ -128,6 +145,18 @@ func (s *service) processPayload(req Request) {
 			}
 		}
 	}
+}
+
+// isStale reports whether a message was sent more than maxMessageAge before
+// now. Timestamp is the Unix time in seconds Meta sends as a string; a
+// missing or malformed one is treated as fresh so no message is lost to a
+// payload change.
+func isStale(timestamp string, now time.Time) bool {
+	sentAt, err := strconv.ParseInt(timestamp, 10, 64)
+	if err != nil {
+		return false
+	}
+	return now.Sub(time.Unix(sentAt, 0)) > maxMessageAge
 }
 
 // claimMessage reports whether msgID is seen for the first time. Meta

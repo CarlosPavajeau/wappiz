@@ -3,6 +3,7 @@ package webhookprocessor
 import (
 	"context"
 	"errors"
+	"strconv"
 	"testing"
 	"time"
 	"wappiz/pkg/clock"
@@ -40,4 +41,19 @@ func TestClaimMessage(t *testing.T) {
 		require.True(t, s.claimMessage(ctx, "phone-1", ""))
 		require.True(t, s.claimMessage(ctx, "phone-1", ""))
 	})
+}
+
+func TestIsStale(t *testing.T) {
+	now := time.Unix(1_700_000_000, 0)
+	at := func(d time.Duration) string { return strconv.FormatInt(now.Add(d).Unix(), 10) }
+
+	require.False(t, isStale(at(0), now))
+	require.False(t, isStale(at(-maxMessageAge), now))
+	require.True(t, isStale(at(-maxMessageAge-time.Second), now))
+	require.True(t, isStale(at(-48*time.Hour), now))
+	// Clock skew can put a message slightly in the future; it is fresh.
+	require.False(t, isStale(at(time.Minute), now))
+
+	require.False(t, isStale("", now))
+	require.False(t, isStale("not-a-number", now))
 }
