@@ -1,0 +1,36 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended"],
+
+  // Mirror the supply-chain window in web/pnpm-workspace.yaml
+  // (minimumReleaseAge: 10080 minutes) for every ecosystem, not just npm.
+  // "strict" holds the branch until a version is old enough, instead of
+  // opening a PR that fails pnpm install; the dependency dashboard lists
+  // what is waiting.
+  minimumReleaseAge: "7 days",
+  internalChecksFilter: "strict",
+
+  postUpdateOptions: ["gomodTidy"],
+
+  packageRules: [
+    {
+      // The go directive is the minimum version the module supports and the
+      // toolchain line picks the version we actually build with. Stay on the
+      // latest 1.26 patch; moving to a new minor is a deliberate change.
+      matchManagers: ["gomod"],
+      matchDepTypes: ["toolchain"],
+      allowedVersions: "<1.27",
+    },
+    {
+      matchDatasources: ["docker"],
+      matchPackageNames: ["golang"],
+      allowedVersions: "<1.27",
+    },
+    {
+      // TanStack Start pins exact versions of its router and store siblings,
+      // so updating them separately leaves two router copies in the bundle.
+      matchPackageNames: ["@tanstack/**"],
+      groupName: "TanStack",
+    },
+  ],
+}
