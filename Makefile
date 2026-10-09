@@ -32,8 +32,16 @@ fmt: ## Format code
 	cd web && pnpm fix
 
 .PHONY: test
-test: ## Run app tests
+test: test-go test-web ## Run all tests
+
+.PHONY: test-go
+test-go: ## Run Go tests
 	bazel test //...
+
+# Bazel ignores web/ (see .bazelignore), so web tests run through pnpm.
+.PHONY: test-web
+test-web: ## Run web tests
+	cd web && pnpm test
 
 .PHONY: bazel
 bazel: ## Sync BUILD.bazel
