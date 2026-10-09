@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	redisImage = "redis:8.0"
+	redisImage = "public.ecr.aws/docker/library/redis:8.0"
 	redisPort  = "6379/tcp"
 )
 

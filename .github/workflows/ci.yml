@@ -33,5 +33,16 @@ jobs:
       - name: Build
         run: go build ./...
 
+      # Pull once up front so parallel test binaries hit the local cache
+      # instead of racing each other to the registry.
+      - name: Pre-pull test images
+        run: |
+          docker pull public.ecr.aws/docker/library/postgres:16-alpine
+          docker pull public.ecr.aws/docker/library/redis:8.0
+
       - name: Test
+        # Ryuk only reaps leaked containers; the runner is ephemeral, and
+        # skipping it avoids one more Docker Hub pull.
+        env:
+          TESTCONTAINERS_RYUK_DISABLED: "true"
         run: go test ./...

@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	postgresImage = "postgres:16-alpine"
+	postgresImage = "public.ecr.aws/docker/library/postgres:16-alpine"
 	adminDatabase = "wappiz_template"
 	adminUser     = "postgres"
 	adminPassword = "postgres"
