@@ -36,23 +36,15 @@ test: test-go test-web ## Run all tests
 
 .PHONY: test-go
 test-go: ## Run Go tests
-	bazel test //...
+	go test ./...
 
-# Bazel ignores web/ (see .bazelignore), so web tests run through pnpm.
 .PHONY: test-web
 test-web: ## Run web tests
 	cd web && pnpm test
 
-.PHONY: bazel
-bazel: ## Sync BUILD.bazel
-	bazel mod tidy
-	bazel run //:gazelle
-
 .PHONY: build
 build:  ## Build all artifacts (binaries land in ./bin)
-	bazel build //...
-	@mkdir -p bin
-	@cp -f "$$(bazel cquery --ui_event_filters=-info --noshow_progress //:wappiz --output=files)" bin/wappiz && chmod +w bin/wappiz
+	CGO_ENABLED=0 go build -o bin/wappiz ./cmd/api
 
 ##@ Local Docker stack
 

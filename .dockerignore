@@ -2,7 +2,6 @@
 web/
 bin/
 dist/
-bazel-*
 Dockerfile
 .dockerignore
 .env*
