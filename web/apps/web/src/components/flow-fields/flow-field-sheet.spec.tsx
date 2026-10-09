@@ -5,6 +5,7 @@ import { render } from "vitest-browser-react"
 import { page } from "vitest/browser"
 
 import { FlowFieldSheet } from "@/components/flow-fields/flow-field-sheet"
+import { VIEWPORTS } from "@/test/viewports"
 
 const mocks = vi.hoisted(() => ({
   create: vi.fn<(request: unknown) => Promise<void>>(),
@@ -169,5 +170,36 @@ describe("FlowFieldSheet", () => {
       )
     await expect.element(sheet()).toBeVisible()
     expect(mocks.invalidate).not.toHaveBeenCalled()
+  })
+
+  describe.each(VIEWPORTS)("on $name", ({ height, width }) => {
+    beforeEach(async () => {
+      await page.viewport(width, height)
+    })
+
+    it("scrolls the form body and keeps the title and save action on screen", async () => {
+      await renderSheet()
+      await page.getByRole("button", { name: "Nuevo campo" }).click()
+
+      const form = document.querySelector("#create-flow-field")
+      if (!(form instanceof HTMLFormElement)) {
+        throw new TypeError("the create form is not rendered")
+      }
+      const title = page.getByRole("heading", { name: "Nuevo campo del flujo" })
+      const save = page.getByRole("button", { name: "Crear campo" })
+
+      // Without overflow this spec would pass without exercising the scroll.
+      expect(form.scrollHeight).toBeGreaterThan(form.clientHeight)
+      await expect.element(title).toBeInViewport({ ratio: 1 })
+      await expect.element(save).toBeInViewport({ ratio: 1 })
+
+      form.scrollTop = form.scrollHeight
+
+      await expect
+        .element(page.getByRole("switch", { name: "Pedir solo una vez" }))
+        .toBeInViewport()
+      await expect.element(title).toBeInViewport({ ratio: 1 })
+      await expect.element(save).toBeInViewport({ ratio: 1 })
+    })
   })
 })
