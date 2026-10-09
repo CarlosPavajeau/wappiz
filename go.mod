@@ -2,6 +2,8 @@ module wappiz
 
 go 1.26.0
 
+toolchain go1.26.9
+
 require (
 	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
