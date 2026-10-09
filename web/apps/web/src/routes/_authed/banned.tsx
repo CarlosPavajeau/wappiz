@@ -1,23 +1,15 @@
-import { useMutation } from "@tanstack/react-query"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute } from "@tanstack/react-router"
 
 import { Section, SectionContent } from "@/components/landing/layout/section"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { authClient } from "@/lib/auth-client"
+import { useSignOut } from "@/hooks/use-sign-out"
 
 export const Route = createFileRoute("/_authed/banned")({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  const navigate = useNavigate()
-
-  const { mutate: signOut, isPending } = useMutation({
-    mutationFn: () => authClient.signOut(),
-    onSuccess: () => {
-      navigate({ to: "/sign-in" })
-    },
-  })
+  const { mutate: signOut, isPending } = useSignOut()
 
   return (
     <div className="flex min-h-dvh flex-col">

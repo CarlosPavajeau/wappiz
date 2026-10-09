@@ -1,7 +1,6 @@
 import { CreditCardIcon, Logout } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import { useMutation } from "@tanstack/react-query"
-import { Link, useNavigate, useRouteContext } from "@tanstack/react-router"
+import { Link, useRouteContext } from "@tanstack/react-router"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -17,8 +16,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useBillingEnabled } from "@/hooks/use-billing-enabled"
-import { authClient } from "@/lib/auth-client"
-import { clearTokenCache } from "@/lib/client-api"
+import { useSignOut } from "@/hooks/use-sign-out"
 
 export function UserMenu() {
   const { isMobile } = useSidebar()
@@ -27,15 +25,7 @@ export function UserMenu() {
   })
 
   const billingEnabled = useBillingEnabled()
-  const navigate = useNavigate()
-
-  const { mutate: signOut, isPending } = useMutation({
-    mutationFn: () => authClient.signOut(),
-    onSuccess: () => {
-      clearTokenCache()
-      navigate({ to: "/sign-in" })
-    },
-  })
+  const { mutate: signOut, isPending } = useSignOut()
 
   return (
     <SidebarMenu>
