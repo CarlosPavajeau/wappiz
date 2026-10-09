@@ -34,7 +34,7 @@
       "dependsOn": ["^check-types"]
     },
     "test": {
-      "outputs": []
+      "cache": false
     },
     "dev": {
       "cache": false,
