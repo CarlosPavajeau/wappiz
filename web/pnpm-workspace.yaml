@@ -27,26 +27,6 @@ overrides:
 # deliberate, reviewed hotfix. Note: the first pnpm-lock.yaml changes after
 # enabling this may resolve to older versions than the newest available.
 minimumReleaseAge: 10080
-# Reviewed hotfix (2026-10-03): deploys reject @tanstack/react-start below
-# 1.168.60, which is younger than the 7-day window. Start pins exact versions
-# of its sibling packages from the same 2026-09-30 release, so each of them
-# is listed too (trustPolicy still enforces provenance on all of them).
-# Remove this list once those releases are older than 7 days (2026-10-08).
-minimumReleaseAgeExclude:
-  - "@tanstack/react-router"
-  - "@tanstack/react-start"
-  - "@tanstack/react-start-client"
-  - "@tanstack/react-start-rsc"
-  - "@tanstack/react-start-server"
-  - "@tanstack/react-store"
-  - "@tanstack/router-core"
-  - "@tanstack/router-generator"
-  - "@tanstack/router-plugin"
-  - "@tanstack/start-client-core"
-  - "@tanstack/start-plugin-core"
-  - "@tanstack/start-server-core"
-  - "@tanstack/start-storage-context"
-  - "@tanstack/store"
 # pnpm defaults to skipping the age check for a package whose registry
 # metadata has no publish time. Fail instead: we only use npmjs.org, which
 # always reports it, so a missing time means something is off.
