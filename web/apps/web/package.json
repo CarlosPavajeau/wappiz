@@ -7,7 +7,8 @@
     "dev": "NODE_OPTIONS='--import ./instrument.server.mjs' vite dev --port 3001",
     "build": "vite build && cp instrument.server.mjs .vercel/output",
     "start": "vite preview",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -60,6 +61,7 @@
     "@wappiz/config": "workspace:*",
     "shadcn": "^4.21.0",
     "tailwindcss": "^4.1.10",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^5.0.3"
   }
 }

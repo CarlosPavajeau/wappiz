@@ -53,7 +53,7 @@ function parseJwtExpiry(token: string): number | null {
   }
 }
 
-async function getCachedToken(): Promise<string | null> {
+export async function getCachedToken(): Promise<string | null> {
   // Server: skip cache — every request has its own session headers.
   if (typeof window === "undefined") {
     return getToken()
