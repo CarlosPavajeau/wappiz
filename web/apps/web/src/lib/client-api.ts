@@ -21,6 +21,14 @@ let cache: CachedToken | null = null
  */
 let generation = 0
 
+/** Aborts a request whose token fetch outlived the session that started it. */
+export class SessionChangedError extends Error {
+  constructor() {
+    super("Session changed while the request was pending")
+    this.name = "SessionChangedError"
+  }
+}
+
 export function clearTokenCache(): void {
   cache = null
   generation += 1
@@ -49,8 +57,10 @@ async function getCachedToken(): Promise<string | null> {
   const startedAt = generation
   const token = await getToken()
   if (startedAt !== generation) {
-    // Session changed mid-flight: discard and fetch under the current session.
-    return getCachedToken()
+    // Session changed mid-flight. Retrying would send a request built by the
+    // previous user (e.g. a form submission) under the new user's account, so
+    // abort it instead; requests started by the new session fetch their own.
+    throw new SessionChangedError()
   }
   if (!token) {
     cache = null
