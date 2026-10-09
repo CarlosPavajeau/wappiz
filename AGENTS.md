@@ -88,6 +88,9 @@ pnpm check-types  # TypeScript type checking across workspace
 pnpm check        # Oxlint + Oxfmt check (via Ultracite)
 pnpm fix          # Auto-fix formatting and lint issues
 
+# Testing
+pnpm test         # Vitest unit tests (`*.test.ts` next to the code)
+
 # Build
 pnpm build        # Build all apps
 
