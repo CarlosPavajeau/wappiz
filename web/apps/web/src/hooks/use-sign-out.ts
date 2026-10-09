@@ -9,7 +9,15 @@ export function useSignOut() {
   const clearSessionCache = useClearSessionCache()
 
   return useMutation({
-    mutationFn: () => authClient.signOut(),
+    mutationFn: async () => {
+      // Better Auth reports failures in the result instead of rejecting; a
+      // failed sign-out leaves the session cookie valid, so client state must
+      // stay intact.
+      const { error } = await authClient.signOut()
+      if (error) {
+        throw new Error(error.message ?? "Sign-out failed")
+      }
+    },
     onSuccess: async () => {
       // Leave the authed routes first so their mounted queries don't refetch
       // against an empty cache with no session.
