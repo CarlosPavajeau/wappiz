@@ -33,15 +33,6 @@ import {
 } from "@/components/flow-fields/flow-field-rules"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
   Empty,
   EmptyContent,
   EmptyDescription,
@@ -67,6 +58,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 import { Switch } from "@/components/ui/switch"
@@ -221,7 +222,7 @@ const FIELD_TEMPLATES: FieldTemplate[] = [
   },
 ]
 
-type FlowFieldDialogProps = {
+type FlowFieldSheetProps = {
   field?: TenantFlowField
 }
 
@@ -301,7 +302,7 @@ function parseBoundInput(value: string, optional: boolean): number | "" | null {
   return Number(value)
 }
 
-function FlowFieldDialog({ field }: FlowFieldDialogProps) {
+function FlowFieldSheet({ field }: FlowFieldSheetProps) {
   const [open, setOpen] = useState(false)
   const router = useRouter()
   const isEdit = field !== undefined
@@ -368,8 +369,8 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetTrigger
         render={
           <Button
             size={isEdit ? "icon-sm" : "default"}
@@ -397,20 +398,26 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
             Nuevo campo
           </>
         )}
-      </DialogTrigger>
+      </SheetTrigger>
 
-      <DialogContent className="gap-5 sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>
+      {/* The form is taller than most viewports, so only its body scrolls and
+          the header and actions stay pinned. */}
+      <SheetContent className="gap-0 data-[side=right]:w-full data-[side=right]:sm:max-w-lg">
+        <SheetHeader className="border-b pr-12">
+          <SheetTitle>
             {isEdit ? "Editar campo del flujo" : "Nuevo campo del flujo"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             Controla que dato pide el bot, cuando lo pide y si puede continuar
             sin respuesta.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
-        <form id={formId} onSubmit={onSubmit}>
+        <form
+          id={formId}
+          onSubmit={onSubmit}
+          className="min-h-0 flex-1 overflow-y-auto p-4"
+        >
           <FieldGroup>
             {!isEdit && (
               <Field>
@@ -630,14 +637,17 @@ function FlowFieldDialog({ field }: FlowFieldDialogProps) {
           </FieldGroup>
         </form>
 
-        <DialogFooter showCloseButton>
+        <SheetFooter className="flex-col-reverse border-t sm:flex-row sm:justify-end">
+          <SheetClose render={<Button variant="outline" />}>
+            Cancelar
+          </SheetClose>
           <Button type="submit" form={formId} disabled={isSubmitting}>
             {isSubmitting && <Spinner />}
             {isEdit ? "Guardar cambios" : "Crear campo"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -758,7 +768,7 @@ function FlowFieldsTable({ fields }: { fields: TenantFlowField[] }) {
               <FlowFieldEnabledSwitch field={field} />
             </TableCell>
             <TableCell>
-              <FlowFieldDialog field={field} />
+              <FlowFieldSheet field={field} />
             </TableCell>
           </TableRow>
         ))}
@@ -782,7 +792,7 @@ function RouteComponent() {
             cita.
           </p>
         </div>
-        <FlowFieldDialog />
+        <FlowFieldSheet />
       </div>
 
       {fields.length === 0 ? (
