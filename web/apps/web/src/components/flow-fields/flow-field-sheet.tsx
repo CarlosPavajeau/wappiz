@@ -126,7 +126,12 @@ export function FlowFieldSheet({ field }: FlowFieldSheetProps) {
       toast.error("La pregunta debe tener al menos 2 caracteres.")
       return
     }
-    await saveField({ ...values, question: submittedQuestion })
+    try {
+      await saveField({ ...values, question: submittedQuestion })
+    } catch {
+      // onError already told the user; rethrowing would only leave an
+      // unhandled rejection behind the form submit.
+    }
   })
 
   const handleOpenChange = (next: boolean) => {
