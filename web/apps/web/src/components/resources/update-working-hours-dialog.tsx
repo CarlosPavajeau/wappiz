@@ -170,7 +170,9 @@ export function UpdateWorkingHoursDialog({
         Editar
       </DialogTrigger>
 
-      <DialogContent className="max-h-[85vh] overflow-y-auto">
+      {/* Only the day list scrolls, so the save action stays reachable when
+          several days have multiple intervals. */}
+      <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto]">
         <DialogHeader>
           <DialogTitle>Editar horario semanal</DialogTitle>
           <DialogDescription>
@@ -179,7 +181,10 @@ export function UpdateWorkingHoursDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ul aria-label="Horario semanal" className="space-y-3">
+        <ul
+          aria-label="Horario semanal"
+          className="-mx-4 space-y-3 overflow-y-auto px-4"
+        >
           {days.map((day) => {
             const isActive = day.intervals.length > 0
 
