@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/input-group"
 import { Spinner } from "@/components/ui/spinner"
 import { verifyTurnstileToken } from "@/functions/verify-turnstile-token"
+import { useClearSessionCache } from "@/hooks/use-clear-session-cache"
 import { authClient } from "@/lib/auth-client"
 import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated"
 
@@ -61,6 +62,7 @@ function RouteComponent() {
   const navigate = useNavigate({
     from: "/",
   })
+  const clearSessionCache = useClearSessionCache()
 
   const { control, handleSubmit, setError, setValue } = useForm<SignUpFormData>(
     {
@@ -81,6 +83,8 @@ function RouteComponent() {
     },
     onSuccess: (result) => {
       if (result.data) {
+        // A previous session (e.g. one that expired) may have left cached data.
+        clearSessionCache()
         toast.success("¡Cuenta creada! Por favor, inicia sesión.")
         navigate({
           to: "/onboarding",

@@ -14,9 +14,24 @@ const EXPIRY_BUFFER_MS = 30_000
 const FALLBACK_TTL_MS = 14 * 60 * 1000
 
 let cache: CachedToken | null = null
+/**
+ * Bumped on every clear so a token fetch that started under a previous session
+ * can tell its response is stale. Without it, a late response would write the
+ * old user's token back into the cache after sign-out/sign-in.
+ */
+let generation = 0
+
+/** Aborts a request whose token fetch outlived the session that started it. */
+export class SessionChangedError extends Error {
+  constructor() {
+    super("Session changed while the request was pending")
+    this.name = "SessionChangedError"
+  }
+}
 
 export function clearTokenCache(): void {
   cache = null
+  generation += 1
 }
 
 function parseJwtExpiry(token: string): number | null {
@@ -39,7 +54,14 @@ async function getCachedToken(): Promise<string | null> {
     return cache.value
   }
 
+  const startedAt = generation
   const token = await getToken()
+  if (startedAt !== generation) {
+    // Session changed mid-flight. Retrying would send a request built by the
+    // previous user (e.g. a form submission) under the new user's account, so
+    // abort it instead; requests started by the new session fetch their own.
+    throw new SessionChangedError()
+  }
   if (!token) {
     cache = null
     return null
