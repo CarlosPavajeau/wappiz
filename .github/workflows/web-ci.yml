@@ -1,6 +1,6 @@
 name: Web CI
 
-# Bazel ignores web/ (see .bazelignore), so the Go CI never runs these tests.
+# The Go CI ignores web/ (see paths-ignore in ci.yml), so it never runs these tests.
 on:
   push:
     paths:

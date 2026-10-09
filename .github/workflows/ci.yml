@@ -25,15 +25,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Bazel
-        uses: bazel-contrib/setup-bazel@0.14.0
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          bazelisk-cache: true
-          disk-cache: ${{ github.workflow }}
-          repository-cache: true
+          go-version-file: go.mod
 
       - name: Build
-        run: bazel build //...
+        run: go build ./...
 
       - name: Test
-        run: bazel test //...
+        run: go test ./...
