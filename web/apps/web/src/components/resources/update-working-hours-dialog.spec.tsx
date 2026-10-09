@@ -63,7 +63,9 @@ describe("UpdateWorkingHoursDialog", () => {
 
       days.scrollTop = days.scrollHeight
 
-      await expect.element(page.getByRole("checkbox", { name: "sábado" })).toBeInViewport()
+      await expect
+        .element(page.getByRole("checkbox", { name: "sábado" }))
+        .toBeInViewport()
       await expect.element(title).toBeInViewport({ ratio: 1 })
       await expect.element(save).toBeInViewport({ ratio: 1 })
     })
