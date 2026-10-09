@@ -58,10 +58,13 @@
     "@types/node": "^24.13.6",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@vitest/browser-playwright": "5.0.3",
     "@wappiz/config": "workspace:*",
+    "playwright": "~1.63.0",
     "shadcn": "^4.21.0",
     "tailwindcss": "^4.1.10",
     "typescript": "catalog:",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.3",
+    "vitest-browser-react": "^2.3.0"
   }
 }
