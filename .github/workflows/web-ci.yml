@@ -1,8 +1,11 @@
 name: Web CI
 
-# The Go CI ignores web/ (see paths-ignore in ci.yml), so it never runs these tests.
+# The Go CI ignores web/ (see the paths filter in ci.yml), so it never runs
+# these tests. Branches are checked through their pull request only, so each
+# commit runs once.
 on:
   push:
+    branches: [main]
     paths:
       - 'web/**'
       - '.github/workflows/web-ci.yml'

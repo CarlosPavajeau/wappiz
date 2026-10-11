@@ -2,8 +2,13 @@ name: CI
 
 # The Drizzle schema in web/packages/db is the source of truth for
 # pkg/db/schema, so changes there must run the Go checks too.
+#
+# Branches are checked through their pull request; pushing them as well would
+# run every job twice, and a branch's first push has no base commit for
+# golangci-lint's only-new-issues to diff against.
 on:
   push:
+    branches: [main]
     paths:
       - '**'
       - '!web/**'
