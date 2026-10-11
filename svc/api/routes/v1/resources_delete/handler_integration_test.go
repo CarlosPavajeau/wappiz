@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 	"wappiz/internal/services/booking"
+	"wappiz/internal/testutil"
 	"wappiz/pkg/codes"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
-	"wappiz/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

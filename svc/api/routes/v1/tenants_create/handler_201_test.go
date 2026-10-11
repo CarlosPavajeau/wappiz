@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"wappiz/pkg/server"
 	"wappiz/internal/testutil"
+	"wappiz/pkg/server"
 
 	"github.com/gin-gonic/gin"
 )

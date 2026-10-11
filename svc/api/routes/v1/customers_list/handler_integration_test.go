@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"wappiz/internal/testutil"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
-	"wappiz/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
