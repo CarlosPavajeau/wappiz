@@ -6,10 +6,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"wappiz/internal/testutil"
 	"wappiz/pkg/db"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
-	"wappiz/internal/testutil"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

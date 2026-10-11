@@ -1,8 +1,11 @@
 name: Web CI
 
-# The Go CI ignores web/ (see paths-ignore in ci.yml), so it never runs these tests.
+# The Go CI ignores web/ (see the paths filter in ci.yml), so it never runs
+# these tests. Branches are checked through their pull request only, so each
+# commit runs once.
 on:
   push:
+    branches: [main]
     paths:
       - 'web/**'
       - '.github/workflows/web-ci.yml'
@@ -53,3 +56,25 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      # @wappiz/env validates these at build time; the build only needs them
+      # to be well-formed, so placeholders stand in for the real secrets. The
+      # vercel preset matches production and creates the .vercel/output
+      # directory the build script copies into.
+      - name: Build
+        env:
+          NITRO_PRESET: vercel
+          AUTH_GOOGLE_ID: ci
+          AUTH_GOOGLE_SECRET: ci
+          BETTER_AUTH_SECRET: ci-placeholder-secret-at-least-32-chars
+          BETTER_AUTH_URL: http://localhost:3001
+          CLOUDFLARE_TURNSTILE_SECRET_KEY: ci
+          CORS_ORIGIN: http://localhost:3001
+          DATABASE_URL: postgres://ci:ci@localhost:5432/ci
+          POLAR_ACCESS_TOKEN: ci
+          POLAR_WEBHOOK_SECRET: ci
+          RESEND_API_KEY: ci
+          RESEND_SEGMENT_ID: ci
+          VITE_API_URL: http://localhost:8080
+          VITE_CLOUDFLARE_TURNSTILE_SITE_KEY: ci
+        run: pnpm build

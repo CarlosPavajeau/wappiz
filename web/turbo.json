@@ -20,7 +20,8 @@
         "CLOUDFLARE_TURNSTILE_SECRET_KEY",
         "POLAR_MODE",
         "POLAR_WEBHOOK_SECRET",
-        "POLAR_ACCESS_TOKEN"
+        "POLAR_ACCESS_TOKEN",
+        "NITRO_PRESET"
       ],
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],

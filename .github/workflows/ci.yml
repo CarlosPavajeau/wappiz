@@ -1,12 +1,26 @@
 name: CI
 
+# The Drizzle schema in web/packages/db is the source of truth for
+# pkg/db/schema, so changes there must run the Go checks too. The lockfile
+# pins drizzle-kit, whose version can change the generated SQL.
+#
+# Branches are checked through their pull request; pushing them as well would
+# run every job twice, and a branch's first push has no base commit for
+# golangci-lint's only-new-issues to diff against.
 on:
   push:
-    paths-ignore:
-      - 'web/**'
+    branches: [main]
+    paths:
+      - '**'
+      - '!web/**'
+      - 'web/packages/db/**'
+      - 'web/pnpm-lock.yaml'
   pull_request:
-    paths-ignore:
-      - 'web/**'
+    paths:
+      - '**'
+      - '!web/**'
+      - 'web/packages/db/**'
+      - 'web/pnpm-lock.yaml'
 
 permissions:
   contents: read
@@ -34,11 +48,22 @@ jobs:
         run: go build ./...
 
       # Pull once up front so parallel test binaries hit the local cache
-      # instead of racing each other to the registry.
+      # instead of racing each other to the registry. ECR Public still
+      # rate-limits anonymous pulls from shared runner IPs ("toomanyrequests:
+      # Rate exceeded"), so each pull retries with exponential backoff.
       - name: Pre-pull test images
         run: |
-          docker pull public.ecr.aws/docker/library/postgres:16-alpine
-          docker pull public.ecr.aws/docker/library/redis:8.0
+          pull() {
+            for attempt in 1 2 3 4 5; do
+              docker pull "$1" && return 0
+              delay=$((2 ** attempt))
+              echo "Pull of $1 failed (attempt $attempt), retrying in ${delay}s"
+              sleep "$delay"
+            done
+            return 1
+          }
+          pull public.ecr.aws/docker/library/postgres:16-alpine
+          pull public.ecr.aws/docker/library/redis:8.0
 
       - name: Test
         # Ryuk only reaps leaked containers; the runner is ephemeral, and
@@ -46,3 +71,74 @@ jobs:
         env:
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: go test ./...
+
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # The codebase predates this job and still has ~90 findings, so only
+      # issues introduced by the change fail the build until they are paid down.
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.14.0
+          only-new-issues: true
+
+  generated:
+    name: Generated code
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install web dependencies
+        working-directory: web
+        run: pnpm install --frozen-lockfile
+
+      # Regenerates pkg/db/schema from the Drizzle schema, then the sqlc code,
+      # then runs go fmt. Any diff means a committed file is stale.
+      - name: Regenerate
+        run: |
+          make generate-sql
+          make generate
+
+      - name: Check for drift
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --short
+            git diff
+            echo "::error::Generated code or formatting is out of date. Run 'make generate-sql && make generate' and commit the result."
+            exit 1
+          fi
