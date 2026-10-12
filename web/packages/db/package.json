@@ -15,6 +15,7 @@
     "db:studio": "drizzle-kit studio",
     "db:migrate": "drizzle-kit migrate",
     "db:baseline": "node scripts/baseline-migrations.ts",
+    "db:check-migrations": "node scripts/check-migrations.ts",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
