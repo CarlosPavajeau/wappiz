@@ -76,3 +76,41 @@ export async function inspectTrackingTable(
     recorded: new Map(rows.rows.map((r) => [r.name, r.hash])),
   }
 }
+
+// What the deploy pipeline must know about the database's migration history
+// before running `drizzle-kit migrate`:
+// - not-baselined: no table, or the pre-1.0 layout; migrate would re-run
+//   every migration.
+// - changed: migrations whose file changed after they were applied. Drizzle
+//   matches by name, so it would silently keep the old version.
+// - ok: safe to migrate; `pending` will be applied.
+// `unknown` lists applied migrations missing locally (usually an abandoned
+// branch deployed to staging): worth reporting, never blocking.
+export type HistoryCheck =
+  | { kind: "not-baselined"; table: "missing" | "legacy" }
+  | { kind: "changed"; changed: LocalMigration[]; unknown: string[] }
+  | { kind: "ok"; pending: LocalMigration[]; unknown: string[] }
+
+export function checkHistory(
+  local: readonly LocalMigration[],
+  table: TrackingTable
+): HistoryCheck {
+  if (table.kind !== "current") {
+    return { kind: "not-baselined", table: table.kind }
+  }
+
+  const localNames = new Set(local.map((m) => m.name))
+  const unknown = [...table.recorded.keys()].filter(
+    (name) => !localNames.has(name)
+  )
+  const changed = local.filter((m) => {
+    const hash = table.recorded.get(m.name)
+    return hash !== undefined && hash !== m.hash
+  })
+  if (changed.length > 0) {
+    return { changed, kind: "changed", unknown }
+  }
+
+  const pending = local.filter((m) => !table.recorded.has(m.name))
+  return { kind: "ok", pending, unknown }
+}
