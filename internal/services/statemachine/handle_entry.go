@@ -99,6 +99,8 @@ func (s *service) allowWelcomeMenu(ctx context.Context, msg IncomingMessage) boo
 		Limit:      1,
 		Duration:   welcomeMenuCooldown,
 		Cost:       1,
+		// Zero lets the limiter use its own clock.
+		Time: time.Time{},
 	})
 	if err != nil {
 		logger.Warn("[scheduling] welcome menu rate limit check failed, sending menu",
