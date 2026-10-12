@@ -21,8 +21,21 @@ import { parsePlanMetadata } from "./lib/parse-metadata"
 
 const polarClient = createPolarClient(env.POLAR_ACCESS_TOKEN, env.POLAR_MODE)
 
+// Every Vercel deployment is reachable on its own generated hostname besides
+// the stable domain in BETTER_AUTH_URL, and the auth client calls whichever
+// one the browser is on. Trusting only this deployment's exact hostnames,
+// rather than "*.vercel.app", keeps other people's Vercel apps untrusted.
+const allowedHosts = [
+  new URL(env.BETTER_AUTH_URL).host,
+  env.VERCEL_URL,
+  env.VERCEL_BRANCH_URL,
+].filter((host): host is string => host !== undefined)
+
 export const auth = betterAuth({
-  baseURL: env.BETTER_AUTH_URL,
+  baseURL: {
+    allowedHosts,
+    fallback: env.BETTER_AUTH_URL,
+  },
   database: drizzleAdapter(db, {
     provider: "pg",
 

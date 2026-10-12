@@ -21,5 +21,9 @@ export const env = createEnv({
     POLAR_WEBHOOK_SECRET: z.string(),
     RESEND_API_KEY: z.string(),
     RESEND_SEGMENT_ID: z.string(),
+    // System variables Vercel sets on every deployment: hostnames (no
+    // protocol) of this deployment and of its branch alias. Absent elsewhere.
+    VERCEL_BRANCH_URL: z.string().optional(),
+    VERCEL_URL: z.string().optional(),
   },
 })
