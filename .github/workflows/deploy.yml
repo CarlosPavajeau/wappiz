@@ -96,15 +96,16 @@ jobs:
       - name: Deploy
         run: railway up --service api --ci --message "$GITHUB_SHA"
 
-      # Railway only routes traffic to a deploy once /health/ready answers 200
-      # (railway.json), and the endpoint reports the revision it was built
-      # from. Waiting for this commit's revision is what guarantees the web
-      # app never ships ahead of the API it calls.
+      # `railway up --ci` returns once the image is built, not once it serves
+      # traffic. Railway only routes traffic to a deploy after /health/ready
+      # answers 200 (railway.json), and the endpoint reports the revision it
+      # was built from. Waiting for this commit's revision is what guarantees
+      # the web app never ships ahead of the API it calls.
       - name: Wait for the new revision
         run: |
           deadline=$((SECONDS + 600))
           while true; do
-            revision="$(curl -fsS --max-time 5 "$API_URL/health/ready" | jq -r '.revision' || true)"
+            revision="$(curl -fsS --max-time 5 "${API_URL%/}/health/ready" | jq -r '.revision' || true)"
             if [ "$revision" = "$GITHUB_SHA" ]; then
               echo "API is serving $GITHUB_SHA"
               exit 0
