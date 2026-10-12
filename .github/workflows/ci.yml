@@ -1,33 +1,14 @@
 name: CI
 
-# The Drizzle schema in web/packages/db is the source of truth for
-# pkg/db/schema, so changes there must run the Go checks too. The lockfile
-# pins drizzle-kit, whose version can change the generated SQL.
-#
-# Branches are checked through their pull request; pushing them as well would
-# run every job twice, and a branch's first push has no base commit for
-# golangci-lint's only-new-issues to diff against.
+# Go checks. Called by pipeline.yml, which runs them on every pull request and
+# push to main before deploying. They run on every change, not only Go ones:
+# the Drizzle schema in web/packages/db generates pkg/db/schema, and a
+# workflow-level path filter would leave required checks pending forever.
 on:
-  push:
-    branches: [main]
-    paths:
-      - '**'
-      - '!web/**'
-      - 'web/packages/db/**'
-      - 'web/pnpm-lock.yaml'
-  pull_request:
-    paths:
-      - '**'
-      - '!web/**'
-      - 'web/packages/db/**'
-      - 'web/pnpm-lock.yaml'
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   go-ci:

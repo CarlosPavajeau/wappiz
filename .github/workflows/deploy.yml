@@ -1,0 +1,174 @@
+name: Deploy
+
+# Ships one commit to one environment, in dependency order: migrate the
+# database, deploy the API and wait until it serves the new revision, then
+# deploy the web app that calls it. Called by pipeline.yml.
+#
+# Each GitHub environment (staging, prod) provides:
+#   secrets.DATABASE_URL   PlanetScale `migrations` role, which owns the schema
+#   secrets.RAILWAY_TOKEN  Railway project token scoped to that environment
+#   vars.API_URL           Public URL of the API, polled for the new revision
+#   vars.WEB_DOMAIN        Optional, staging only: domain aliased to the preview
+# And at repository level: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment to deploy to.
+        type: string
+        required: true
+      production:
+        description: Ship the web app as Vercel's production deployment.
+        type: boolean
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Migrate database
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: ${{ inputs.environment }}
+    defaults:
+      run:
+        working-directory: web
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --filter @wappiz/db...
+
+      # Fails if an applied migration changed since, which migrate would
+      # silently skip. On staging, reset the database from prod to recover.
+      - name: Check migration history
+        run: pnpm --filter @wappiz/db db:check-migrations
+
+      # Never `drizzle-kit push`: it would drop the exclusion constraints in
+      # scripts/schema-extras.sql, which Drizzle cannot model.
+      - name: Migrate
+        run: pnpm --filter @wappiz/db db:migrate
+
+  api:
+    name: Deploy API
+    needs: migrate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ inputs.environment }}
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      API_URL: ${{ vars.API_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Railway CLI
+        run: npm install --global @railway/cli@5.62.1
+
+      # `railway up` carries no git metadata, so the Dockerfile reads the
+      # revision from this variable, which Railway passes as a build arg.
+      - name: Pass the revision to the build
+        run: railway variable set "APP_REVISION=$GITHUB_SHA" --service api --skip-deploys
+
+      - name: Deploy
+        run: railway up --service api --ci --message "$GITHUB_SHA"
+
+      # Railway only routes traffic to a deploy once /health/ready answers 200
+      # (railway.json), and the endpoint reports the revision it was built
+      # from. Waiting for this commit's revision is what guarantees the web
+      # app never ships ahead of the API it calls.
+      - name: Wait for the new revision
+        run: |
+          deadline=$((SECONDS + 600))
+          while true; do
+            revision="$(curl -fsS --max-time 5 "$API_URL/health/ready" | jq -r '.revision' || true)"
+            if [ "$revision" = "$GITHUB_SHA" ]; then
+              echo "API is serving $GITHUB_SHA"
+              exit 0
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::error::API still serves '${revision:-unreachable}' after 10 minutes, expected $GITHUB_SHA"
+              exit 1
+            fi
+            sleep 10
+          done
+
+  web:
+    name: Deploy web
+    needs: api
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ENVIRONMENT: ${{ inputs.production && 'production' || 'preview' }}
+      VERCEL_PROD_FLAG: ${{ inputs.production && '--prod' || '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # vercel build runs the project's install command, which needs pnpm.
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: web/package.json
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@60.1.3
+
+      # Pulls the project settings (root directory web/apps/web) and the env
+      # vars of the target Vercel environment. Preview's must point at the
+      # staging API and database.
+      - name: Pull project settings
+        run: vercel pull --yes --environment="$VERCEL_ENVIRONMENT" --token="$VERCEL_TOKEN"
+
+      - name: Build
+        run: vercel build $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        id: deploy
+        run: |
+          url="$(vercel deploy --prebuilt $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN")"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Hobby has no custom environments, so staging is a preview deployment
+      # behind a fixed domain.
+      - name: Point the staging domain at this deployment
+        if: ${{ !inputs.production && vars.WEB_DOMAIN != '' }}
+        env:
+          WEB_DOMAIN: ${{ vars.WEB_DOMAIN }}
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+        run: vercel alias set "$DEPLOY_URL" "$WEB_DOMAIN" --token="$VERCEL_TOKEN"
