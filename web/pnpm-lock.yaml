@@ -502,8 +502,8 @@ importers:
   packages/polar:
     dependencies:
       '@polar-sh/sdk':
-        specifier: ^0.47.0
-        version: 0.47.1
+        specifier: ^0.49.0
+        version: 0.49.0
     devDependencies:
       '@types/node':
         specifier: ^24.13.6
@@ -2374,6 +2374,9 @@ packages:
 
   '@polar-sh/sdk@0.47.1':
     resolution: {integrity: sha512-fkz7wPLbqfuDmY9LxuXpE2uP2TAV6J0q/YN5hJ4UBxpjbkB0hKM6c4R35N89t83dfzMlG6EOlqOn+Rd1T6XrJQ==}
+
+  '@polar-sh/sdk@0.49.0':
+    resolution: {integrity: sha512-9UYb70iKjJCtWYlu0OF5HLYBLmkxHwqr2RlXwuxXQgRGqq56IQWlVG+NO7e1YJ7I5GW0CBHhGIjRbQ9hYM6ycQ==}
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
@@ -7449,6 +7452,11 @@ snapshots:
       react: 19.3.0
 
   '@polar-sh/sdk@0.47.1':
+    dependencies:
+      standardwebhooks: 1.1.1
+      zod: 4.6.5
+
+  '@polar-sh/sdk@0.49.0':
     dependencies:
       standardwebhooks: 1.1.1
       zod: 4.6.5
