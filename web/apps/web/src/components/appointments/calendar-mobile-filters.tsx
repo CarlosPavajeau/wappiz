@@ -1,6 +1,9 @@
+import type { ReactNode } from "react"
+
+import { FilterChecklist } from "@/components/appointments/filter-checklist"
+import type { FilterItem } from "@/components/appointments/filter-checklist"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Sheet,
   SheetContent,
@@ -8,18 +11,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
 
 import { STATUS_ITEMS } from "./calendar-config"
 
-type FilterItem = {
+type NamedItem = {
   id: string
   name: string
 }
 
 type Props = {
-  resources: FilterItem[] | undefined
-  services: FilterItem[] | undefined
+  resources: NamedItem[] | undefined
+  services: NamedItem[] | undefined
   isLoadingResources: boolean
   isLoadingServices: boolean
   resourceIds: string[]
@@ -72,102 +74,58 @@ export function CalendarMobileFilters({
         </SheetHeader>
         <div className="flex flex-col gap-6 overflow-y-auto px-4 pb-8">
           {!isLoadingResources && (resources ?? []).length > 0 && (
-            <section className="flex flex-col gap-3">
-              <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-                Recursos
-              </h3>
-              <ul className="flex flex-col gap-3">
-                {(resources ?? []).map((r) => (
-                  <li key={r.id} className="flex items-center gap-2.5">
-                    <Checkbox
-                      id={`mobile-resource-${r.id}`}
-                      checked={resourceIds.includes(r.id)}
-                      onCheckedChange={(checked) => {
-                        onResourceIdsChange(
-                          checked
-                            ? [...resourceIds, r.id]
-                            : resourceIds.filter((id) => id !== r.id)
-                        )
-                      }}
-                    />
-                    <label
-                      htmlFor={`mobile-resource-${r.id}`}
-                      className="cursor-pointer text-sm"
-                    >
-                      {r.name}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <FilterSection title="Recursos">
+              <FilterChecklist
+                items={toFilterItems(resources ?? [])}
+                label="Recursos"
+                selectedIds={resourceIds}
+                onSelectedIdsChange={onResourceIdsChange}
+              />
+            </FilterSection>
           )}
 
           {!isLoadingServices && (services ?? []).length > 0 && (
-            <section className="flex flex-col gap-3">
-              <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-                Servicios
-              </h3>
-              <ul className="flex flex-col gap-3">
-                {(services ?? []).map((s) => (
-                  <li key={s.id} className="flex items-center gap-2.5">
-                    <Checkbox
-                      id={`mobile-service-${s.id}`}
-                      checked={serviceIds.includes(s.id)}
-                      onCheckedChange={(checked) => {
-                        onServiceIdsChange(
-                          checked
-                            ? [...serviceIds, s.id]
-                            : serviceIds.filter((id) => id !== s.id)
-                        )
-                      }}
-                    />
-                    <label
-                      htmlFor={`mobile-service-${s.id}`}
-                      className="cursor-pointer text-sm"
-                    >
-                      {s.name}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            <FilterSection title="Servicios">
+              <FilterChecklist
+                items={toFilterItems(services ?? [])}
+                label="Servicios"
+                selectedIds={serviceIds}
+                onSelectedIdsChange={onServiceIdsChange}
+              />
+            </FilterSection>
           )}
 
-          <section className="flex flex-col gap-3">
-            <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
-              Estado
-            </h3>
-            <ul className="flex flex-col gap-3">
-              {STATUS_ITEMS.map((item) => (
-                <li key={item.id} className="flex items-center gap-2.5">
-                  <Checkbox
-                    id={`mobile-status-${item.id}`}
-                    checked={statuses.includes(item.id)}
-                    onCheckedChange={(checked) => {
-                      onStatusesChange(
-                        checked
-                          ? [...statuses, item.id]
-                          : statuses.filter((id) => id !== item.id)
-                      )
-                    }}
-                  />
-                  {item.color && (
-                    <div
-                      className={cn("size-2 shrink-0 rounded-full", item.color)}
-                    />
-                  )}
-                  <label
-                    htmlFor={`mobile-status-${item.id}`}
-                    className="cursor-pointer text-sm"
-                  >
-                    {item.label}
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </section>
+          <FilterSection title="Estado">
+            <FilterChecklist
+              items={STATUS_ITEMS}
+              label="Estado"
+              selectedIds={statuses}
+              onSelectedIdsChange={onStatusesChange}
+            />
+          </FilterSection>
         </div>
       </SheetContent>
     </Sheet>
   )
+}
+
+function FilterSection({
+  children,
+  title,
+}: {
+  children: ReactNode
+  title: string
+}) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase">
+        {title}
+      </h3>
+      {children}
+    </section>
+  )
+}
+
+function toFilterItems(items: NamedItem[]): FilterItem[] {
+  return items.map((item) => ({ id: item.id, label: item.name }))
 }

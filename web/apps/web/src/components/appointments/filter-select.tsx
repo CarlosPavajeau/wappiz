@@ -3,26 +3,19 @@
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 
+import { FilterChecklist } from "@/components/appointments/filter-checklist"
+import type { FilterItem } from "@/components/appointments/filter-checklist"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
-
-export type FilterSelectItem = {
-  id: string
-  label: string
-  color?: string
-}
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 type FilterSelectProps = {
   label: string
-  items: FilterSelectItem[]
+  items: FilterItem[]
   selectedIds: string[]
   onSelectedIdsChange: (ids: string[]) => void
   isLoading?: boolean
@@ -37,17 +30,10 @@ export function FilterSelect({
 }: FilterSelectProps) {
   const count = selectedIds.length
 
-  const toggle = (id: string) => {
-    if (selectedIds.includes(id)) {
-      onSelectedIdsChange(selectedIds.filter((x) => x !== id))
-    } else {
-      onSelectedIdsChange([...selectedIds, id])
-    }
-  }
-
   return (
-    <DropdownMenu disabled={isLoading}>
-      <DropdownMenuTrigger
+    <Popover>
+      <PopoverTrigger
+        disabled={isLoading}
         render={
           <Button variant="outline" size="sm">
             {label}
@@ -67,22 +53,15 @@ export function FilterSelect({
           </Button>
         }
       />
-      <DropdownMenuContent align="start" className="w-44 gap-0 p-1.5">
-        <DropdownMenuGroup>
-          {items.map((item) => (
-            <DropdownMenuCheckboxItem
-              key={item.id}
-              checked={selectedIds.includes(item.id)}
-              onCheckedChange={() => toggle(item.id)}
-            >
-              {Boolean(item.color) && (
-                <div className={cn("size-2 rounded-full", item.color)} />
-              )}
-              {item.label}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      <PopoverContent align="start" className="w-56 gap-0 p-1.5">
+        <FilterChecklist
+          listClassName="max-h-72 overflow-y-auto"
+          items={items}
+          label={label}
+          selectedIds={selectedIds}
+          onSelectedIdsChange={onSelectedIdsChange}
+        />
+      </PopoverContent>
+    </Popover>
   )
 }

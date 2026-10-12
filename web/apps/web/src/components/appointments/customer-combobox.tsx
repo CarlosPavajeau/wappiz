@@ -44,6 +44,8 @@ type Props = {
   invalid: boolean
   onChange: (id: string) => void
   value: string
+  autoFocus?: boolean
+  placeholder?: string
 }
 
 /**
@@ -52,7 +54,13 @@ type Props = {
  * part of the latest results, and it is only shown while the form still holds
  * its id, so a form reset clears the box too.
  */
-export function CustomerCombobox({ invalid, onChange, value }: Props) {
+export function CustomerCombobox({
+  invalid,
+  onChange,
+  value,
+  autoFocus = false,
+  placeholder = "Buscar por nombre o teléfono",
+}: Props) {
   const [inputValue, setInputValue] = useState("")
   const [picked, setPicked] = useState<Customer | null>(null)
   const selected = picked?.id === value ? picked : null
@@ -81,8 +89,9 @@ export function CustomerCombobox({ invalid, onChange, value }: Props) {
       >
         <ComboboxInput
           aria-invalid={invalid || isError}
+          autoFocus={autoFocus}
           className="w-full"
-          placeholder="Buscar por nombre o teléfono"
+          placeholder={placeholder}
           showClear={selected !== null}
         />
         <ComboboxContent>

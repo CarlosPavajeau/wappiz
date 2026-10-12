@@ -1,5 +1,5 @@
 import type { Appointment } from "@wappiz/api-client/types/appointments"
-import { format, getHours, getMinutes } from "date-fns"
+import { format, getHours, getMinutes, startOfDay } from "date-fns"
 
 import { STATUS_COLOR, STATUS_LABEL, statusColor } from "./appointment-utils"
 
@@ -16,6 +16,15 @@ export const GRID_HEIGHT = (END_HOUR - START_HOUR) * HOUR_HEIGHT
 export const WEEK_OPTS = { weekStartsOn: 1 as const }
 
 export type CalView = "day" | "week" | "month"
+
+/** Statuses shown until the user picks others: the ones still actionable. */
+export const DEFAULT_STATUSES = ["in_progress", "confirmed", "check_in"]
+
+// The customer list reaches back far enough to catch recent appointments
+// still waiting to be marked completed or no-show, and forward far enough to
+// cover what customers usually book ahead.
+export const CUSTOMER_LOOKBACK_DAYS = 30
+export const CUSTOMER_LOOKAHEAD_DAYS = 90
 
 // ── Formatters ────────────────────────────────────────────────────────────────
 
@@ -95,6 +104,50 @@ export function groupByDate(
     ;(map[key] ??= []).push(a)
   }
   return map
+}
+
+export type DayGroup = {
+  day: Date
+  apts: Appointment[]
+}
+
+export type CustomerAppointmentGroups = {
+  upcoming: DayGroup[]
+  past: DayGroup[]
+}
+
+/**
+ * Splits a customer's appointments around today. Upcoming days run forward
+ * from today and past days run backwards from yesterday, so the ones staff
+ * act on most sit at the top of each section without scrolling.
+ */
+export function groupCustomerAppointments(
+  apts: Appointment[],
+  now: Date
+): CustomerAppointmentGroups {
+  const today = startOfDay(now).getTime()
+  const days = Object.values(groupByDate(apts))
+    .flatMap((dayApts) => {
+      const [first] = dayApts
+      return first === undefined
+        ? []
+        : [
+            {
+              apts: dayApts.toSorted(
+                (a, b) =>
+                  new Date(a.startsAt).getTime() -
+                  new Date(b.startsAt).getTime()
+              ),
+              day: startOfDay(new Date(first.startsAt)),
+            },
+          ]
+    })
+    .toSorted((a, b) => a.day.getTime() - b.day.getTime())
+
+  return {
+    past: days.filter((group) => group.day.getTime() < today).toReversed(),
+    upcoming: days.filter((group) => group.day.getTime() >= today),
+  }
 }
 
 // ── Overlap layout ────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { skipToken, useQuery } from "@tanstack/react-query"
 import type { Appointment } from "@wappiz/api-client/types/appointments"
 import { useMemo } from "react"
 
@@ -12,6 +12,7 @@ type Params = {
   resourceIds: string[]
   serviceIds: string[]
   statuses: string[]
+  customerId: string | null
   selectedAptId: string | null
 }
 
@@ -22,6 +23,7 @@ export function useCalendarData({
   resourceIds,
   serviceIds,
   statuses,
+  customerId,
   selectedAptId,
 }: Params) {
   const { data: resources, isLoading: isLoadingResources } = useQuery({
@@ -45,6 +47,7 @@ export function useCalendarData({
           ...(resourceIds.length > 0 && { resource: resourceIds }),
           ...(serviceIds.length > 0 && { service: serviceIds }),
           ...(statuses.length > 0 && { status: statuses }),
+          ...(customerId !== null && { customer: customerId }),
         },
       }),
     queryKey: [
@@ -56,7 +59,15 @@ export function useCalendarData({
       resourceIds,
       serviceIds,
       statuses,
+      customerId,
     ],
+  })
+
+  const { data: customer } = useQuery({
+    queryFn:
+      customerId === null ? skipToken : () => api.customers.byId(customerId),
+    queryKey: ["customer", customerId],
+    staleTime: 5 * 60 * 1000,
   })
 
   const apts = useMemo(
@@ -79,6 +90,7 @@ export function useCalendarData({
 
   return {
     apts,
+    customer,
     isError,
     isLoading,
     isLoadingResources,
