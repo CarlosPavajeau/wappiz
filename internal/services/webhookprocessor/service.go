@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"hash/fnv"
+	"math/rand/v2"
 	"strconv"
 	"sync"
 	"time"
@@ -207,17 +208,18 @@ func (s *service) processJob(j job) {
 //
 // A store failure, or a holder that does not finish within lockWait, lets the
 // message through unlocked: as in claimMessage, a rare race beats a
-// customer's message lost. The lock is released by deleting its key, which is
-// safe without an owner token only because senderLockTTL outlives
-// processTimeout, so the key cannot have expired and been taken by another
-// instance while this one held it.
+// customer's message lost. Each acquisition stores its own token and the
+// release only deletes the key while it still holds that token: a holder
+// paused past senderLockTTL would otherwise delete the lock another instance
+// took after it expired.
 func (s *service) lockSender(phoneNumberID, from string) func() {
 	key := senderLockKey(phoneNumberID, from)
+	token := rand.Int64()
 	ctx, cancel := context.WithTimeout(context.Background(), s.lockWait)
 	defer cancel()
 
 	for {
-		acquired, err := s.senderLocks.SetIfNotExists(ctx, key, 1, senderLockTTL)
+		acquired, err := s.senderLocks.SetIfNotExists(ctx, key, token, senderLockTTL)
 		if err != nil && ctx.Err() == nil {
 			logger.Warn("webhook: failed to lock sender, processing anyway",
 				"phone_number_id", phoneNumberID,
@@ -225,7 +227,7 @@ func (s *service) lockSender(phoneNumberID, from string) func() {
 			return func() {}
 		}
 		if err == nil && acquired {
-			return func() { s.unlockSender(phoneNumberID, key) }
+			return func() { s.unlockSender(phoneNumberID, key, token) }
 		}
 
 		select {
@@ -238,14 +240,20 @@ func (s *service) lockSender(phoneNumberID, from string) func() {
 	}
 }
 
-func (s *service) unlockSender(phoneNumberID, key string) {
+func (s *service) unlockSender(phoneNumberID, key string, token int64) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	if err := s.senderLocks.Delete(ctx, key); err != nil {
+	released, err := s.senderLocks.DeleteIfEquals(ctx, key, token)
+	if err != nil {
 		logger.Warn("webhook: failed to release sender lock",
 			"phone_number_id", phoneNumberID,
 			"err", err)
+		return
+	}
+	if !released {
+		logger.Warn("webhook: sender lock expired before release",
+			"phone_number_id", phoneNumberID)
 	}
 }
 

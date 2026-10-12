@@ -5,6 +5,8 @@ import (
 	"sync"
 	"testing"
 	"wappiz/internal/services/ratelimit"
+	"wappiz/pkg/clock"
+	"wappiz/pkg/counter"
 	"wappiz/pkg/db"
 
 	"github.com/google/uuid"
@@ -50,13 +52,32 @@ func TestHandleEntry_SkipsRepeatedWelcomeMenu(t *testing.T) {
 	t.Parallel()
 
 	wa := &recordingWhatsapp{}
-	limiter := &countingRatelimit{hits: map[string]int64{}}
+	cooldowns := counter.NewMemoryCounter(clock.New())
+	t.Cleanup(func() { require.NoError(t, cooldowns.Close()) })
 	// No database: a suppressed menu must be skipped before the tenant query.
-	svc := New(Config{Whatsapp: wa, Ratelimit: limiter})
+	svc := New(Config{Whatsapp: wa, Cooldowns: cooldowns})
 	msg := IncomingMessage{TenantID: uuid.New(), From: "573001234567", Body: "hola"}
 
-	limiter.hits["whatsapp-welcome-menu-per-sender|"+msg.TenantID.String()+":"+msg.From] = 1
+	require.True(t, svc.claimWelcomeMenu(context.Background(), msg))
 
 	require.NoError(t, svc.handleEntry(context.Background(), msg, db.FindCustomerByPhoneNumberRow{}))
 	require.Empty(t, wa.sent())
+}
+
+func TestReleaseWelcomeMenu(t *testing.T) {
+	t.Parallel()
+
+	cooldowns := counter.NewMemoryCounter(clock.New())
+	t.Cleanup(func() { require.NoError(t, cooldowns.Close()) })
+	svc := New(Config{Cooldowns: cooldowns})
+	msg := IncomingMessage{TenantID: uuid.New(), From: "573001234567"}
+	ctx, cancel := context.WithCancel(context.Background())
+
+	require.True(t, svc.claimWelcomeMenu(ctx, msg))
+	require.False(t, svc.claimWelcomeMenu(ctx, msg))
+
+	// A failed send releases the claim even after its deadline expired.
+	cancel()
+	svc.releaseWelcomeMenu(ctx, msg)
+	require.True(t, svc.claimWelcomeMenu(context.Background(), msg))
 }

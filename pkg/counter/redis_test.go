@@ -976,3 +976,50 @@ func TestRedisCounterDecrementLogic(t *testing.T) {
 		require.Equal(t, int64(0), finalValue, "final value should be 0")
 	})
 }
+
+func TestRedisCounterDeleteIfEquals(t *testing.T) {
+	ctx := context.Background()
+	redisContainer, err := redis.Run(ctx, redisImage)
+	require.NoError(t, err)
+
+	connectionString, err := redisContainer.ConnectionString(ctx)
+	require.NoError(t, err)
+
+	ctr, err := newTestRedis(t, connectionString)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ctr.Close()) }()
+
+	t.Run("deletes a key holding the value", func(t *testing.T) {
+		key := fmt.Sprintf("test-delete-if-equals-%d", time.Now().UnixNano())
+		_, err := ctr.SetIfNotExists(ctx, key, 7, time.Minute)
+		require.NoError(t, err)
+
+		deleted, err := ctr.DeleteIfEquals(ctx, key, 7)
+		require.NoError(t, err)
+		require.True(t, deleted)
+
+		v, err := ctr.Get(ctx, key)
+		require.NoError(t, err)
+		require.Zero(t, v)
+	})
+
+	t.Run("keeps a key holding another value", func(t *testing.T) {
+		key := fmt.Sprintf("test-delete-if-equals-%d", time.Now().UnixNano())
+		_, err := ctr.SetIfNotExists(ctx, key, 7, time.Minute)
+		require.NoError(t, err)
+
+		deleted, err := ctr.DeleteIfEquals(ctx, key, 8)
+		require.NoError(t, err)
+		require.False(t, deleted)
+
+		v, err := ctr.Get(ctx, key)
+		require.NoError(t, err)
+		require.Equal(t, int64(7), v)
+	})
+
+	t.Run("ignores a missing key", func(t *testing.T) {
+		deleted, err := ctr.DeleteIfEquals(ctx, fmt.Sprintf("test-missing-%d", time.Now().UnixNano()), 7)
+		require.NoError(t, err)
+		require.False(t, deleted)
+	})
+}

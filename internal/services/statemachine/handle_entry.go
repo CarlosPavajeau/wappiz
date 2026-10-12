@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
-	"wappiz/internal/services/ratelimit"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
@@ -56,10 +55,17 @@ func (s *service) handleEntry(ctx context.Context, msg IncomingMessage, customer
 		}
 	}
 
-	if !s.allowWelcomeMenu(ctx, msg) {
+	if !s.claimWelcomeMenu(ctx, msg) {
 		return nil
 	}
+	if err := s.sendWelcomeMenu(ctx, msg); err != nil {
+		s.releaseWelcomeMenu(ctx, msg)
+		return err
+	}
+	return nil
+}
 
+func (s *service) sendWelcomeMenu(ctx context.Context, msg IncomingMessage) error {
 	tenant, err := db.Query.FindTenantByID(ctx, s.db.Primary(), msg.TenantID)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("find tenant"))
@@ -87,31 +93,42 @@ func (s *service) handleEntry(ctx context.Context, msg IncomingMessage, customer
 	return s.whatsapp.SendButtons(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, body, buttons)
 }
 
-// allowWelcomeMenu keeps a customer who greets several times in a row, such
+// claimWelcomeMenu keeps a customer who greets several times in a row, such
 // as "Hola" three times, from getting the menu once per message: the first
 // one already shows every option, and repeating it reads as spam. Messages
-// within the cooldown get no reply. A rate limiter failure sends the menu,
-// since a repeated menu is better than silence.
-func (s *service) allowWelcomeMenu(ctx context.Context, msg IncomingMessage) bool {
-	res, err := s.ratelimit.Ratelimit(ctx, ratelimit.RatelimitRequest{
-		Name:       "whatsapp-welcome-menu-per-sender",
-		Identifier: msg.TenantID.String() + ":" + msg.From,
-		Limit:      1,
-		Duration:   welcomeMenuCooldown,
-		Cost:       1,
-		// Zero lets the limiter use its own clock.
-		Time: time.Time{},
-	})
+// within the cooldown get no reply. A store failure sends the menu, since a
+// repeated menu is better than silence.
+func (s *service) claimWelcomeMenu(ctx context.Context, msg IncomingMessage) bool {
+	first, err := s.cooldowns.SetIfNotExists(ctx, welcomeMenuKey(msg), 1, welcomeMenuCooldown)
 	if err != nil {
-		logger.Warn("[scheduling] welcome menu rate limit check failed, sending menu",
+		logger.Warn("[scheduling] failed to record welcome menu, sending anyway",
 			"tenant_id", msg.TenantID,
 			"err", err)
 		return true
 	}
-	if !res.Success {
+	if !first {
 		logger.Info("[scheduling] welcome menu sent recently, ignoring message",
 			"tenant_id", msg.TenantID,
 			"from", maskPhone(msg.From))
 	}
-	return res.Success
+	return first
+}
+
+// releaseWelcomeMenu forgets a claimed menu that was not sent, so the
+// customer's next greeting, or a redelivery of this one, gets it instead of
+// silence. The failure may be the deadline itself, so the release detaches
+// from it and gets its own short deadline.
+func (s *service) releaseWelcomeMenu(ctx context.Context, msg IncomingMessage) {
+	releaseCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
+	defer cancel()
+
+	if err := s.cooldowns.Delete(releaseCtx, welcomeMenuKey(msg)); err != nil {
+		logger.Warn("[scheduling] failed to release welcome menu",
+			"tenant_id", msg.TenantID,
+			"err", err)
+	}
+}
+
+func welcomeMenuKey(msg IncomingMessage) string {
+	return "whatsapp-welcome-menu:" + msg.TenantID.String() + ":" + msg.From
 }

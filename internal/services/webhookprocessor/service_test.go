@@ -181,7 +181,28 @@ func TestLockSender(t *testing.T) {
 
 		held, err := locks.Get(context.Background(), senderLockKey("phone-1", "a"))
 		require.NoError(t, err)
-		require.Equal(t, int64(1), held, "a lock that was never acquired must not be released")
+		require.NotZero(t, held, "a lock that was never acquired must not be released")
+	})
+
+	t.Run("does not release a lock taken after its own expired", func(t *testing.T) {
+		locks := newMemoryCounter(t)
+		s := &service{senderLocks: locks, lockWait: time.Second}
+		key := senderLockKey("phone-1", "a")
+
+		unlock := s.lockSender("phone-1", "a")
+		// Simulate expiry and another instance taking the lock.
+		require.NoError(t, locks.Delete(context.Background(), key))
+		other := s.lockSender("phone-1", "a")
+
+		unlock()
+		held, err := locks.Get(context.Background(), key)
+		require.NoError(t, err)
+		require.NotZero(t, held, "the stale holder released the new holder's lock")
+
+		other()
+		held, err = locks.Get(context.Background(), key)
+		require.NoError(t, err)
+		require.Zero(t, held)
 	})
 
 	t.Run("proceeds unlocked when the store fails", func(t *testing.T) {

@@ -138,6 +138,18 @@ func (c *MemoryCounter) Delete(_ context.Context, key string) error {
 	return nil
 }
 
+func (c *MemoryCounter) DeleteIfEquals(_ context.Context, key string, value int64) (bool, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	e, ok := c.entries[key]
+	if !ok || c.isExpired(e) || e.value != value {
+		return false, nil
+	}
+	delete(c.entries, key)
+	return true, nil
+}
+
 func (c *MemoryCounter) Close() error {
 	c.stop()
 	return nil

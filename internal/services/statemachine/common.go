@@ -26,8 +26,7 @@ const (
 	senderMessagesPerMinute = 20
 
 	// A customer who sends several greetings in a row gets the welcome menu
-	// once per cooldown. The rate limiter's sliding window makes the actual
-	// cooldown somewhere between one and two of these.
+	// once per cooldown.
 	welcomeMenuCooldown = 15 * time.Second
 
 	// Same bounds as names typed on the public booking page.

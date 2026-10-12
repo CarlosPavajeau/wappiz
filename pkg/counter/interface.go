@@ -138,6 +138,21 @@ type Counter interface {
 	//   - error: Any errors that occurred during the operation
 	Delete(ctx context.Context, key string) error
 
+	// DeleteIfEquals removes a counter key only if it currently holds value, in
+	// a single atomic step. This is useful for releasing a lock taken with
+	// SetIfNotExists and a unique value: a holder whose key expired and was
+	// taken by someone else must not delete the new holder's key.
+	//
+	// Parameters:
+	//   - ctx: Context for cancellation and tracing
+	//   - key: Unique identifier for the counter to delete
+	//   - value: Value the counter must hold for the delete to happen
+	//
+	// Returns:
+	//   - bool: Whether the key was deleted
+	//   - error: Any errors that occurred during the operation
+	DeleteIfEquals(ctx context.Context, key string, value int64) (bool, error)
+
 	// Close releases any resources held by the counter implementation.
 	// After calling Close(), the counter instance should not be used again.
 	//
