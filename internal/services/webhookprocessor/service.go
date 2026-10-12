@@ -3,6 +3,8 @@ package webhookprocessor
 import (
 	"context"
 	"database/sql"
+	"hash/fnv"
+	"math/rand/v2"
 	"strconv"
 	"sync"
 	"time"
@@ -29,14 +31,39 @@ const seenMessageTTL = 24 * time.Hour
 // read as spam.
 const maxMessageAge = 30 * time.Minute
 
+// processTimeout bounds the handling of one message, replies included.
+const processTimeout = 10 * time.Second
+
+// senderLockTTL outlives processTimeout so a lock is never released by expiry
+// while its holder is still processing; it only expires on its own when the
+// holder crashed before releasing it.
+const senderLockTTL = processTimeout + 5*time.Second
+
+// senderLockWait gives a sender's message being processed by another instance
+// time to finish, since that one is bounded by processTimeout.
+const senderLockWait = processTimeout
+
+const senderLockPoll = 100 * time.Millisecond
+
 type Config struct {
 	DB           db.Database
 	StateMachine statemachine.StateMachineService
 	Crypto       *crypto.Service
 	// SeenMessages records processed message IDs, shared by every instance.
 	SeenMessages counter.Counter
-	Workers      int
-	BufferCap    int
+	// SenderLocks holds the per-sender locks, shared by every instance.
+	SenderLocks counter.Counter
+	Workers     int
+	// BufferCap is the number of messages waiting to be processed, split
+	// evenly between the workers.
+	BufferCap int
+}
+
+// job is one inbound message. Payloads are split into jobs on enqueue so
+// each message can be routed by its sender.
+type job struct {
+	metadata Metadata
+	msg      Message
 }
 
 type service struct {
@@ -44,109 +71,194 @@ type service struct {
 	stateMachine statemachine.StateMachineService
 	crypto       *crypto.Service
 	seenMessages counter.Counter
-	msgBuffer    *buffer.Buffer[Request]
-	wg           sync.WaitGroup
+	senderLocks  counter.Counter
+	lockWait     time.Duration
+	// shards holds one queue per worker. A sender always lands in the same
+	// one, so its messages are processed one at a time and in arrival order:
+	// a customer who taps twice or types fast would otherwise have two
+	// workers read and advance the same conversation step concurrently.
+	shards []*buffer.Buffer[job]
+	wg     sync.WaitGroup
 }
 
 func New(cfg Config) Service {
+	workers := max(cfg.Workers, 1)
 	s := &service{
 		db:           cfg.DB,
 		stateMachine: cfg.StateMachine,
 		crypto:       cfg.Crypto,
 		seenMessages: cfg.SeenMessages,
-		msgBuffer: buffer.New[Request](buffer.Config{
-			Name:     "webhook_payloads",
-			Capacity: cfg.BufferCap,
-			Drop:     true,
-		}),
+		senderLocks:  cfg.SenderLocks,
+		lockWait:     senderLockWait,
+		shards:       make([]*buffer.Buffer[job], workers),
 	}
-	s.wg.Add(cfg.Workers)
-	for range cfg.Workers {
-		go s.worker()
+	for i := range s.shards {
+		s.shards[i] = buffer.New[job](buffer.Config{
+			Name:     "webhook_messages_" + strconv.Itoa(i),
+			Capacity: max(cfg.BufferCap/workers, 1),
+			Drop:     true,
+		})
+	}
+	s.wg.Add(workers)
+	for _, shard := range s.shards {
+		go s.worker(shard)
 	}
 	return s
 }
 
 func (s *service) Enqueue(req Request) {
-	s.msgBuffer.Buffer(req)
-}
-
-func (s *service) Close() error {
-	s.msgBuffer.Close()
-	s.wg.Wait()
-	return nil
-}
-
-func (s *service) worker() {
-	defer s.wg.Done()
-	for req := range s.msgBuffer.Consume() {
-		s.processPayload(req)
-	}
-}
-
-func (s *service) processPayload(req Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	for _, entry := range req.Entry {
 		for _, change := range entry.Changes {
 			if change.Field != "messages" {
 				continue
 			}
-
-			phoneNumberID := change.Value.Metadata.PhoneNumberID
-			waConfig, err := db.Query.FindTenantWhatsappConfigByPhoneNumberID(ctx, s.db.Primary(), sql.NullString{
-				String: phoneNumberID,
-				Valid:  true,
-			})
-
-			if err != nil {
-				logger.Warn("webhook: unknown phone_number_id",
-					"phone_number_id", phoneNumberID,
-					"err", err)
-				continue
-			}
-
-			decryptedAccessToken, err := s.crypto.Decrypt(waConfig.AccessToken.String)
-			if err != nil {
-				logger.Warn("webhook: failed to decrypt access token",
-					"phone_number_id", phoneNumberID,
-					"tenant_id", waConfig.TenantID,
-					"err", err)
-				continue
-			}
-
 			for _, msg := range change.Value.Messages {
-				if isStale(msg.Timestamp, time.Now()) {
-					logger.Info("webhook: stale message ignored",
-						"phone_number_id", phoneNumberID,
-						"message_id", msg.ID,
-						"timestamp", msg.Timestamp)
-					continue
-				}
-
-				if !s.claimMessage(ctx, phoneNumberID, msg.ID) {
-					continue
-				}
-
-				incoming, err := s.buildIncomingMessage(msg, change.Value.Metadata, waConfig, decryptedAccessToken)
-				if err != nil {
-					logger.Warn("webhook: failed to build message",
-						"from", msg.From,
-						"err", err)
-					s.releaseMessage(ctx, phoneNumberID, msg.ID)
-					continue
-				}
-
-				if err := s.stateMachine.Process(ctx, *incoming); err != nil {
-					logger.Warn("webhook: error processing message from",
-						"from", msg.From,
-						"err", err)
-					s.releaseMessage(ctx, phoneNumberID, msg.ID)
-				}
+				shard := s.shards[shardIndex(change.Value.Metadata.PhoneNumberID, msg.From, len(s.shards))]
+				shard.Buffer(job{metadata: change.Value.Metadata, msg: msg})
 			}
 		}
 	}
+}
+
+func (s *service) Close() error {
+	for _, shard := range s.shards {
+		shard.Close()
+	}
+	s.wg.Wait()
+	return nil
+}
+
+func (s *service) worker(shard *buffer.Buffer[job]) {
+	defer s.wg.Done()
+	for j := range shard.Consume() {
+		s.processJob(j)
+	}
+}
+
+// shardIndex maps a sender to a stable shard among n.
+func shardIndex(phoneNumberID, from string, n int) int {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(phoneNumberID + ":" + from))
+	return int(h.Sum32() % uint32(n))
+}
+
+func (s *service) processJob(j job) {
+	phoneNumberID := j.metadata.PhoneNumberID
+	msg := j.msg
+
+	if isStale(msg.Timestamp, time.Now()) {
+		logger.Info("webhook: stale message ignored",
+			"phone_number_id", phoneNumberID,
+			"message_id", msg.ID,
+			"timestamp", msg.Timestamp)
+		return
+	}
+
+	unlock := s.lockSender(phoneNumberID, msg.From)
+	defer unlock()
+
+	ctx, cancel := context.WithTimeout(context.Background(), processTimeout)
+	defer cancel()
+
+	waConfig, err := db.Query.FindTenantWhatsappConfigByPhoneNumberID(ctx, s.db.Primary(), sql.NullString{
+		String: phoneNumberID,
+		Valid:  true,
+	})
+	if err != nil {
+		logger.Warn("webhook: unknown phone_number_id",
+			"phone_number_id", phoneNumberID,
+			"err", err)
+		return
+	}
+
+	decryptedAccessToken, err := s.crypto.Decrypt(waConfig.AccessToken.String)
+	if err != nil {
+		logger.Warn("webhook: failed to decrypt access token",
+			"phone_number_id", phoneNumberID,
+			"tenant_id", waConfig.TenantID,
+			"err", err)
+		return
+	}
+
+	if !s.claimMessage(ctx, phoneNumberID, msg.ID) {
+		return
+	}
+
+	incoming, err := s.buildIncomingMessage(msg, j.metadata, waConfig, decryptedAccessToken)
+	if err != nil {
+		logger.Warn("webhook: failed to build message",
+			"from", msg.From,
+			"err", err)
+		s.releaseMessage(ctx, phoneNumberID, msg.ID)
+		return
+	}
+
+	if err := s.stateMachine.Process(ctx, *incoming); err != nil {
+		logger.Warn("webhook: error processing message from",
+			"from", msg.From,
+			"err", err)
+		s.releaseMessage(ctx, phoneNumberID, msg.ID)
+	}
+}
+
+// lockSender extends the per-sender serialization of the shards to every
+// instance, which only matters once several run behind the webhook. It
+// returns the function that releases the lock. Locking gives mutual
+// exclusion, not ordering: across instances messages still race for the lock.
+//
+// A store failure, or a holder that does not finish within lockWait, lets the
+// message through unlocked: as in claimMessage, a rare race beats a
+// customer's message lost. Each acquisition stores its own token and the
+// release only deletes the key while it still holds that token: a holder
+// paused past senderLockTTL would otherwise delete the lock another instance
+// took after it expired.
+func (s *service) lockSender(phoneNumberID, from string) func() {
+	key := senderLockKey(phoneNumberID, from)
+	token := rand.Int64()
+	ctx, cancel := context.WithTimeout(context.Background(), s.lockWait)
+	defer cancel()
+
+	for {
+		acquired, err := s.senderLocks.SetIfNotExists(ctx, key, token, senderLockTTL)
+		if err != nil && ctx.Err() == nil {
+			logger.Warn("webhook: failed to lock sender, processing anyway",
+				"phone_number_id", phoneNumberID,
+				"err", err)
+			return func() {}
+		}
+		if err == nil && acquired {
+			return func() { s.unlockSender(phoneNumberID, key, token) }
+		}
+
+		select {
+		case <-ctx.Done():
+			logger.Warn("webhook: timed out waiting for sender lock, processing anyway",
+				"phone_number_id", phoneNumberID)
+			return func() {}
+		case <-time.After(senderLockPoll):
+		}
+	}
+}
+
+func (s *service) unlockSender(phoneNumberID, key string, token int64) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	released, err := s.senderLocks.DeleteIfEquals(ctx, key, token)
+	if err != nil {
+		logger.Warn("webhook: failed to release sender lock",
+			"phone_number_id", phoneNumberID,
+			"err", err)
+		return
+	}
+	if !released {
+		logger.Warn("webhook: sender lock expired before release",
+			"phone_number_id", phoneNumberID)
+	}
+}
+
+func senderLockKey(phoneNumberID, from string) string {
+	return "whatsapp-sender-lock:" + phoneNumberID + ":" + from
 }
 
 // isStale reports whether a message was sent more than maxMessageAge before

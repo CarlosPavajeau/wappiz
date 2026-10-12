@@ -207,6 +207,7 @@ func Run(ctx context.Context, cfg Config) error {
 		Publisher:  pub,
 		Plans:      plansSvc,
 		Ratelimit:  rlSvc,
+		Cooldowns:  ctr,
 	})
 
 	webhookProcessorSvc := webhookprocessor.New(webhookprocessor.Config{
@@ -214,6 +215,7 @@ func Run(ctx context.Context, cfg Config) error {
 		StateMachine: stateMachineSvc,
 		Crypto:       cryptoSvc,
 		SeenMessages: ctr,
+		SenderLocks:  ctr,
 		Workers:      cfg.Webhook.Workers,
 		BufferCap:    cfg.Webhook.BufferCap,
 	})

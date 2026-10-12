@@ -5,6 +5,9 @@ import (
 	"sync"
 	"testing"
 	"wappiz/internal/services/ratelimit"
+	"wappiz/pkg/clock"
+	"wappiz/pkg/counter"
+	"wappiz/pkg/db"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -43,4 +46,68 @@ func TestProcess_RateLimitsSender(t *testing.T) {
 	sent := wa.sent()
 	require.Len(t, sent, 1, "the sender is told once per window, not once per message")
 	require.Contains(t, sent[0], "muchos mensajes")
+}
+
+func newCooldowns(t *testing.T) *counter.MemoryCounter {
+	t.Helper()
+	c := counter.NewMemoryCounter(clock.New())
+	t.Cleanup(func() { require.NoError(t, c.Close()) })
+	return c
+}
+
+func TestHandleEntry_SkipsRepeatedWelcomeMenu(t *testing.T) {
+	t.Parallel()
+
+	wa := &recordingWhatsapp{}
+	// No database: a suppressed menu must be skipped before the tenant query.
+	svc := New(Config{Whatsapp: wa, Cooldowns: newCooldowns(t)})
+	msg := IncomingMessage{TenantID: uuid.New(), From: "573001234567", Body: "hola"}
+
+	_, claimed := svc.claimWelcomeMenu(context.Background(), msg)
+	require.True(t, claimed)
+
+	require.NoError(t, svc.handleEntry(context.Background(), msg, db.FindCustomerByPhoneNumberRow{}))
+	require.Empty(t, wa.sent())
+}
+
+func TestClaimWelcomeMenu(t *testing.T) {
+	t.Parallel()
+
+	t.Run("a failed send releases its claim after the deadline expired", func(t *testing.T) {
+		t.Parallel()
+
+		svc := New(Config{Cooldowns: newCooldowns(t)})
+		msg := IncomingMessage{TenantID: uuid.New(), From: "573001234567"}
+		ctx, cancel := context.WithCancel(context.Background())
+
+		release, claimed := svc.claimWelcomeMenu(ctx, msg)
+		require.True(t, claimed)
+		_, claimed = svc.claimWelcomeMenu(ctx, msg)
+		require.False(t, claimed)
+
+		cancel()
+		release()
+		_, claimed = svc.claimWelcomeMenu(context.Background(), msg)
+		require.True(t, claimed)
+	})
+
+	t.Run("a stale release keeps a newer claim", func(t *testing.T) {
+		t.Parallel()
+
+		cooldowns := newCooldowns(t)
+		svc := New(Config{Cooldowns: cooldowns})
+		msg := IncomingMessage{TenantID: uuid.New(), From: "573001234567"}
+		ctx := context.Background()
+
+		release, claimed := svc.claimWelcomeMenu(ctx, msg)
+		require.True(t, claimed)
+		// Simulate the cooldown expiring and another worker claiming it.
+		require.NoError(t, cooldowns.Delete(ctx, welcomeMenuKey(msg)))
+		_, claimed = svc.claimWelcomeMenu(ctx, msg)
+		require.True(t, claimed)
+
+		release()
+		_, claimed = svc.claimWelcomeMenu(ctx, msg)
+		require.False(t, claimed, "the stale release erased the newer claim")
+	})
 }

@@ -247,3 +247,40 @@ func TestConcurrentIncrement(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, int64(goroutines*increments), v)
 }
+
+func TestDeleteIfEquals(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("deletes a key holding the value", func(t *testing.T) {
+		c, _ := newCounter(t)
+		_, _ = c.SetIfNotExists(ctx, "k", 7)
+		deleted, err := c.DeleteIfEquals(ctx, "k", 7)
+		require.NoError(t, err)
+		require.True(t, deleted)
+		v, _ := c.Get(ctx, "k")
+		require.Zero(t, v)
+	})
+
+	t.Run("keeps a key holding another value", func(t *testing.T) {
+		c, _ := newCounter(t)
+		_, _ = c.SetIfNotExists(ctx, "k", 7)
+		deleted, err := c.DeleteIfEquals(ctx, "k", 8)
+		require.NoError(t, err)
+		require.False(t, deleted)
+		v, _ := c.Get(ctx, "k")
+		require.Equal(t, int64(7), v)
+	})
+
+	t.Run("ignores missing and expired keys", func(t *testing.T) {
+		c, clk := newCounter(t)
+		deleted, err := c.DeleteIfEquals(ctx, "missing", 0)
+		require.NoError(t, err)
+		require.False(t, deleted)
+
+		_, _ = c.SetIfNotExists(ctx, "k", 7, time.Second)
+		clk.Tick(2 * time.Second)
+		deleted, err = c.DeleteIfEquals(ctx, "k", 7)
+		require.NoError(t, err)
+		require.False(t, deleted)
+	})
+}

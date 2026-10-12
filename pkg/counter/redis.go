@@ -44,11 +44,24 @@ const (
 		local newValue = redis.call('DECRBY', key, decrement)
 		return {newValue, 1, 1}  -- {new_decremented_value, existed=true, success=true}
 	`
+
+	// deleteIfEqualsScript deletes KEYS[1] only if it holds ARGV[1], returning
+	// 1 when it deleted it. GET and DEL must run as one step, or the key could
+	// change hands between them.
+	deleteIfEqualsScript = `
+		if redis.call('GET', KEYS[1]) == ARGV[1] then
+			return redis.call('DEL', KEYS[1])
+		end
+		return 0
+	`
 )
 
 var (
 	// decrementIfExistsScriptCached is the cached script for atomic decrement operations
 	decrementIfExistsScriptCached = redis.NewScript(decrementIfExistsScript)
+
+	// deleteIfEqualsScriptCached is the cached script for conditional deletes
+	deleteIfEqualsScriptCached = redis.NewScript(deleteIfEqualsScript)
 )
 
 // redisCounter implements the Counter interface using Redis.
@@ -299,6 +312,18 @@ func (r *redisCounter) Delete(ctx context.Context, key string) error {
 	defer span.End()
 
 	return r.redis.Del(ctx, key).Err()
+}
+
+// DeleteIfEquals removes a counter key from Redis only if it holds value.
+func (r *redisCounter) DeleteIfEquals(ctx context.Context, key string, value int64) (bool, error) {
+	ctx, span := tracing.Start(ctx, "RedisCounter.DeleteIfEquals")
+	defer span.End()
+
+	deleted, err := deleteIfEqualsScriptCached.Run(ctx, r.redis, []string{key}, strconv.FormatInt(value, 10)).Int64()
+	if err != nil {
+		return false, err
+	}
+	return deleted == 1, nil
 }
 
 // Close releases the Redis client connection.

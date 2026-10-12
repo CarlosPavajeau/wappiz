@@ -25,6 +25,10 @@ const (
 	// and possibly an outbound WhatsApp message.
 	senderMessagesPerMinute = 20
 
+	// A customer who sends several greetings in a row gets the welcome menu
+	// once per cooldown.
+	welcomeMenuCooldown = 15 * time.Second
+
 	// Same bounds as names typed on the public booking page.
 	minNameLength = 2
 	maxNameLength = 100

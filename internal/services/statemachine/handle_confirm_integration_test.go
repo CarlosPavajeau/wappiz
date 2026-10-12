@@ -12,6 +12,8 @@ import (
 	"wappiz/internal/services/ratelimit"
 	"wappiz/internal/services/slotfinder"
 	"wappiz/internal/testutil"
+	"wappiz/pkg/clock"
+	"wappiz/pkg/counter"
 	"wappiz/pkg/db"
 	"wappiz/pkg/whatsapp"
 
@@ -124,6 +126,8 @@ func newBookingFixture(t *testing.T, step SessionStep, configure func(*SessionDa
 
 	wa := &recordingWhatsapp{}
 	confirmYes := "confirm_yes"
+	cooldowns := counter.NewMemoryCounter(clock.New())
+	t.Cleanup(func() { require.NoError(t, cooldowns.Close()) })
 
 	return confirmFixture{
 		database: database,
@@ -135,6 +139,7 @@ func newBookingFixture(t *testing.T, step SessionStep, configure func(*SessionDa
 			Publisher:  events.NewPublisher(),
 			Plans:      unlimitedPlan{},
 			Ratelimit:  allowAllSenders{},
+			Cooldowns:  cooldowns,
 		}),
 		msg: IncomingMessage{
 			TenantID:         tenantID,
