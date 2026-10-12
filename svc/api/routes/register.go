@@ -3,6 +3,7 @@ package routes
 import (
 	"net/http"
 	"time"
+	"wappiz/pkg/buildinfo"
 	"wappiz/pkg/server"
 	"wappiz/svc/api/internal/middleware"
 	"wappiz/svc/api/routes/v1/admin_activate_tenant"
@@ -200,7 +201,10 @@ func Register(g *gin.Engine, svc *Services) {
 	// health — unauthenticated, unthrottled probes for orchestrators and
 	// uptime monitors.
 	RegisterRoute(g, &health_liveness.Handler{})
-	RegisterRoute(g, &health_readiness.Handler{DB: svc.Database.Primary()})
+	RegisterRoute(g, &health_readiness.Handler{
+		DB:       svc.Database.Primary(),
+		Revision: buildinfo.Revision,
+	})
 
 	// webhooks
 	RegisterRoute(g, &webhooks_verify_webhook.Handler{})

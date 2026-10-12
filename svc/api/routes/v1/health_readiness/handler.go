@@ -2,6 +2,10 @@
 // traffic. Only Postgres is checked: Redis backs rate limiting, which keeps
 // local state and degrades gracefully, so its outage does not make the API
 // unable to serve requests.
+//
+// The response also carries the git revision the binary was built from, so
+// the deploy pipeline can tell when the new build is the one serving traffic
+// before it ships the frontend that depends on it.
 package health_readiness
 
 import (
@@ -41,12 +45,15 @@ type checks struct {
 }
 
 type response struct {
-	Status status `json:"status"`
-	Checks checks `json:"checks"`
+	Status   status `json:"status"`
+	Revision string `json:"revision"`
+	Checks   checks `json:"checks"`
 }
 
 type Handler struct {
 	DB Pinger
+	// Revision is the git SHA the binary was built from (buildinfo.Revision).
+	Revision string
 }
 
 func (h *Handler) Method() string {
@@ -65,15 +72,17 @@ func (h *Handler) Handle(c *gin.Context) error {
 		// The endpoint is public, so the cause is logged rather than returned.
 		logger.Warn("readiness check failed", "check", "database", "error", err)
 		c.JSON(http.StatusServiceUnavailable, response{
-			Status: statusUnavailable,
-			Checks: checks{Database: checkDown},
+			Status:   statusUnavailable,
+			Revision: h.Revision,
+			Checks:   checks{Database: checkDown},
 		})
 		return nil
 	}
 
 	c.JSON(http.StatusOK, response{
-		Status: statusOK,
-		Checks: checks{Database: checkUp},
+		Status:   statusOK,
+		Revision: h.Revision,
+		Checks:   checks{Database: checkUp},
 	})
 	return nil
 }
