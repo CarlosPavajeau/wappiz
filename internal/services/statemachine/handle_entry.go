@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"time"
+	"wappiz/internal/services/ratelimit"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
 	"wappiz/pkg/logger"
@@ -55,6 +56,10 @@ func (s *service) handleEntry(ctx context.Context, msg IncomingMessage, customer
 		}
 	}
 
+	if !s.allowWelcomeMenu(ctx, msg) {
+		return nil
+	}
+
 	tenant, err := db.Query.FindTenantByID(ctx, s.db.Primary(), msg.TenantID)
 	if err != nil {
 		return fault.Wrap(err, fault.Internal("find tenant"))
@@ -80,4 +85,31 @@ func (s *service) handleEntry(ctx context.Context, msg IncomingMessage, customer
 	}
 
 	return s.whatsapp.SendButtons(ctx, msg.From, msg.PhoneNumberID, msg.AccessToken, body, buttons)
+}
+
+// allowWelcomeMenu keeps a customer who greets several times in a row, such
+// as "Hola" three times, from getting the menu once per message: the first
+// one already shows every option, and repeating it reads as spam. Messages
+// within the cooldown get no reply. A rate limiter failure sends the menu,
+// since a repeated menu is better than silence.
+func (s *service) allowWelcomeMenu(ctx context.Context, msg IncomingMessage) bool {
+	res, err := s.ratelimit.Ratelimit(ctx, ratelimit.RatelimitRequest{
+		Name:       "whatsapp-welcome-menu-per-sender",
+		Identifier: msg.TenantID.String() + ":" + msg.From,
+		Limit:      1,
+		Duration:   welcomeMenuCooldown,
+		Cost:       1,
+	})
+	if err != nil {
+		logger.Warn("[scheduling] welcome menu rate limit check failed, sending menu",
+			"tenant_id", msg.TenantID,
+			"err", err)
+		return true
+	}
+	if !res.Success {
+		logger.Info("[scheduling] welcome menu sent recently, ignoring message",
+			"tenant_id", msg.TenantID,
+			"from", maskPhone(msg.From))
+	}
+	return res.Success
 }

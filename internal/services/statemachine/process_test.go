@@ -5,6 +5,7 @@ import (
 	"sync"
 	"testing"
 	"wappiz/internal/services/ratelimit"
+	"wappiz/pkg/db"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
@@ -43,4 +44,19 @@ func TestProcess_RateLimitsSender(t *testing.T) {
 	sent := wa.sent()
 	require.Len(t, sent, 1, "the sender is told once per window, not once per message")
 	require.Contains(t, sent[0], "muchos mensajes")
+}
+
+func TestHandleEntry_SkipsRepeatedWelcomeMenu(t *testing.T) {
+	t.Parallel()
+
+	wa := &recordingWhatsapp{}
+	limiter := &countingRatelimit{hits: map[string]int64{}}
+	// No database: a suppressed menu must be skipped before the tenant query.
+	svc := New(Config{Whatsapp: wa, Ratelimit: limiter})
+	msg := IncomingMessage{TenantID: uuid.New(), From: "573001234567", Body: "hola"}
+
+	limiter.hits["whatsapp-welcome-menu-per-sender|"+msg.TenantID.String()+":"+msg.From] = 1
+
+	require.NoError(t, svc.handleEntry(context.Background(), msg, db.FindCustomerByPhoneNumberRow{}))
+	require.Empty(t, wa.sent())
 }
