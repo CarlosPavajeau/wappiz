@@ -46,6 +46,11 @@ type Props = {
   value: string
   autoFocus?: boolean
   placeholder?: string
+  /**
+   * The customer behind `value` when it was chosen outside this picker, such
+   * as one restored from the URL, so the box can show who is selected.
+   */
+  selectedCustomer?: Customer
 }
 
 /**
@@ -60,10 +65,22 @@ export function CustomerCombobox({
   value,
   autoFocus = false,
   placeholder = "Buscar por nombre o teléfono",
+  selectedCustomer,
 }: Props) {
   const [inputValue, setInputValue] = useState("")
   const [picked, setPicked] = useState<Customer | null>(null)
-  const selected = picked?.id === value ? picked : null
+  const selected =
+    [picked, selectedCustomer].find((customer) => customer?.id === value) ??
+    null
+
+  // The box text is controlled, so a selection that changes from outside
+  // (restored from the URL, cleared by the parent) must rewrite it here.
+  const selectedId = selected?.id ?? null
+  const [shownId, setShownId] = useState<string | null>(null)
+  if (shownId !== selectedId) {
+    setShownId(selectedId)
+    setInputValue(selected?.displayName ?? "")
+  }
 
   const search = useDebouncedValue(inputValue, SEARCH_DEBOUNCE_MS)
   const { data, isError, isFetching, refetch } = useQuery(

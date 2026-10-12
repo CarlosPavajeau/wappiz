@@ -1,5 +1,6 @@
 import { Search01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
+import type { Customer } from "@wappiz/api-client/types/customers"
 import { useState } from "react"
 
 import { CustomerCombobox } from "@/components/appointments/customer-combobox"
@@ -15,18 +16,25 @@ import {
 
 type Props = {
   customerId: string | null
+  /** The customer behind `customerId`, once loaded. */
+  customer: Customer | undefined
   onCustomerIdChange: (id: string | null) => void
 }
 
 const PLACEHOLDER = "Buscar citas por cliente"
 
 /** Inline customer picker for the desktop toolbar. */
-export function CustomerSearchField({ customerId, onCustomerIdChange }: Props) {
+export function CustomerSearchField({
+  customerId,
+  customer,
+  onCustomerIdChange,
+}: Props) {
   return (
     <div className="flex w-64 flex-col gap-2">
       <CustomerCombobox
         invalid={false}
         placeholder={PLACEHOLDER}
+        selectedCustomer={customer}
         value={customerId ?? ""}
         onChange={(id) => onCustomerIdChange(id === "" ? null : id)}
       />
@@ -38,7 +46,11 @@ export function CustomerSearchField({ customerId, onCustomerIdChange }: Props) {
  * The mobile toolbar has no room for an input, so the picker lives in a sheet
  * opened from the top, where the on-screen keyboard can't cover the results.
  */
-export function CustomerSearchSheet({ customerId, onCustomerIdChange }: Props) {
+export function CustomerSearchSheet({
+  customerId,
+  customer,
+  onCustomerIdChange,
+}: Props) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -67,6 +79,7 @@ export function CustomerSearchSheet({ customerId, onCustomerIdChange }: Props) {
             autoFocus
             invalid={false}
             placeholder="Nombre o teléfono"
+            selectedCustomer={customer}
             value={customerId ?? ""}
             onChange={(id) => {
               if (id !== "") {

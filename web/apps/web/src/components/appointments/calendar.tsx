@@ -261,6 +261,7 @@ export function AppointmentsCalendar() {
           )}
 
           <CustomerSearchSheet
+            customer={customer}
             customerId={customerId}
             onCustomerIdChange={setCustomerId}
           />
@@ -332,6 +333,7 @@ export function AppointmentsCalendar() {
 
           <div className="hidden md:block">
             <CustomerSearchField
+              customer={customer}
               customerId={customerId}
               onCustomerIdChange={setCustomerId}
             />
