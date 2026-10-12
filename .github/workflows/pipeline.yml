@@ -1,0 +1,68 @@
+name: Pipeline
+
+# Every change goes through here: CI first, then a deploy, so the database,
+# the API and the web app always ship in that order.
+#
+# - Pull requests from this repository deploy to staging, which doubles as the
+#   preview environment. Fork PRs only run CI: they get no secrets, and must
+#   never reach a deploy (do not switch this to pull_request_target).
+# - Pushes to main deploy to production. To roll back or redeploy, re-run the
+#   pipeline of an earlier main commit; migrations only move forward, though.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Queue instead of cancelling: cancelling a run mid-deploy could stop a
+# migration halfway. While a run waits, a newer push replaces it.
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  go:
+    name: Go
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      # golangci-lint's only-new-issues reads the pull request diff.
+      pull-requests: read
+
+  web:
+    name: Web
+    uses: ./.github/workflows/web-ci.yml
+
+  staging:
+    name: Staging
+    needs: [go, web]
+    # Renovate opens a branch per dependency bump; deploying each one would
+    # keep staging busy and overwrite what is being previewed.
+    if: >-
+      github.event_name == 'pull_request'
+      && github.event.pull_request.head.repo.full_name == github.repository
+      && github.actor != 'renovate[bot]'
+    # One staging deploy at a time across all pull requests.
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      production: false
+    secrets: inherit
+
+  production:
+    name: Production
+    needs: [go, web]
+    if: github.event_name == 'push'
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: false
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: prod
+      production: true
+    secrets: inherit

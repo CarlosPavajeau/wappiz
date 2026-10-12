@@ -1,25 +1,12 @@
 name: Web CI
 
-# The Go CI ignores web/ (see the paths filter in ci.yml), so it never runs
-# these tests. Branches are checked through their pull request only, so each
-# commit runs once.
+# Web checks. Called by pipeline.yml, which runs them on every pull request
+# and push to main before deploying.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'web/**'
-      - '.github/workflows/web-ci.yml'
-  pull_request:
-    paths:
-      - 'web/**'
-      - '.github/workflows/web-ci.yml'
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 defaults:
   run:

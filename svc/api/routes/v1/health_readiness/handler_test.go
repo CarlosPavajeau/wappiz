@@ -28,7 +28,7 @@ func serve(t *testing.T, db Pinger) *httptest.ResponseRecorder {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
 
-	h := &Handler{DB: db}
+	h := &Handler{DB: db, Revision: "abc123"}
 	r := gin.New()
 	r.Handle(h.Method(), h.Path(), server.ToGinHandler(h))
 
@@ -46,7 +46,7 @@ func TestHandle(t *testing.T) {
 		w := serve(t, pingerFunc(func(context.Context) error { return nil }))
 
 		require.Equal(t, http.StatusOK, w.Code)
-		require.JSONEq(t, `{"status":"ok","checks":{"database":"up"}}`, w.Body.String())
+		require.JSONEq(t, `{"status":"ok","revision":"abc123","checks":{"database":"up"}}`, w.Body.String())
 	})
 
 	t.Run("database unreachable", func(t *testing.T) {
@@ -57,7 +57,7 @@ func TestHandle(t *testing.T) {
 		}))
 
 		require.Equal(t, http.StatusServiceUnavailable, w.Code)
-		require.JSONEq(t, `{"status":"unavailable","checks":{"database":"down"}}`, w.Body.String())
+		require.JSONEq(t, `{"status":"unavailable","revision":"abc123","checks":{"database":"down"}}`, w.Body.String())
 		require.NotContains(t, w.Body.String(), "connection refused")
 	})
 
@@ -95,6 +95,6 @@ func TestHandle(t *testing.T) {
 		require.Less(t, elapsed, probeBudget)
 		require.GreaterOrEqual(t, elapsed, pingTimeout)
 		require.Equal(t, http.StatusServiceUnavailable, w.Code)
-		require.JSONEq(t, `{"status":"unavailable","checks":{"database":"down"}}`, w.Body.String())
+		require.JSONEq(t, `{"status":"unavailable","revision":"abc123","checks":{"database":"down"}}`, w.Body.String())
 	})
 }
