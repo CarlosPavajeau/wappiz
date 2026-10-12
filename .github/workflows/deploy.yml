@@ -129,18 +129,11 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      VERCEL_ENVIRONMENT: ${{ inputs.production && 'production' || 'preview' }}
       VERCEL_PROD_FLAG: ${{ inputs.production && '--prod' || '' }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      # vercel build runs the project's install command, which needs pnpm.
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          package_json_file: web/package.json
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -150,19 +143,16 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@60.1.3
 
-      # Pulls the project settings (root directory web/apps/web) and the env
-      # vars of the target Vercel environment. Preview's must point at the
-      # staging API and database.
-      - name: Pull project settings
-        run: vercel pull --yes --environment="$VERCEL_ENVIRONMENT" --token="$VERCEL_TOKEN"
-
-      - name: Build
-        run: vercel build $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN"
-
+      # Vercel builds the uploaded source in its own build container, using
+      # the project settings (root directory web/apps/web) and the env vars of
+      # the target environment; Preview's point at staging. Building here with
+      # `vercel build --prebuilt` would not work: Vercel never hands out the
+      # values of Sensitive env vars (BETTER_AUTH_SECRET and other secrets),
+      # so prerendering fails env validation.
       - name: Deploy
         id: deploy
         run: |
-          url="$(vercel deploy --prebuilt $VERCEL_PROD_FLAG --token="$VERCEL_TOKEN")"
+          url="$(vercel deploy $VERCEL_PROD_FLAG --archive=tgz --yes --token="$VERCEL_TOKEN")"
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       # Hobby has no custom environments, so staging is a preview deployment
