@@ -1,6 +1,9 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
-  extends: ["config:recommended"],
+  // Workflows pin actions to a commit SHA with the full version as a comment,
+  // because a tag like @v7 can be moved to different code. The helper pins
+  // any new action the same way and keeps SHA and comment in sync on updates.
+  extends: ["config:recommended", "helpers:pinGitHubActionDigestsToSemver"],
 
   // Mirror the supply-chain window in web/pnpm-workspace.yaml
   // (minimumReleaseAge: 10080 minutes) for every ecosystem, not just npm.
