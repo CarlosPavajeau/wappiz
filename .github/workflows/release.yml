@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # GoReleaser builds the changelog from the previous tag up to this
+          # one; a shallow clone has no earlier tags, so it would list only
+          # the tagged commit.
+          fetch-depth: 0
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -22,7 +27,8 @@ jobs:
         uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
-          version: ${{ env.GITHUB_REF_NAME }}
+          # Version of GoReleaser itself, not of the release being built.
+          version: "~> v2"
           args: release --clean
           workdir: ./
         env:
