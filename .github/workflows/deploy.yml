@@ -31,7 +31,7 @@ permissions:
 jobs:
   migrate:
     name: Migrate database
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment: ${{ inputs.environment }}
     defaults:
@@ -72,7 +72,7 @@ jobs:
   api:
     name: Deploy API
     needs: migrate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: ${{ inputs.environment }}
     env:
@@ -123,7 +123,7 @@ jobs:
   web:
     name: Deploy web
     needs: api
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment:
       name: ${{ inputs.environment }}

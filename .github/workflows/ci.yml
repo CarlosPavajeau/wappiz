@@ -13,7 +13,7 @@ permissions:
 jobs:
   go-ci:
     name: Go CI
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     steps:
@@ -55,7 +55,7 @@ jobs:
 
   golangci-lint:
     name: golangci-lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -80,7 +80,7 @@ jobs:
 
   generated:
     name: Generated code
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
