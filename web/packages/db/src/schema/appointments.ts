@@ -88,6 +88,15 @@ export const appointments = pgTable(
       table.status.asc().nullsLast(),
       table.startsAt.asc().nullsLast()
     ),
+    // Backs the calendar's per-customer list. no_customer_overlap also leads
+    // with (tenant_id, customer_id) but skips cancelled and no-show rows, so
+    // it cannot serve queries that include them.
+    index("idx_appointments_customer").using(
+      "btree",
+      table.tenantId.asc().nullsLast(),
+      table.customerId.asc().nullsLast(),
+      table.startsAt.asc().nullsLast()
+    ),
     index("idx_appointments_unattended")
       .using("btree", table.startsAt.asc().nullsLast())
       .where(sql`(status = 'confirmed'::appointment_status)`),

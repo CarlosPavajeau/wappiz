@@ -22,6 +22,7 @@ CREATE TABLE "appointments" (
 CREATE INDEX "idx_appointments_cancelled_recent" ON "appointments" ("cancelled_at" DESC) WHERE ((status = 'cancelled'::appointment_status) AND (cancelled_at IS NOT NULL));
 CREATE INDEX "idx_appointments_reminder" ON "appointments" ("starts_at","reminder_24h_sent_at","reminder_1h_sent_at") WHERE (status = 'confirmed'::appointment_status);
 CREATE INDEX "idx_appointments_status_date" ON "appointments" ("tenant_id","status","starts_at");
+CREATE INDEX "idx_appointments_customer" ON "appointments" ("tenant_id","customer_id","starts_at");
 CREATE INDEX "idx_appointments_unattended" ON "appointments" ("starts_at") WHERE (status = 'confirmed'::appointment_status);
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_tenant_id_tenants_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id");
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_resource_id_resources_id_fkey" FOREIGN KEY ("resource_id") REFERENCES "resources"("id");

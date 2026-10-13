@@ -1,0 +1,1 @@
+CREATE INDEX "idx_appointments_customer" ON "appointments" ("tenant_id","customer_id","starts_at");
