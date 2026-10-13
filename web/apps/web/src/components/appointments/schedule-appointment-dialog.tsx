@@ -41,6 +41,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Spinner } from "@/components/ui/spinner"
 import { api } from "@/lib/client-api"
+import { includesText } from "@/lib/text"
 import { listResourceServicesQuery } from "@/queries/resources"
 
 const scheduleAppointmentSchema = type({
@@ -535,16 +536,7 @@ function SearchableCombobox<T extends { id: string }>({
 }
 
 function matchesName(item: { name: string }, query: string): boolean {
-  return normalizeText(item.name).includes(normalizeText(query))
-}
-
-/** Case- and accent-insensitive comparison key ("Jose" matches "José"). */
-function normalizeText(value: string): string {
-  return value
-    .normalize("NFD")
-    .replaceAll(/[̀-ͯ]/gu, "")
-    .toLowerCase()
-    .trim()
+  return includesText(item.name, query)
 }
 
 function defaultValuesFor(date: Date): ScheduleAppointmentFormValues {
