@@ -195,7 +195,7 @@ importers:
         version: 17.4.2
       posthog-node:
         specifier: ^5.29.2
-        version: 5.52.4
+        version: 5.55.1
       zod:
         specifier: 'catalog:'
         version: 4.6.5
@@ -2387,6 +2387,9 @@ packages:
   '@posthog/core@1.55.0':
     resolution: {integrity: sha512-x+0FR+uHsK3uJeofd5X4S2YS7hjaWkzkPN0X1GROHm9SvKw2RJ91kfQ7gT1bPtFwZSHNiRtteB7fX/xEMRN0IQ==}
 
+  '@posthog/core@1.57.2':
+    resolution: {integrity: sha512-dfxeSjUvR+j4M7odvyf/KVdcKTZZ87u/l9swJtDt9vFkI2km3RhEveOkIHtFcZEQ1cllx7YaKJfdw6c8zfIEvg==}
+
   '@posthog/react@1.11.3':
     resolution: {integrity: sha512-YqvZb2y9jh/yW0ojUtAns0l4yHWqpu+5UeIBxZlXpyGuWlh8M4siXRMtqhEh1BKfqp6Sq2usdsQCuoUzx1QFWQ==}
     peerDependencies:
@@ -2399,6 +2402,9 @@ packages:
 
   '@posthog/types@1.412.2':
     resolution: {integrity: sha512-taxTh8o6n7ZVlC8qBypZvF+6w7/18yNkS9XDiGCbutGTKqIljfzYi/7pumgwN3mcnl/n0e9A+JhF05+nLd4Xaw==}
+
+  '@posthog/types@1.415.2':
+    resolution: {integrity: sha512-BIIHPyXcPZuNTImrR1qLqLKFw7j9o8co6LG/9OpLtpWJ3RT0y89Lx6VCtd37N9/dkr/qW7y0uPjJxAxjsALHtw==}
 
   '@radix-ui/primitive@1.1.7':
     resolution: {integrity: sha512-rqWnm76nYT8HoNNqEjpgJ7Pw/DrBj5iBTrmEPo6HTX5+VJyBNOqTdv4g89G63HuR5g0AaENoAcH7Is5fF2kZ8Q==}
@@ -5370,8 +5376,8 @@ packages:
       react:
         optional: true
 
-  posthog-node@5.52.4:
-    resolution: {integrity: sha512-P3p4OouGQfw/ouv+Px4gcVWLNwYsFB4JPyksYmxv7QRX4niwp1/C9XjQSUyl0nt+KoQnK14zFDfONHWVthwKDA==}
+  posthog-node@5.55.1:
+    resolution: {integrity: sha512-YLnILmFn1zxGYBuCaBldqMjTq9OZBNNbHIr2F0am3iLfU+6ZTvuRmUbTmys//+LnCA6DfZNGgqTb4goFa93u+Q==}
     engines: {node: ^20.20.0 || >=22.22.0}
     peerDependencies:
       rxjs: ^7.0.0
@@ -7473,6 +7479,10 @@ snapshots:
     dependencies:
       '@posthog/types': 1.412.2
 
+  '@posthog/core@1.57.2':
+    dependencies:
+      '@posthog/types': 1.415.2
+
   '@posthog/react@1.11.3(@types/react@19.3.0)(posthog-js@1.434.2(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)':
     dependencies:
       posthog-js: 1.434.2(@types/react@19.3.0)(react@19.3.0)
@@ -7481,6 +7491,8 @@ snapshots:
       '@types/react': 19.3.0
 
   '@posthog/types@1.412.2': {}
+
+  '@posthog/types@1.415.2': {}
 
   '@radix-ui/primitive@1.1.7': {}
 
@@ -10172,9 +10184,9 @@ snapshots:
     transitivePeerDependencies:
       - preact-render-to-string
 
-  posthog-node@5.52.4:
+  posthog-node@5.55.1:
     dependencies:
-      '@posthog/core': 1.55.0
+      '@posthog/core': 1.57.2
 
   powershell-utils@0.1.0: {}
 
