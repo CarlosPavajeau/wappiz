@@ -232,8 +232,6 @@ func Run(ctx context.Context, cfg Config) error {
 
 	g.Use(
 		gin.Recovery(),
-		// First, so traffic that bypassed Cloudflare costs no logging or tracing.
-		middleware.WithOriginSecret(cfg.OriginSecret),
 		// Health probes fire every few seconds from orchestrators and monitors.
 		server.WithLogging("/health/"),
 		server.WithRequestID(),

@@ -111,14 +111,9 @@ type Config struct {
 	// (TRUSTED_PLATFORM). It is read unconditionally, so only set it when the
 	// API is reachable exclusively through that platform.
 	TrustedPlatform string `env:"TRUSTED_PLATFORM"`
-	// OriginSecret is the value a Cloudflare Transform Rule sets in the
-	// X-Origin-Secret header (ORIGIN_SECRET). When set, requests without it
-	// are rejected, so callers cannot skip the WAF by hitting the platform's
-	// origin hostname directly. Empty disables the check.
-	OriginSecret  string `env:"ORIGIN_SECRET"`
-	Observability Observability
-	Webhook       WebhookConfig
-	PostHog       PostHogConfig
+	Observability   Observability
+	Webhook         WebhookConfig
+	PostHog         PostHogConfig
 	// Environment can be sandbox or production, used to filter active plans in the database
 	Environment string `env:"ENVIRONMENT, default=production"`
 }
