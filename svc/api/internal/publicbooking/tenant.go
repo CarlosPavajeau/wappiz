@@ -10,6 +10,7 @@ import (
 	"wappiz/pkg/codes"
 	"wappiz/pkg/db"
 	"wappiz/pkg/fault"
+	"wappiz/pkg/slugs"
 
 	"github.com/google/uuid"
 )
@@ -37,6 +38,10 @@ type Tenant struct {
 // inactive and opted-out tenants are indistinguishable to the caller so the
 // endpoint cannot be used to enumerate tenants.
 func FindTenant(ctx context.Context, database db.Database, slug string) (Tenant, error) {
+	if !slugs.IsValid(slug) {
+		return Tenant{}, notFound("malformed slug")
+	}
+
 	tenant, err := db.Query.FindTenantBySlug(ctx, database.Primary(), slug)
 	if err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
