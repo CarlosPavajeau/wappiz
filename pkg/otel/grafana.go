@@ -91,8 +91,12 @@ type Config struct {
 //
 //	// The runner will call shutdown during graceful termination
 func InitGrafana(ctx context.Context, config Config) (func(ctx context.Context) error, error) {
-	// Create a resource with common attributes
+	// OTEL_RESOURCE_ATTRIBUTES carries per-deployment attributes such as
+	// deployment.environment.name, which is what separates staging from
+	// production telemetry. It goes first so the attributes set in code win
+	// on conflicting keys.
 	res, err := resource.New(ctx,
+		resource.WithFromEnv(),
 		resource.WithAttributes(
 			semconv.ServiceNamespace("wappiz"),
 			semconv.ServiceName(config.Application),
