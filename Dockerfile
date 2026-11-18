@@ -8,10 +8,10 @@ RUN go mod download
 COPY . .
 
 # Railway injects RAILWAY_GIT_COMMIT_SHA as a build arg for GitHub-triggered
-# deploys. `railway up` (used by the deploy pipeline) has no git metadata, so
-# the pipeline sets APP_REVISION as a service variable, which Railway passes
-# as a build arg. APP_VERSION is an escape hatch for builds where .git (and
-# thus tags) is unavailable.
+# deploys, but not for the redeploys the pipeline makes, so the pipeline sets
+# APP_REVISION as a service variable, which Railway passes as a build arg.
+# APP_VERSION is an escape hatch for builds where .git (and thus tags) is
+# unavailable.
 ARG RAILWAY_GIT_COMMIT_SHA=""
 ARG APP_REVISION=""
 ARG APP_VERSION=""
