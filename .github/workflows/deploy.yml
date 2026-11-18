@@ -4,6 +4,9 @@ name: Deploy
 # database, deploy the API and wait until it serves the new revision, then
 # deploy the web app that calls it. Called by pipeline.yml.
 #
+# Autodeploy is off in Railway: this workflow is the only thing that deploys
+# the API, always at the commit it migrated for.
+#
 # The GitHub environment (prod) provides:
 #   secrets.DATABASE_URL   PlanetScale `migrations` role, which owns the schema
 #   secrets.RAILWAY_TOKEN  Railway project token scoped to that environment
@@ -73,7 +76,9 @@ jobs:
     needs: migrate
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    environment: ${{ inputs.environment }}
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ vars.API_URL }}
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       API_URL: ${{ vars.API_URL }}
@@ -88,36 +93,14 @@ jobs:
           node-version: 24
 
       - name: Install Railway CLI
-        run: npm install --global @railway/cli@5.62.1
+        run: npm install --global @railway/cli@5.70.0
 
-      # `railway up` carries no git metadata, so the Dockerfile reads the
-      # revision from this variable, which Railway passes as a build arg.
-      - name: Pass the revision to the build
-        run: railway variable set "APP_REVISION=$GITHUB_SHA" --service api --skip-deploys
-
+      # Railway builds this commit from its GitHub source (.railway/railway.ts),
+      # so the deployment carries its message and author. The script waits
+      # until the API serves this revision: that is what guarantees the
+      # web app never ships ahead of the API it calls.
       - name: Deploy
-        run: railway up --service api --ci --message "$GITHUB_SHA"
-
-      # `railway up --ci` returns once the image is built, not once it serves
-      # traffic. Railway only routes traffic to a deploy after /health/ready
-      # answers 200 (railway.json), and the endpoint reports the revision it
-      # was built from. Waiting for this commit's revision is what guarantees
-      # the web app never ships ahead of the API it calls.
-      - name: Wait for the new revision
-        run: |
-          deadline=$((SECONDS + 600))
-          while true; do
-            revision="$(curl -fsS --max-time 5 "${API_URL%/}/health/ready" | jq -r '.revision' || true)"
-            if [ "$revision" = "$GITHUB_SHA" ]; then
-              echo "API is serving $GITHUB_SHA"
-              exit 0
-            fi
-            if [ "$SECONDS" -ge "$deadline" ]; then
-              echo "::error::API still serves '${revision:-unreachable}' after 10 minutes, expected $GITHUB_SHA"
-              exit 1
-            fi
-            sleep 10
-          done
+        run: scripts/railway-deploy.sh
 
   web:
     name: Deploy web
