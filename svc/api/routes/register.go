@@ -207,7 +207,7 @@ func Register(g *gin.Engine, svc *Services) {
 	})
 
 	// webhooks
-	RegisterRoute(g, &webhooks_verify_webhook.Handler{})
+	RegisterRoute(g, &webhooks_verify_webhook.Handler{VerifyToken: svc.WebhookVerifyToken})
 
 	webhook := g.Group("/", middleware.WithWhatsAppSignature(svc.AppSecret))
 	RegisterRoute(webhook, &webhooks_process_webhook.Handler{Processor: svc.WebhookProcessor})

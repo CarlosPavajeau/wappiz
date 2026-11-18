@@ -69,6 +69,9 @@ type Services struct {
 	// AppSecret stores shared secret used to verify webhook signatures.
 	AppSecret string
 
+	// WebhookVerifyToken is the token Meta sends when it verifies the webhook URL.
+	WebhookVerifyToken string
+
 	// Crypto provides AES-GCM encrypt/decrypt for sensitive values at rest (e.g. access tokens).
 	Crypto *crypto.Service
 
