@@ -34,7 +34,12 @@ export default defineRailway((ctx) => {
     },
     // Virginia, next to PlanetScale (AWS us-east-1).
     replicas: { "us-east4-eqdc4a": 1 },
-    domains: [{ domain: "api.wappiz.cantte.com", port: 80 }],
+    // api-wappiz sits behind the Cloudflare proxy (Universal SSL covers one subdomain level only, so
+    // api.wappiz cannot). api.wappiz stays until its traffic dies out; see docs/plans/dominio-api-cloudflare.md.
+    domains: [
+      { domain: "api-wappiz.cantte.com", port: 80 },
+      { domain: "api.wappiz.cantte.com", port: 80 },
+    ],
     // No TCP proxy: metrics leave over OTLP, so the Prometheus port stays private.
     networking: { privateNetworkEndpoint: "wappiz-api" },
     env: {
@@ -50,6 +55,9 @@ export default defineRailway((ctx) => {
       DATABASE_URL: preserve(),
       REDIS_URL: preserve(),
       BUFFER_CAP: "2000",
+      // The API sits behind the Cloudflare proxy: the client IP the rate limits key on comes from this header.
+      // Gin reads it unconditionally, so no public route may reach Railway without passing through Cloudflare.
+      TRUSTED_PLATFORM: "CF-Connecting-IP",
 
       ENCRYPTION_KEY: preserve(),
       CLOUDFLARE_TURNSTILE_SECRET_KEY: preserve(),
