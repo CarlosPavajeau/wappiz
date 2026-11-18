@@ -6,10 +6,8 @@ name: Pipeline
 # - Pull requests only run CI; there is no preview deployment. Fork PRs get no
 #   secrets and must never reach a deploy (do not switch this to
 #   pull_request_target).
-# - Pushes to main deploy to production. Only the head of main can deploy:
-#   re-running an earlier commit's pipeline fails at the API. To roll back,
-#   use Rollback on a previous deployment in Railway (the web app in Vercel
-#   has its own) or revert on main; migrations only move forward, though.
+# - Pushes to main deploy to production. To roll back or redeploy, re-run the
+#   pipeline of an earlier main commit; migrations only move forward, though.
 on:
   pull_request:
   push:

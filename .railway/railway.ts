@@ -2,8 +2,8 @@
 // root. The database (PlanetScale), Redis and the web app (Vercel) live outside Railway.
 //
 // Autodeploy is off in the service's settings (the IaC has no field for it): .github/workflows/deploy.yml
-// migrates the database first and only then deploys the API, through scripts/railway-deploy.sh. Applied
-// with the Railway CLI by hand, never on push:
+// migrates the database first and only then deploys the API at that commit, through
+// scripts/railway-deploy.sh. Applied with the Railway CLI by hand, never on push:
 //   railway config plan    (preview)
 //   railway config apply   (asks for confirmation)
 //
@@ -28,8 +28,8 @@ export default defineRailway((ctx) => {
       // revision it was built from, which the deploy script waits for.
       healthcheckPath: "/health/ready",
       healthcheckTimeout: 120,
-      // A sleeping API would miss WhatsApp webhooks and delay reminders.
-      sleepApplication: false,
+      // sleepApplication stays unset, which is off: a sleeping API would miss WhatsApp webhooks and delay
+      // reminders. Railway reports false as null, so setting it would make plan always show a change.
       limitOverride: { containers: { cpu: 1, memoryBytes: 512 * MB } },
     },
     // Virginia, next to PlanetScale (AWS us-east-1).
