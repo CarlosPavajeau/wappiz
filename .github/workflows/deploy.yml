@@ -4,11 +4,10 @@ name: Deploy
 # database, deploy the API and wait until it serves the new revision, then
 # deploy the web app that calls it. Called by pipeline.yml.
 #
-# Each GitHub environment (staging, prod) provides:
+# The GitHub environment (prod) provides:
 #   secrets.DATABASE_URL   PlanetScale `migrations` role, which owns the schema
 #   secrets.RAILWAY_TOKEN  Railway project token scoped to that environment
 #   vars.API_URL           Public URL of the API, polled for the new revision
-#   vars.WEB_DOMAIN        Optional, staging only: domain aliased to the preview
 # And at repository level: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
 #
 # Actions are pinned to commit SHAs because these jobs hold production
@@ -60,7 +59,7 @@ jobs:
         run: pnpm install --frozen-lockfile --filter @wappiz/db...
 
       # Fails if an applied migration changed since, which migrate would
-      # silently skip. On staging, reset the database from prod to recover.
+      # silently skip.
       - name: Check migration history
         run: pnpm --filter @wappiz/db db:check-migrations
 
@@ -148,21 +147,12 @@ jobs:
 
       # Vercel builds the uploaded source in its own build container, using
       # the project settings (root directory web/apps/web) and the env vars of
-      # the target environment; Preview's point at staging. Building here with
-      # `vercel build --prebuilt` would not work: Vercel never hands out the
-      # values of Sensitive env vars (BETTER_AUTH_SECRET and other secrets),
-      # so prerendering fails env validation.
+      # the target environment. Building here with `vercel build --prebuilt`
+      # would not work: Vercel never hands out the values of Sensitive env
+      # vars (BETTER_AUTH_SECRET and other secrets), so prerendering fails env
+      # validation.
       - name: Deploy
         id: deploy
         run: |
           url="$(vercel deploy $VERCEL_PROD_FLAG --archive=tgz --yes --token="$VERCEL_TOKEN")"
           echo "url=$url" >> "$GITHUB_OUTPUT"
-
-      # Hobby has no custom environments, so staging is a preview deployment
-      # behind a fixed domain.
-      - name: Point the staging domain at this deployment
-        if: ${{ !inputs.production && vars.WEB_DOMAIN != '' }}
-        env:
-          WEB_DOMAIN: ${{ vars.WEB_DOMAIN }}
-          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
-        run: vercel alias set "$DEPLOY_URL" "$WEB_DOMAIN" --token="$VERCEL_TOKEN"
