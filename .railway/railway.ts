@@ -55,6 +55,9 @@ export default defineRailway((ctx) => {
       DATABASE_URL: preserve(),
       REDIS_URL: preserve(),
       BUFFER_CAP: "2000",
+      // The API sits behind the Cloudflare proxy: the client IP the rate limits key on comes from this header.
+      // Gin reads it unconditionally, so no public route may reach Railway without passing through Cloudflare.
+      TRUSTED_PLATFORM: "CF-Connecting-IP",
 
       ENCRYPTION_KEY: preserve(),
       CLOUDFLARE_TURNSTILE_SECRET_KEY: preserve(),

@@ -1,6 +1,7 @@
 # Plan: API en `api-wappiz.cantte.com` detrás de Cloudflare
 
-Estado: en curso desde el 2026-11-18. Pasos 1 y 2 hechos; falta el DNS en Cloudflare (paso 3).
+Estado: en curso desde el 2026-11-18. Hechos los pasos 1 a 5 y la parte de GitHub del 6; faltan Vercel y Meta, y
+retirar el dominio viejo.
 
 Los dominios propios no se pueden crear desde la IaC (`railway config` lo rechaza): se crean con
 `railway domain <dominio> -p 80 -s api` y después se listan en `.railway/railway.ts` para que `plan` no los
@@ -25,7 +26,7 @@ borre.
 
 | Tema | Decisión |
 |---|---|
-| Migración | Convivencia: el dominio nuevo se suma al actual; el viejo se retira tras unos 7 días sin tráfico. |
+| Migración | El dominio viejo se retira en cuanto Vercel y Meta usan el nuevo, sin esperar los 7 días (decidido el 2026-11-18): mientras exista, permite falsificar `CF-Connecting-IP`. |
 | IP del cliente | `TRUSTED_PLATFORM=CF-Connecting-IP` al activar el proxy. |
 | Protección de Cloudflare | Solo el proxy, con la protección DDoS y las reglas por defecto. Sin Bot Fight Mode: en el plan gratuito no se puede excluir una ruta y puede bloquear los webhooks de Meta. |
 | SSL | Full (strict). El proxy se activa después de que Railway emita el certificado. |
@@ -43,21 +44,22 @@ borre.
    `railway domain status 4513d9ef-ac4c-4d3b-a6f2-f25e0c59c5a6` muestre el dominio verificado y el certificado
    emitido.
 4. **Activar Cloudflare.** Modo SSL/TLS en Full (strict); activar el proxy del registro. No activar Bot Fight Mode.
-5. **IP real del cliente.** `TRUSTED_PLATFORM: "CF-Connecting-IP"` en `.railway/railway.ts` y
-   `railway config apply` (provoca un redeploy).
+5. ~~**IP real del cliente.**~~ Hecho: `TRUSTED_PLATFORM: "CF-Connecting-IP"` en `.railway/railway.ts`, aplicado.
+   Los logs muestran la IP real del cliente.
 6. **Pasar los consumidores al dominio nuevo.**
    - Vercel, entorno Production: `API_URL=https://api-wappiz.cantte.com`; redesplegar la web.
-   - GitHub, entorno `prod`: `API_URL=https://api-wappiz.cantte.com`.
+   - ~~GitHub, entorno `prod`: `API_URL=https://api-wappiz.cantte.com`.~~ Hecho.
    - Meta, app de producción: URL de callback del webhook al dominio nuevo; Meta la verifica con
      `WEBHOOK_VERIFY_TOKEN`.
-7. **Retirar el dominio viejo.** Unos 7 días después, si los logs HTTP de Railway
+7. **Retirar el dominio viejo.** En cuanto Vercel y Meta usen el nuevo, y si los logs HTTP de Railway
    (`railway logs --http --filter '@host:api.wappiz.cantte.com'`) no muestran tráfico, quitar
    `api.wappiz.cantte.com` de `.railway/railway.ts`, aplicar (`plan` debe mostrarlo como eliminación) y borrar su
    registro en Cloudflare.
 
 ## Verificación
 
-- `curl -sI https://api-wappiz.cantte.com/health/ready` responde 200 con la cabecera `cf-ray`.
+- `curl -sD - https://api-wappiz.cantte.com/health/ready` responde 200 con la cabecera `cf-ray` (la ruta solo
+  acepta GET: `curl -I` da 404).
 - `curl -sI https://wappiz-api-production.up.railway.app` ya no responde.
 - Iniciar sesión y hacer una acción real en la web funciona.
 - Un mensaje de WhatsApp llega al webhook y se procesa.
@@ -69,7 +71,7 @@ borre.
 - **Cabecera falsificada.** Una petición que llegue a Railway sin pasar por Cloudflare puede traer un
   `CF-Connecting-IP` falso y esquivar los límites por IP. Mitigación: no dejar dominios `*.up.railway.app`
   públicos en la API; el BFF ya exige `ORIGIN_SECRET`.
-- **Webhooks perdidos** durante el cambio de URL en Meta: por eso conviven los dos dominios.
+- **Webhooks perdidos** durante el cambio de URL en Meta: por eso el dominio viejo se quita después del cambio.
 
 ## Quién hace qué
 
