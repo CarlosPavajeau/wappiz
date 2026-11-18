@@ -1,8 +1,8 @@
 // Fails when the database's migration history disagrees with src/migrations
 // in a way `drizzle-kit migrate` would silently get wrong (see checkHistory
 // in migrations.ts for the rules). The deploy pipeline runs it before
-// migrating. On staging, a changed migration usually means a branch edited one
-// that an earlier push already applied; reset staging from prod to recover.
+// migrating. A changed migration means someone edited one that production
+// already applied; add a new migration instead of editing the old one.
 //
 // Usage: DATABASE_URL=... node scripts/check-migrations.ts
 

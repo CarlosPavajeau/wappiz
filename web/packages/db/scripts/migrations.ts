@@ -84,8 +84,8 @@ export async function inspectTrackingTable(
 // - changed: migrations whose file changed after they were applied. Drizzle
 //   matches by name, so it would silently keep the old version.
 // - ok: safe to migrate; `pending` will be applied.
-// `unknown` lists applied migrations missing locally (usually an abandoned
-// branch deployed to staging): worth reporting, never blocking.
+// `unknown` lists applied migrations missing locally (e.g. one removed from
+// the repository after it was applied): worth reporting, never blocking.
 export type HistoryCheck =
   | { kind: "not-baselined"; table: "missing" | "legacy" }
   | { kind: "changed"; changed: LocalMigration[]; unknown: string[] }
