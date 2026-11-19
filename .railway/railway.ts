@@ -34,12 +34,8 @@ export default defineRailway((ctx) => {
     },
     // Virginia, next to PlanetScale (AWS us-east-1).
     replicas: { "us-east4-eqdc4a": 1 },
-    // api-wappiz sits behind the Cloudflare proxy (Universal SSL covers one subdomain level only, so
-    // api.wappiz cannot). api.wappiz stays until its traffic dies out; see docs/plans/dominio-api-cloudflare.md.
-    domains: [
-      { domain: "api-wappiz.cantte.com", port: 80 },
-      { domain: "api.wappiz.cantte.com", port: 80 },
-    ],
+    // Behind the Cloudflare proxy. Not api.wappiz: Universal SSL covers one subdomain level only.
+    domains: [{ domain: "api-wappiz.cantte.com", port: 80 }],
     // No TCP proxy: metrics leave over OTLP, so the Prometheus port stays private.
     networking: { privateNetworkEndpoint: "wappiz-api" },
     env: {

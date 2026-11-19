@@ -1,11 +1,9 @@
 # Plan: API en `api-wappiz.cantte.com` detrás de Cloudflare
 
-Estado: en curso desde el 2026-11-18. Hechos los pasos 1 a 5 y la parte de GitHub del 6; faltan Vercel y Meta, y
-retirar el dominio viejo.
+Estado: terminado el 2026-11-19. Solo falta borrar en Cloudflare el registro de `api.wappiz.cantte.com`.
 
-Los dominios propios no se pueden crear desde la IaC (`railway config` lo rechaza): se crean con
-`railway domain <dominio> -p 80 -s api` y después se listan en `.railway/railway.ts` para que `plan` no los
-borre.
+La IaC no crea ni borra dominios propios: se crean con `railway domain <dominio> -p 80 -s api`, se borran con
+`railway domain delete <dominio> -s api`, y `.railway/railway.ts` los lista para que coincida con Railway.
 
 ## Contexto
 
@@ -44,21 +42,22 @@ borre.
 3. **DNS sin proxy.** En Cloudflare, crear los dos registros anteriores, el CNAME en modo solo DNS. Esperar a que
    `railway domain status 4513d9ef-ac4c-4d3b-a6f2-f25e0c59c5a6` muestre el dominio verificado y el certificado
    emitido.
-4. **Activar Cloudflare.** Modo SSL/TLS en Full (strict); activar el proxy del registro. Bot Fight Mode debe
-   quedar apagado (Security → Settings, buscar "Bot fight"): estaba encendido en `cantte.com` y respondía 403 al
-   paso "Wait for the new revision" desde los runners de GitHub.
+4. ~~**Activar Cloudflare.**~~ Hecho: SSL/TLS en Full (strict), proxy activo. Bot Fight Mode quedó apagado en
+   `cantte.com` (Security → Settings, buscar "Bot fight"): estaba encendido y desafiaba a todo cliente desde un
+   datacenter, que es justo quien llama a la API: los runners de GitHub, las funciones de servidor de Vercel
+   (el dashboard mostraba "Forbidden") y Meta. En el plan gratuito no se puede excluir un host ni una ruta. Por
+   lo mismo, `scripts/railway-deploy.sh` espera el estado del despliegue en Railway y no consulta la URL
+   pública.
 5. ~~**IP real del cliente.**~~ Hecho: `TRUSTED_PLATFORM: "CF-Connecting-IP"` en `.railway/railway.ts`, aplicado.
    Los logs muestran la IP real del cliente.
 6. **Pasar los consumidores al dominio nuevo.**
-   - Vercel, entorno Production: `VITE_API_URL=https://api-wappiz.cantte.com`; redesplegar la web (la variable se
-     lee en el build).
+   - ~~Vercel, entorno Production: `VITE_API_URL=https://api-wappiz.cantte.com`; redesplegar la web.~~ Hecho.
    - ~~GitHub, entorno `prod`: `API_URL=https://api-wappiz.cantte.com`.~~ Hecho.
-   - Meta, app de producción: URL de callback del webhook al dominio nuevo; Meta la verifica con
-     `WEBHOOK_VERIFY_TOKEN`.
-7. **Retirar el dominio viejo.** En cuanto Vercel y Meta usen el nuevo, y si los logs HTTP de Railway
-   (`railway logs --http --filter '@host:api.wappiz.cantte.com'`) no muestran tráfico, quitar
-   `api.wappiz.cantte.com` de `.railway/railway.ts`, aplicar (`plan` debe mostrarlo como eliminación) y borrar su
-   registro en Cloudflare.
+   - ~~Meta, app de producción: URL de callback `https://api-wappiz.cantte.com/webhook`.~~ Hecho. La verificación
+     fallaba siempre porque el handler no recibía `WEBHOOK_VERIFY_TOKEN` (arreglado en #109); el token se
+     regeneró.
+7. **Retirar el dominio viejo.** Hecho en Railway (`railway domain delete`) y en `.railway/railway.ts`, tras
+   comprobar que no recibía tráfico. Falta borrar su registro CNAME en Cloudflare.
 
 ## Verificación
 
