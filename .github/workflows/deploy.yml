@@ -10,7 +10,7 @@ name: Deploy
 # The GitHub environment (prod) provides:
 #   secrets.DATABASE_URL   PlanetScale `migrations` role, which owns the schema
 #   secrets.RAILWAY_TOKEN  Railway project token scoped to that environment
-#   vars.API_URL           Public URL of the API, polled for the new revision
+#   vars.API_URL           Public URL of the API, shown as the environment's URL
 # And at repository level: VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
 #
 # Actions are pinned to commit SHAs because these jobs hold production
@@ -81,7 +81,6 @@ jobs:
       url: ${{ vars.API_URL }}
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      API_URL: ${{ vars.API_URL }}
 
     steps:
       - name: Checkout repository
@@ -97,8 +96,8 @@ jobs:
 
       # Railway builds this commit from its GitHub source (.railway/railway.ts),
       # so the deployment carries its message and author. The script waits
-      # until the API serves this revision: that is what guarantees the
-      # web app never ships ahead of the API it calls.
+      # until that deployment is live: that is what guarantees the web app
+      # never ships ahead of the API it calls.
       - name: Deploy
         run: scripts/railway-deploy.sh
 

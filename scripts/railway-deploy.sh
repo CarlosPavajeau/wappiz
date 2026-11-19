@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Deploys the API at exactly GITHUB_SHA from its GitHub source and waits until it serves that revision, so
+# Deploys the API at exactly GITHUB_SHA from its GitHub source and waits until that deployment is live, so
 # the pipeline deploys the web app only once the API it calls is live. Called by .github/workflows/deploy.yml.
 #
 #   scripts/railway-deploy.sh
 #
-# Needs RAILWAY_TOKEN (a project token for the production environment), API_URL (the API's public URL),
-# GITHUB_SHA (the commit being deployed) and jq.
+# Needs RAILWAY_TOKEN (a project token for the production environment), GITHUB_SHA (the commit being
+# deployed) and jq.
 #
 # Railway builds from its GitHub source rather than from an upload, so each deployment shows its commit,
 # message and author. The CLI cannot pick a commit (`railway redeploy --from-source` builds whatever main
@@ -16,7 +16,6 @@ set -euo pipefail
 
 SERVICE=api
 : "${RAILWAY_TOKEN:?RAILWAY_TOKEN is required}"
-: "${API_URL:?API_URL is required}"
 : "${GITHUB_SHA:?GITHUB_SHA is required}"
 # Covers the Docker build on Railway plus the 120 s health check.
 TIMEOUT_SECONDS=${RAILWAY_DEPLOY_TIMEOUT:-900}
@@ -49,29 +48,28 @@ if [ -z "$deployment_id" ]; then
 fi
 echo "    deployment $deployment_id"
 
-# Railway routes traffic to a deployment only once /health/ready answers 200, and the endpoint reports
-# the revision it was built from, so this revision answering is what proves the deploy is live. The
-# deployment status only serves to fail fast when the build or the health check fails.
-echo "==> Waiting for $SERVICE to serve $GITHUB_SHA"
+# Railway marks a deployment SUCCESS only once its /health/ready answers 200 and traffic moves to it, and
+# this deployment is the one built from GITHUB_SHA, so SUCCESS proves the revision is live. The check runs
+# inside Railway: polling the public URL from here would go through Cloudflare, whose bot protection
+# challenges requests from GitHub's runners.
+echo "==> Waiting for deployment $deployment_id to go live"
 deadline=$((SECONDS + TIMEOUT_SECONDS))
 while ((SECONDS < deadline)); do
-  revision=$(curl -fsS --max-time 5 "${API_URL%/}/health/ready" | jq -r '.revision' || true)
-  if [ "$revision" = "$GITHUB_SHA" ]; then
-    echo " ✓ $SERVICE is serving $GITHUB_SHA"
-    exit 0
-  fi
-
   status=$(railway deployment list --service "$SERVICE" --limit 10 --json |
     jq -r --arg id "$deployment_id" '[.[] | select(.id == $id)] | first | .status // "PENDING"')
   case "$status" in
+    SUCCESS)
+      echo " ✓ $SERVICE is serving $GITHUB_SHA"
+      exit 0
+      ;;
     FAILED | CRASHED | REMOVED | SKIPPED)
       echo "::error::$SERVICE deployment $deployment_id ended as $status. Check its logs with: railway logs --service $SERVICE"
       exit 1
       ;;
   esac
-  echo "    $status (serving ${revision:-nothing})"
+  echo "    $status"
   sleep 10
 done
 
-echo "::error::$SERVICE still serves '${revision:-nothing}' after ${TIMEOUT_SECONDS}s, expected $GITHUB_SHA"
+echo "::error::$SERVICE deployment $deployment_id was not live after ${TIMEOUT_SECONDS}s"
 exit 1

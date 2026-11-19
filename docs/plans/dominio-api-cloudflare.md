@@ -16,7 +16,8 @@ borre.
 - Producción además expone `wappiz-api-production.up.railway.app` apuntando al puerto 9090: las métricas de
   Prometheus son públicas.
 - Quién llama a la API:
-  - La web en Vercel, desde el servidor (BFF), con `API_URL` y `ORIGIN_SECRET`. La API valida `ORIGIN_SECRET`.
+  - La web en Vercel, desde el navegador, con `VITE_API_URL` (se incrusta en el build). Todavía no hay BFF ni
+    comprobación de origen: `ORIGIN_SECRET` está en Railway, pero nadie lo lee.
   - Meta, con los webhooks de WhatsApp (callback configurado en la app de Meta de producción).
   - El pipeline, que consulta `${API_URL}/health/ready` (variable `API_URL` del entorno `prod` de GitHub).
 - La API no tiene `TRUSTED_PROXIES` ni `TRUSTED_PLATFORM`. Detrás de Cloudflare vería IPs de Cloudflare y los
@@ -43,11 +44,14 @@ borre.
 3. **DNS sin proxy.** En Cloudflare, crear los dos registros anteriores, el CNAME en modo solo DNS. Esperar a que
    `railway domain status 4513d9ef-ac4c-4d3b-a6f2-f25e0c59c5a6` muestre el dominio verificado y el certificado
    emitido.
-4. **Activar Cloudflare.** Modo SSL/TLS en Full (strict); activar el proxy del registro. No activar Bot Fight Mode.
+4. **Activar Cloudflare.** Modo SSL/TLS en Full (strict); activar el proxy del registro. Bot Fight Mode debe
+   quedar apagado (Security → Settings, buscar "Bot fight"): estaba encendido en `cantte.com` y respondía 403 al
+   paso "Wait for the new revision" desde los runners de GitHub.
 5. ~~**IP real del cliente.**~~ Hecho: `TRUSTED_PLATFORM: "CF-Connecting-IP"` en `.railway/railway.ts`, aplicado.
    Los logs muestran la IP real del cliente.
 6. **Pasar los consumidores al dominio nuevo.**
-   - Vercel, entorno Production: `API_URL=https://api-wappiz.cantte.com`; redesplegar la web.
+   - Vercel, entorno Production: `VITE_API_URL=https://api-wappiz.cantte.com`; redesplegar la web (la variable se
+     lee en el build).
    - ~~GitHub, entorno `prod`: `API_URL=https://api-wappiz.cantte.com`.~~ Hecho.
    - Meta, app de producción: URL de callback del webhook al dominio nuevo; Meta la verifica con
      `WEBHOOK_VERIFY_TOKEN`.
@@ -70,7 +74,8 @@ borre.
 
 - **Cabecera falsificada.** Una petición que llegue a Railway sin pasar por Cloudflare puede traer un
   `CF-Connecting-IP` falso y esquivar los límites por IP. Mitigación: no dejar dominios `*.up.railway.app`
-  públicos en la API; el BFF ya exige `ORIGIN_SECRET`.
+  públicos en la API. Mientras no exista la comprobación de origen, nada impide llamar a Railway directamente
+  con el `Host` de la API; el riesgo queda acotado a los límites por IP.
 - **Webhooks perdidos** durante el cambio de URL en Meta: por eso el dominio viejo se quita después del cambio.
 
 ## Quién hace qué
